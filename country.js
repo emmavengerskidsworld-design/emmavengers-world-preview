@@ -38,7 +38,7 @@ function ctStrings(pk){const out=[];const add=(o)=>{if(!o)return;if(typeof o==='
  P.stories.forEach(s=>{add(s.title);add(s.banner);Object.values(s.pages).forEach(ps=>ps.forEach(p=>add(p.text)));Object.values(s.reflection).forEach(add)});
  if(CT.ui){['shorter','needToKnow'].forEach(k=>add(CT.ui.strings[k]))}
  return out}
-function ctIndexStrings(pk){ctStrings(pk).forEach(([t,lg])=>{CT_ALL.add(t);if(lg==='fr')CT_FR.add(t)})}
+function ctIndexStrings(pk){ctStrings(pk).forEach(([t,lg])=>{CT_ALL.add(t);if(lg==='fr')CT_FR.add(t);if(window.EWi18n)EWi18n.markLang(t,lg)})}
 window.__ctryVoice=()=>[...new Set(Object.values(CT.packs).flatMap(pk=>ctStrings(pk).map(x=>x[0])))];
 /* Pilot clips exist once (default voice folder) in English and French, so every voice setting uses them. */
 window.voiceOnlyMia=t=>CT_ALL.has(t);
@@ -121,7 +121,7 @@ function ctry(a){if(ctRequire(a,ctry))return;const pk=CT.cur,P=ctPrefs(),pr=ctPr
   main.querySelectorAll('.cage').forEach(b=>b.onclick=()=>{sfx.tap();ctSetPrefs({age:b.dataset.age});go('ctry',ctA({from:fromLand?'land':''}))});ctLangBind(()=>go('ctry',ctA({from:fromLand?'land':''})));return}
  const modes=[['learn','📖','clearn'],['play','🧩','cplay'],['quiz','❓','cquiz'],['stories','📚','cstory']];
  main.innerHTML=`<div class="chub">
-  <div class="cdraft">${esc(UT('draft'))}</div>
+  ${pk.status!=='published'?`<div class="cdraft">${esc(UT('draft'))}</div>`:''}
   <div class="ccard"><div class="cflagbox">${ctFlag(pk.payload.flag)}</div><div class="cname"><b>${esc(LT(pk.payload.name))}</b>${me.stamp?`<span class="cstamp">🏅 ${esc(UT('visited'))}</span>`:''}</div><img class="cari" src="img/world/guides/ari-map.webp" alt="Ari"></div>
   ${GUIDE_HTML}<div class="cmodes">${modes.map(([k,ic,s])=>`<button class="cmode" data-go="${s}" data-mode="${k}"><i>${ic}</i><b>${esc(UT(k))}</b></button>`).join('')}</div>
   <div class="crow csettings"><div class="cseg" role="group"><button class="cagebtn${P.age==='little'?' on':''}" data-age="little" aria-pressed="${P.age==='little'}">${esc(UT('littleShort'))}</button><button class="cagebtn${P.age==='big'?' on':''}" data-age="big" aria-pressed="${P.age==='big'}">${esc(UT('bigShort'))}</button></div>

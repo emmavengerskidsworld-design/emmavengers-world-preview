@@ -14,7 +14,7 @@
   {"tag": "en", "name": "English", "englishName": "English", "dir": "ltr", "script": "Latn", "status": "active", "fallback": [],
    "voice": {"pack": "voice/", "engine": "kokoro", "voice": "af_heart", "lang": "en-us", "speed": 0.72, "pitch": 1.18, "note": "Default English voice (Mia). Stage 2 replaces it after the clarity test."}},
   {"tag": "fr", "name": "Français", "englishName": "French", "dir": "ltr", "script": "Latn", "status": "in-review", "fallback": ["en"],
-   "voice": {"pack": "voice/", "engine": "kokoro", "voice": "ff_siwis", "lang": "fr-fr", "speed": 0.8, "pitch": 1.0},
+   "voice": {"pack": "voice/fr/", "engine": "kokoro", "voice": "ff_siwis", "lang": "fr-fr", "speed": 0.8, "pitch": 1.0},
    "note": "Pilot French drafts await a fluent French reviewer."}
  ]
 }

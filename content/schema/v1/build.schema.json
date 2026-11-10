@@ -63,6 +63,19 @@
         "type": "string"
        }
       }
+     },
+     "overlays": {
+      "type": "array",
+      "items": {
+       "enum": [
+        "machine-draft",
+        "draft",
+        "reviewed",
+        "approved"
+       ]
+      },
+      "uniqueItems": true,
+      "description": "reviewStatus values of l10n overlay files this channel applies."
      }
     },
     "additionalProperties": false

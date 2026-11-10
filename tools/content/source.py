@@ -129,6 +129,9 @@ class Source:
             self.errors.append(f'{rel}: language {tag} is not in locales.json'); return
         if tag not in self.channel_locales:
             self.overlay_skipped.append((rel, tag)); return
+        okrev = self.cfg.get('build', {}).get('channels', {}).get(self.channel, {}).get('overlays')
+        if okrev is not None and doc.get('reviewStatus', 'draft') not in okrev:
+            self.overlay_skipped.append((rel, tag)); return
         for rid, paths in (doc.get('strings') or {}).items():
             r = self.records.get(rid)
             if r is None:

@@ -1,14 +1,19 @@
 {
  "$schema": "../schema/v1/build.schema.json",
- "note": "Build settings. Every build writes BOTH channels: 'live' (content/library, read by the live site) ships only published records in active languages; 'preview' (content/preview, read by the preview site and localhost) adds drafts and in-review languages so they can be tried. 'test' is used by the test suite only (adds test-only languages such as the sample Arabic pack) and is never written into the repo. Records left out are pruned with their references (e.g. a World Land place pointing at a draft country disappears) and the report lists them.",
- "channel": "preview",
+ "note": "Build settings. A plain build writes every channel in \"write\": 'live' -> content/library (read by the live site): published records only; 'preview' -> content/preview (read by the preview site and localhost): drafts too. locales = language statuses a channel ships (French is 'in-review': its Cameroon texts were approved for live by Emmanuel on 2026-11-10 pending a fluent review). overlays = review states of translation files (content/src/l10n/<tag>/) a channel uses: machine drafts appear on preview only until a person reviews them. 'test' is for the test suite only (adds test-only languages such as the sample Arabic pack) and is never written into the repo. Records left out are pruned with their references and the report lists them. 'channel' is the channel used when one output folder is given with --lib.",
+ "channel": "live",
  "channels": {
   "live": {
    "statuses": [
     "published"
    ],
    "locales": [
-    "active"
+    "active",
+    "in-review"
+   ],
+   "overlays": [
+    "reviewed",
+    "approved"
    ],
    "out": {
     "lib": "content/library",
@@ -28,6 +33,12 @@
     "active",
     "in-review"
    ],
+   "overlays": [
+    "machine-draft",
+    "draft",
+    "reviewed",
+    "approved"
+   ],
    "out": {
     "lib": "content/preview",
     "lock": "content/registry-preview.lock.json"
@@ -46,9 +57,19 @@
     "active",
     "in-review",
     "test-only"
+   ],
+   "overlays": [
+    "machine-draft",
+    "draft",
+    "reviewed",
+    "approved"
    ]
   }
  },
+ "write": [
+  "live",
+  "preview"
+ ],
  "player": {
   "min": "1.0.0",
   "maxExclusive": "2.0.0"
@@ -60,9 +81,5 @@
   "indexBytes": 524288,
   "catalogBytes": 65536,
   "stringChars": 10000
- },
- "write": [
-  "live",
-  "preview"
- ]
+ }
 }
