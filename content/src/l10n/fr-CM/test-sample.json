@@ -1,0 +1,12 @@
+{
+ "$schema": "../../../schema/v1/l10n-file.schema.json",
+ "locale": "fr-CM",
+ "note": "TEST-ONLY regional sample: one text differs from fr; everything else must come from fr, then en.",
+ "translator": "test sample",
+ "reviewStatus": "draft",
+ "strings": {
+  "ew.world.home": {
+   "payload.title": "Le monde des Emmavengers (Cameroun)"
+  }
+ }
+}

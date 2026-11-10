@@ -15,7 +15,9 @@ const placeById=(L,id)=>L&&L.places.find(p=>p.id===id);
 const wDeck=id=>LANDS.decks[id];
 function wSave(){try{return JSON.parse(localStorage.getItem('emmaWorld')||'{}')}catch(e){return{}}}
 function wPut(s){try{localStorage.setItem('emmaWorld',JSON.stringify(s))}catch(e){}}
-const wFill=(t,it)=>{const o=t.replace(/\{(\w+)\}/g,(_,k)=>k==='lname'?String(it.name).toLowerCase():k==='word'?String(it.word).toLowerCase():(it[k]!=null?it[k]:''));
+const wFill=(t,it)=>{const tl=window.EWi18n&&EWi18n.langOf(t),raw=it._lt||{};
+ const fv=k=>{const lt=raw[k];if(tl&&lt&&typeof lt==='object'&&lt[tl]!=null)return lt[tl];return it[k]}; /* item words in the template's language */
+ const o=t.replace(/\{(\w+)\}/g,(_,k)=>k==='lname'?String(fv('name')).toLowerCase():k==='word'?String(fv('word')).toLowerCase():(fv(k)!=null?fv(k):''));
  if(window.EWi18n&&EWi18n.langOf(t))EWi18n.markLang(o,EWi18n.langOf(t));return o}; /* the question is spoken in the template's language */
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* app words in the chosen language (i18n.js); N = number in the language's digits */

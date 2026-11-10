@@ -66,6 +66,7 @@ def lands(recs, locales, chain=('en',), seen=None):
         D = {'kind': p['kind']}
         if 'done' in p: D['done'] = p['done']
         D['items'] = [{k: (v['text'] if k == 'greeting' else v) for k, v in it.items()} for it in p['items']]
+        if seen is not None: D['_lt'] = r['payload']['items']   # validator only: item texts in every language (see _wfill)
         out['decks'][p['key']] = D
     lex = recs.get('ew.lexicon.letter-sounds')
     if lex:
@@ -244,7 +245,10 @@ def world_spoken(L, seen=None, ui=None):
     S = []
     A = lambda x: [S.append(t) for t in (x if isinstance(x, list) else [x]) if t]
     deck = lambda k: L['decks'].get(k)
-    def ask(tpl, it):
+    def ask(tpl, it, raw=None):
+        tl = seen.get(tpl) if seen is not None else None
+        if tl and raw:   # item words in the template's language (same as world.js wFill)
+            it = dict(it, **{k: v[tl] for k, v in raw.items() if isinstance(v, dict) and v.get(tl) is not None and k != 'greeting'})
         t = _wfill(tpl, it)
         if seen is not None and tpl in seen: seen.setdefault(t, seen[tpl])
         A(t)
@@ -254,8 +258,9 @@ def world_spoken(L, seen=None, ui=None):
         for p in Ld['places']:
             A(p.get('intro'))
             if p['type'] == 'quiz':
-                for it in deck(p['deck'])['items']:
-                    if it.get('hunt') is not False: ask(p['ask'], it)
+                D = deck(p['deck'])
+                for i, it in enumerate(D['items']):
+                    if it.get('hunt') is not False: ask(p['ask'], it, (D.get('_lt') or [None] * (i + 1))[i])
             if p['type'] == 'count':
                 for o in deck(p['objects'])['items']: A(o.get('ask'))
     if L.get('study'):

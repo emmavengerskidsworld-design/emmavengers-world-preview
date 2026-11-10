@@ -3,18 +3,136 @@
  "note": "Every language the game knows. A new language is added with DATA only: (1) an entry here (BCP 47 tag, own name, direction, script, fallback, voice), (2) its texts - inside records or as string files in content/src/l10n/<tag>/, (3) its voice clips (tools/gen_voice.py --lang <tag>). Nothing in the app is hard-coded to English or French. status: active = offered to children on the live site; in-review = offered on the preview site only (texts are drafts awaiting a fluent reviewer); planned = not offered; test-only = never shipped, used by the test suite only.",
  "sourceLocale": "en",
  "scripts": {
-  "Latn": {"fonts": ["Arial Rounded MT Bold", "Trebuchet MS", "Segoe UI", "Roboto", "Noto Sans", "system-ui", "sans-serif"]},
-  "Arab": {"fonts": ["Noto Naskh Arabic", "Noto Sans Arabic", "Geeza Pro", "Segoe UI", "Tahoma", "Arial", "sans-serif"], "note": "Arabic, Urdu, Persian: right-to-left, joined letters - never letter-space, never fake bold."},
-  "Deva": {"fonts": ["Noto Sans Devanagari", "Kohinoor Devanagari", "Nirmala UI", "Mangal", "sans-serif"]},
-  "Ethi": {"fonts": ["Noto Sans Ethiopic", "Kefa", "Nyala", "Ebrima", "sans-serif"], "note": "Amharic, Tigrinya (Ge'ez script)."},
-  "Hans": {"fonts": ["PingFang SC", "Noto Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "sans-serif"]},
-  "Hant": {"fonts": ["PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "Microsoft JhengHei", "sans-serif"]}
+  "Latn": {
+   "fonts": [
+    "Arial Rounded MT Bold",
+    "Trebuchet MS",
+    "Segoe UI",
+    "Roboto",
+    "Noto Sans",
+    "system-ui",
+    "sans-serif"
+   ]
+  },
+  "Arab": {
+   "fonts": [
+    "Noto Naskh Arabic",
+    "Noto Sans Arabic",
+    "Geeza Pro",
+    "Segoe UI",
+    "Tahoma",
+    "Arial",
+    "sans-serif"
+   ],
+   "note": "Arabic, Urdu, Persian: right-to-left, joined letters - never letter-space, never fake bold."
+  },
+  "Deva": {
+   "fonts": [
+    "Noto Sans Devanagari",
+    "Kohinoor Devanagari",
+    "Nirmala UI",
+    "Mangal",
+    "sans-serif"
+   ]
+  },
+  "Ethi": {
+   "fonts": [
+    "Noto Sans Ethiopic",
+    "Kefa",
+    "Nyala",
+    "Ebrima",
+    "sans-serif"
+   ],
+   "note": "Amharic, Tigrinya (Ge'ez script)."
+  },
+  "Hans": {
+   "fonts": [
+    "PingFang SC",
+    "Noto Sans SC",
+    "Noto Sans CJK SC",
+    "Microsoft YaHei",
+    "sans-serif"
+   ]
+  },
+  "Hant": {
+   "fonts": [
+    "PingFang TC",
+    "Noto Sans TC",
+    "Noto Sans CJK TC",
+    "Microsoft JhengHei",
+    "sans-serif"
+   ]
+  }
  },
  "locales": [
-  {"tag": "en", "name": "English", "englishName": "English", "dir": "ltr", "script": "Latn", "status": "active", "fallback": [],
-   "voice": {"pack": "voice/", "engine": "kokoro", "voice": "af_heart", "lang": "en-us", "speed": 0.72, "pitch": 1.18, "note": "Default English voice (Mia). Stage 2 replaces it after the clarity test."}},
-  {"tag": "fr", "name": "Français", "englishName": "French", "dir": "ltr", "script": "Latn", "status": "in-review", "fallback": ["en"],
-   "voice": {"pack": "voice/fr/", "engine": "kokoro", "voice": "ff_siwis", "lang": "fr-fr", "speed": 0.8, "pitch": 1.0},
-   "note": "Pilot French drafts await a fluent French reviewer."}
+  {
+   "tag": "en",
+   "name": "English",
+   "englishName": "English",
+   "dir": "ltr",
+   "script": "Latn",
+   "status": "active",
+   "fallback": [],
+   "voice": {
+    "pack": "voice/",
+    "engine": "kokoro",
+    "voice": "af_heart",
+    "lang": "en-us",
+    "speed": 0.72,
+    "pitch": 1.18,
+    "note": "Default English voice (Mia). Stage 2 replaces it after the clarity test."
+   }
+  },
+  {
+   "tag": "fr",
+   "name": "Français",
+   "englishName": "French",
+   "dir": "ltr",
+   "script": "Latn",
+   "status": "in-review",
+   "fallback": [
+    "en"
+   ],
+   "voice": {
+    "pack": "voice/fr/",
+    "engine": "kokoro",
+    "voice": "ff_siwis",
+    "lang": "fr-fr",
+    "speed": 0.8,
+    "pitch": 1.1
+   },
+   "note": "Pilot French drafts await a fluent French reviewer."
+  },
+  {
+   "tag": "ar",
+   "name": "العربية",
+   "englishName": "Arabic (test sample)",
+   "dir": "rtl",
+   "script": "Arab",
+   "status": "test-only",
+   "fallback": [
+    "en"
+   ],
+   "voice": null,
+   "note": "TEST-ONLY sample pack to prove right-to-left layout, Arabic fonts, plural rules and fallback. Small, unreviewed, never shipped (no channel but 'test' ships test-only languages)."
+  },
+  {
+   "tag": "fr-CM",
+   "name": "Français (Cameroun)",
+   "englishName": "French (Cameroon, test sample)",
+   "dir": "ltr",
+   "script": "Latn",
+   "status": "test-only",
+   "fallback": [],
+   "voice": {
+    "pack": "voice/fr/",
+    "engine": "kokoro",
+    "voice": "ff_siwis",
+    "lang": "fr-fr",
+    "speed": 0.8,
+    "pitch": 1.1
+   },
+   "note": "TEST-ONLY regional variant proving the fallback chain fr-CM -> fr -> en (a regional tag falls back to its base language automatically)."
+  }
  ]
 }

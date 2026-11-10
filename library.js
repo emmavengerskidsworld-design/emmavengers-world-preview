@@ -391,7 +391,10 @@ function create(opts) {
           for (const [k, v] of Object.entries(q)) { if (k === 'key') o.id = v; else if (k === 'deck' || k === 'objects') o[k] = key(v); else if (k === 'country') o[k] = (R(v) ? R(v).payload.slug : summaryOf(v).slug); else o[k] = v } return o });
         if (p.layout.m6) L.m6 = p.layout.m6; out.lands.push(L) }
       for (const r of api.find({ type: 'deck' })) { const p = flat(r.payload, ch); const D = { kind: p.kind }; if ('done' in p) D.done = p.done;
-        D.items = p.items.map(it => Object.fromEntries(Object.entries(it).map(([k, v]) => [k, k === 'greeting' ? v.text : v]))); out.decks[p.key] = D }
+        D.items = p.items.map((it, i) => { const o = Object.fromEntries(Object.entries(it).map(([k, v]) => [k, k === 'greeting' ? v.text : v]));
+          /* the item's texts in every downloaded language, so a question template fills in words of ITS language
+             ("Find the {lname}!" never becomes "Find the أسد!" when only the name is translated) */
+          Object.defineProperty(o, '_lt', { value: r.payload.items[i], enumerable: false }); return o }); out.decks[p.key] = D }
       const lex = R('ew.lexicon.letter-sounds'); if (lex) for (const e of lex.payload.entries) out.phonemes[e.text] = e.ipa;
       const st = R('ew.library.study');
       if (st) { const p = flat(st.payload, ch); out.study = { prompt: p.prompt, sections: p.sections.map(s => { const o = {};

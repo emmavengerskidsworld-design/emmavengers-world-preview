@@ -65,10 +65,22 @@ def main():
     ap.add_argument("--force", action="store_true", help="regenerate even if file exists")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--lang", default="en-us", help="Kokoro/espeak language, e.g. fr-fr with --kokoro ff_siwis (French pilot lines)")
+    ap.add_argument("--locale", default=None, help="language tag from content/src/locales.json: its voice record gives the "
+                    "Kokoro voice, phonemizer language, speed, pitch and folder (a new language needs no code here)")
     args = ap.parse_args()
+    if args.locale:
+        L = {l["tag"]: l for l in json.load(open(ROOT / "content" / "src" / "locales.json"))["locales"]}
+        v = (L.get(args.locale) or {}).get("voice")
+        if not v or v.get("engine") != "kokoro":
+            raise SystemExit(f"locale {args.locale!r} has no kokoro voice in locales.json")
+        args.kokoro, args.lang = v["voice"], v.get("lang", args.lang)
+        args.speed = args.speed if args.speed is not None else v.get("speed", 1.0)
+        args.sh = args.sh if args.sh is not None else v.get("pitch", 1.0)
+        args.outdir = args.outdir or v["pack"]
+        args.voice = "locale:" + args.locale
 
     vid = args.voice
-    if vid not in VOICES and not (args.kokoro and args.speed and args.sh):
+    if vid not in VOICES and not (args.kokoro and args.speed is not None and args.sh is not None):
         raise SystemExit(f"unknown voice {vid!r}; known: {list(VOICES)}")
     kv, sp, sh, gender, label = VOICES.get(vid, (None, None, None, None, vid))
     kv = args.kokoro or os.environ.get("VOICE") or kv
