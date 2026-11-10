@@ -87,9 +87,9 @@ for k in FX:
 same_src = all(open(os.path.join(dp, f), 'rb').read() == open(os.path.join(SRC, os.path.relpath(os.path.join(dp, f), src)), 'rb').read()
                for dp, _, fs in os.walk(src) for f in fs)
 if same_src:
-    cat, recs = hydrate.load(os.path.join(ROOT, 'content/library'))
+    cat, recs = hydrate.load(os.path.join(ROOT, 'content/preview'))
     got = legacy_set(recs, ['en', 'fr'])
-    ok(all(got[k] == FX[k] for k in FX), 'committed content/library gives the app exactly the pre-Stage-1 data')
+    ok(all(got[k] == FX[k] for k in FX), 'committed content/preview gives the app exactly the pre-Stage-1 data')
 else:
     print('  note content/src was edited after the migration: parity with the legacy files is no longer expected (skipped)')
 

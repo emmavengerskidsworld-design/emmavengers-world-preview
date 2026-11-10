@@ -393,6 +393,14 @@
     "show": {
      "type": "string",
      "maxLength": 40
+    },
+    "nameDef": {
+     "$ref": "#/$defs/lt",
+     "description": "The name with its definite article in each language (\"the lion\", \"le lion\", \"la girafe\"), for question templates like \"Find {nameDef}!\"."
+    },
+    "nameOf": {
+     "$ref": "#/$defs/lt",
+     "description": "The name as the object of \"of\" (\"of Cameroon\", \"du Cameroun\", \"de l'Afrique du Sud\"), for templates like \"Quel est le drapeau {nameOf} ?\"."
     }
    },
    "anyOf": [

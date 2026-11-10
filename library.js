@@ -20,8 +20,15 @@
    (blueprint 05 section 7, TUF) are a later step.
 
    API (window.EWLib): ready (Promise), get(id), find({type,land,ageBand,mode,subject,region,topic,pack}),
-   text(lt, lang), textOr(lt, [langs]), locales(), packs(), ensure(packId), packFor(recordId), status(),
-   checkForUpdates(), applyUpdate(), on(event, fn), forEachText(fn), legacy.{lands,countryIndex,uiStrings,country}. */
+   text(lt, lang), textOr(lt, [langs]), pick(lt) -> {text, lang}, locales(), locale(tag), chain(tag), lang(),
+   setLanguage(tag), packs(), ensure(packId), packFor(recordId), status(), checkForUpdates(), applyUpdate(),
+   on(event, fn), forEachText(fn), legacy.{lands,countryIndex,uiStrings,country}.
+
+   Languages: the catalog lists the languages of this channel (tag, own name, direction, script fonts, fallback
+   chain, voice folder). The device keeps ONE chosen language (localStorage 'emmaLang'; first visit: the phone's
+   languages, else the source language). Only the language files of the chosen language and its fallback chain
+   (e.g. fr-CM -> fr -> en) are downloaded and kept; switching downloads just the missing language files, and
+   files of languages no longer used are removed from the device. */
 (function (G) {
 'use strict';
 const PLAYER = '1.0.0', FORMAT = 1, SCHEMA_MAJOR = '1';
@@ -96,8 +103,10 @@ function hydrate(struct, langs) {
 }
 
 function create(opts) {
-  const cfg = Object.assign({ base: 'content/library/', db: 'ew-content-v1', locales: null, autoUpdate: true, updateDelay: 4000,
+  const cfg = Object.assign({ base: defaultBase(), db: null, locales: null, lang: null, autoUpdate: true, updateDelay: 4000,
     minIntervalMs: 6 * 3600 * 1000, timeoutMs: 20000, retries: 2, player: PLAYER, templates: TEMPLATES, fetch: null, log: false }, opts || {});
+  /* one database per site folder + channel: the live and preview sites share an origin on GitHub Pages */
+  if (!cfg.db) cfg.db = 'ew-content-v1:' + siteKey() + ':' + cfg.base;
   const fetchFn = cfg.fetch || ((u, o) => G.fetch(u, o));
   const listeners = {};
   const S = { ready: false, sequence: 0, source: null, lastCheck: 0, lastResult: null, errors: [], fetched: [], bytes: 0, storage: null, skipped: [], pending: null };
@@ -146,7 +155,33 @@ function create(opts) {
     if (rq.schema && String(rq.schema) !== SCHEMA_MAJOR) return 'schema ' + rq.schema;
     const miss = (rq.templates || []).filter(t => !cfg.templates.includes(t));
     return miss.length ? 'needs ' + miss.join(', ') : null };
-  const wantLocales = cat => cfg.locales || cat.locales.filter(l => l.status === 'active' || l.status === 'in-review').map(l => l.tag);
+  /* ---------- languages ---------- */
+  const LKEY = 'emmaLang';
+  const lsGet = k => { try { return G.localStorage ? G.localStorage.getItem(k) : null } catch (e) { return null } };
+  const lsSet = (k, v) => { try { G.localStorage && G.localStorage.setItem(k, v) } catch (e) {} };
+  const offered = cat => (cat.locales || []).map(l => l.tag);
+  const srcOf = cat => cat.sourceLocale || 'en';
+  /* BCP 47 fallback: the tag, its shorter forms (fr-CM -> fr), the record's fallback list (each expanded the same
+     way), then the source language. Only languages this catalog offers are kept. */
+  function chainFor(cat, tag) {
+    const have = new Set(offered(cat)), out = [], seen = new Set();
+    const add = t => { if (!t || seen.has(t)) return; seen.add(t);
+      const parts = t.split('-'); for (let i = parts.length; i > 0; i--) { const s = parts.slice(0, i).join('-'); if (have.has(s) && !out.includes(s)) out.push(s) }
+      const L = (cat.locales || []).find(l => l.tag === t); if (L) (L.fallback || []).forEach(add) };
+    add(tag); add(srcOf(cat)); return out.length ? out : [srcOf(cat)] }
+  /* first visit: best match of the phone's languages (navigator.languages), else the source language */
+  function negotiate(cat) {
+    const have = offered(cat), low = have.map(x => x.toLowerCase());
+    const prefs = (G.navigator && (G.navigator.languages || [G.navigator.language])) || [];
+    for (const p of prefs) { if (!p) continue; let q = String(p).toLowerCase();
+      while (q) { const i = low.indexOf(q); if (i >= 0) return have[i]; q = q.includes('-') ? q.slice(0, q.lastIndexOf('-')) : '' } }
+    return srcOf(cat) }
+  function chosen(cat) {
+    const want = cfg.lang || lsGet(LKEY);
+    if (want && offered(cat).includes(want)) return want;
+    return negotiate(cat) }
+  /* languages whose text files are downloaded: the chosen one + its chain (cfg.locales overrides, for tests) */
+  const wantLocales = cat => cfg.locales || chainFor(cat, chosen(cat));
 
   /* Build (or extend) the in-memory model from verified files. */
   function newModel(cat, catSha) {
@@ -154,6 +189,9 @@ function create(opts) {
   function addIndex(m, coll, f) {
     if (f.json.format !== FORMAT || f.json.collection !== coll.id) throw new LibError('format', 'index ' + coll.id + ' does not match the catalog');
     m.indexes[coll.id] = f.json; m.idxSha[coll.id] = f.sha; for (const e of f.json.packs) { e._coll = coll.id; m.entries[e.id] = e } }
+  function dropPack(m, pid) {
+    m.order = m.order.filter(id => { const r = m.recs.get(id); if (r && r._pack === pid) { m.recs.delete(id); return false } return true });
+    delete m.packs[pid] }
   function addPack(m, e, sf, lfs) {
     if (sf.json.format !== FORMAT || sf.json.pack !== e.id) throw new LibError('format', 'pack file ' + e.id + ' does not match its index');
     for (const lf of lfs) if (lf.json.pack !== e.id || lf.json.struct !== e.file.sha256 || lf.json.strings.length !== sf.json.strings) throw new LibError('mismatch', 'language file ' + e.id + '@' + lf.json.locale + ' was built for another version');
@@ -276,9 +314,35 @@ function create(opts) {
         out.push(r) }
       return out },
     text: (lt, lang) => (lt && typeof lt === 'object' && lt[lang] != null) ? lt[lang] : null,
+    /* the text for the chosen language, walking the fallback chain; lang = the language actually used */
+    pick(lt, tag) { if (lt == null) return { text: null, lang: null }; if (typeof lt === 'string') return { text: lt, lang: null };
+      for (const l of tag ? chainFor(M.cat, tag) : curChain()) if (lt[l] != null) return { text: lt[l], lang: l };
+      const k = Object.keys(lt)[0]; return k ? { text: lt[k], lang: k } : { text: null, lang: null } },
+    lang: () => M ? chosen(M.cat) : null,
+    chain: tag => M ? chainFor(M.cat, tag || chosen(M.cat)) : [],
+    locale: tag => M ? (M.cat.locales.find(l => l.tag === (tag || chosen(M.cat))) || null) : null,
+    /* switch language: downloads only the language files that are missing for the installed packs, verifies them,
+       re-reads the packs, stores the choice and removes files of languages no longer needed. */
+    async setLanguage(tag) {
+      if (!M || !offered(M.cat).includes(tag)) throw new LibError('unknown-language', String(tag));
+      const prev = chosen(M.cat); cfg.lang = tag; lsSet(LKEY, tag);
+      try {
+        const langs = wantLocales(M.cat), blobs = {}, packs = {};
+        for (const [pid, have] of Object.entries(M.packs)) {
+          const e = M.entries[pid]; if (!e) continue;
+          const sf = await getRef(e.file, 'pack'), lfs = [];
+          for (const lg of langs) if (e.locales && e.locales[lg]) { const lf = await getRef(e.locales[lg], 'lang'); if (lf.fromNet) blobs[lf.sha] = lf.text; lfs.push(lf) }
+          packs[pid] = [e, sf, lfs] }
+        for (const [pid, [e, sf, lfs]] of Object.entries(packs)) { dropPack(M, pid); addPack(M, e, sf, lfs) }
+        const snap = Object.assign({}, st.active, { packs: Object.assign({}, st.active.packs, ...Object.keys(packs).map(p => ({ [p]: M.packs[p] }))) });
+        await store.commit(blobs, st = Object.assign({}, st, { active: snap })); await gc();
+        if (S.pending) S.pending = null; /* an update downloaded for the old language is re-checked next time */
+      } catch (e) { cfg.lang = prev; lsSet(LKEY, prev); throw e }
+      emit('language', { lang: tag, chain: wantLocales(M.cat) }); return wantLocales(M.cat) },
     textOr(lt, langs) { for (const l of langs || []) { const t = api.text(lt, l); if (t != null) return t } return null },
     locales: () => M ? M.cat.locales.slice() : [],
     installedLocales: () => M ? wantLocales(M.cat) : [],
+    downloadedLocales: () => M ? [...new Set(Object.values(M.packs).flatMap(p => Object.keys(p.locales)))] : [],
     packs: () => M ? Object.values(M.entries).map(e => ({ id: e.id, collection: e._coll, revision: e.revision, preload: e.preload, installed: !!M.packs[e.id], summary: e.summary || null, locales: Object.keys(e.locales || {}), bytes: e.file.bytes })) : [],
     packFor(id) { if (M.recs.has(id)) return M.recs.get(id)._pack; const e = Object.values(M.entries).find(e => e.summary && e.summary.id === id); return e ? e.id : null },
     async ensure(packId) {
@@ -306,24 +370,31 @@ function create(opts) {
 
   /* ---------- pre-Stage-1 shapes for today's screens (same rules as tools/content/legacy.py) ---------- */
   const isLtE = v => isLt(v);
-  const flat = (o, lg) => isLtE(o) ? o[lg] : Array.isArray(o) ? o.map(x => flat(x, lg)) : (o && typeof o === 'object') ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, flat(v, lg)])) : o;
+  /* localized texts -> plain strings in the chosen language (fallback chain). The language each string came from is
+     remembered (api.langOf) so the voice can use the right language's clip. */
+  const LANG_OF = new Map();
+  api.langOf = t => LANG_OF.get(t) || null;
+  const pickC = (lt, ch) => { for (const l of ch) if (lt[l] != null) { LANG_OF.set(lt[l], l); return lt[l] } const k = Object.keys(lt)[0]; return lt[k] };
+  const flat = (o, ch) => isLtE(o) ? pickC(o, ch) : Array.isArray(o) ? o.map(x => flat(x, ch)) : (o && typeof o === 'object') ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, flat(v, ch)])) : o;
+  const curChain = () => wantLocales(M.cat);
   const R = id => M.recs.get(id);
   const key = id => R(id).payload.key;
   api.legacy = {
-    lands() {
+    lands(tag) {
+      const ch = tag ? chainFor(M.cat, tag) : curChain();
       const W = R('ew.world.home').payload;
-      const out = { version: W.formatVersion || 1, world: { title: W.title.en, img: W.img, intro: W.intro.en, layout: W.layout, bg2: W.bg2 }, lands: [], decks: {}, phonemes: {}, study: null };
-      for (const lid of W.lands) { const r = R(lid); if (!r) continue; const p = flat(r.payload, 'en'); const L = { id: p.key, name: p.name };
+      const out = { version: W.formatVersion || 1, world: { title: flat(W.title, ch), img: W.img, intro: flat(W.intro, ch), layout: W.layout, bg2: W.bg2 }, lands: [], decks: {}, phonemes: {}, study: null };
+      for (const lid of W.lands) { const r = R(lid); if (!r) continue; const p = flat(r.payload, ch); const L = { id: p.key, name: p.name };
         if (p.landType) L.type = p.landType; for (const k of ['color', 'img', 'music']) if (k in p) L[k] = p[k];
         for (const [k, v] of Object.entries(p.layout)) if (k !== 'm6') L[k] = v; L.intro = p.intro;
         L.places = p.places.filter(q => !q.country || M.recs.has(q.country) || api.packFor(q.country)).map(q => { const o = {};
           for (const [k, v] of Object.entries(q)) { if (k === 'key') o.id = v; else if (k === 'deck' || k === 'objects') o[k] = key(v); else if (k === 'country') o[k] = (R(v) ? R(v).payload.slug : summaryOf(v).slug); else o[k] = v } return o });
         if (p.layout.m6) L.m6 = p.layout.m6; out.lands.push(L) }
-      for (const r of api.find({ type: 'deck' })) { const p = flat(r.payload, 'en'); const D = { kind: p.kind }; if ('done' in p) D.done = p.done;
+      for (const r of api.find({ type: 'deck' })) { const p = flat(r.payload, ch); const D = { kind: p.kind }; if ('done' in p) D.done = p.done;
         D.items = p.items.map(it => Object.fromEntries(Object.entries(it).map(([k, v]) => [k, k === 'greeting' ? v.text : v]))); out.decks[p.key] = D }
       const lex = R('ew.lexicon.letter-sounds'); if (lex) for (const e of lex.payload.entries) out.phonemes[e.text] = e.ipa;
       const st = R('ew.library.study');
-      if (st) { const p = flat(st.payload, 'en'); out.study = { prompt: p.prompt, sections: p.sections.map(s => { const o = {};
+      if (st) { const p = flat(st.payload, ch); out.study = { prompt: p.prompt, sections: p.sections.map(s => { const o = {};
           for (const [k, v] of Object.entries(s)) { if (k === 'key') o.id = v; else if (k === 'source') o[k] = v.deck ? 'deck:' + key(v.deck) : (v.module || ''); else o[k] = v } return o }) };
         if (st.evidence && st.evidence.note) out.study._help = st.evidence.note }
       return out },
@@ -377,6 +448,14 @@ function create(opts) {
   return api;
 }
 
+/* which library this site reads: the preview site and local test servers read content/preview (drafts, in-review
+   languages); every other address reads content/library (live channel: published records, active languages). */
+function defaultBase() {
+  const L = G.location || {}, p = String(L.pathname || ''), h = String(L.hostname || '');
+  if (G.EW_CHANNEL === 'live') return 'content/library/';
+  if (G.EW_CHANNEL === 'preview' || /(^|\/)emmavengers-world-preview(\/|$)/.test(p) || h === 'localhost' || h === '127.0.0.1' || h === '[::1]') return 'content/preview/';
+  return 'content/library/' }
+function siteKey() { const p = String((G.location || {}).pathname || '/'); return p.slice(0, p.lastIndexOf('/') + 1) }
 G.EWLibrary = { create, sha256, sha256js, PLAYER, FORMAT, LibError };
 if (G.EW_LIBRARY_AUTO !== false && !G.EWLib) { G.EWLib = create(G.EW_LIBRARY_CONFIG || {}); G.EWLib.ready.catch(() => {}) }
 })(typeof window !== 'undefined' ? window : globalThis);

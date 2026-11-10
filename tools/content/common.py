@@ -86,3 +86,22 @@ def write_json(path, obj, pretty=True):
             f.write('\n')
         else:
             f.write(dumps(obj).decode('utf-8'))
+
+
+def chain_for(locales_cfg, tag, offered=None):
+    """Fallback chain of a language, same rules as library.js chainFor(): the tag, its shorter forms (fr-CM -> fr),
+    its fallback list (each expanded the same way), then the source language; only languages offered are kept."""
+    L = {l['tag']: l for l in locales_cfg.get('locales', [])}
+    have = set(offered if offered is not None else L)
+    out, seen = [], set()
+    def add(t):
+        if not t or t in seen: return
+        seen.add(t)
+        parts = t.split('-')
+        for i in range(len(parts), 0, -1):
+            s = '-'.join(parts[:i])
+            if s in have and s not in out: out.append(s)
+        for f in L.get(t, {}).get('fallback', []): add(f)
+    src = locales_cfg.get('sourceLocale', 'en')
+    add(tag); add(src)
+    return out or [src]

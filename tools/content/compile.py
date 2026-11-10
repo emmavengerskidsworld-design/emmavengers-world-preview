@@ -28,7 +28,7 @@ class Build:
     def __init__(self, src, validator, lock, channel=None):
         self.S, self.V = src, validator
         self.lock = copy.deepcopy(lock) if lock else {'records': {}, 'retired': {}, 'packs': {}, 'releases': [], 'sequence': 0}
-        self.channel = channel or src.cfg['build']['channel']
+        self.channel = channel or getattr(src, 'channel', None) or src.cfg['build']['channel']
         self.files = {}          # relpath -> bytes
         self.notes = []          # human notes for the report
         self.pruned = []
@@ -39,7 +39,7 @@ class Build:
 
     def run(self):
         S, cfg = self.S, self.S.cfg
-        locales = [l['tag'] for l in cfg['locales']['locales']]
+        locales = list(S.channel_locales)   # languages this channel ships; others' texts never reach its files
         inc = self.included()
         excluded = sorted(set(S.records) - inc)
         for rid in excluded:
@@ -102,7 +102,8 @@ class Build:
         bcfg = cfg['build']
         cat = {'format': FORMAT, 'schemaVersion': SCHEMA_VERSION, 'channel': self.channel, 'sequence': 0, 'issued': '',
                'player': {k: v for k, v in bcfg['player'].items()},
-               'locales': [{k: l[k] for k in ('tag', 'name', 'dir', 'status')} for l in cfg['locales']['locales']],
+               'sourceLocale': cfg['locales'].get('sourceLocale', 'en'),
+               'locales': [self.locale_entry(l) for l in cfg['locales']['locales'] if l['tag'] in locales],
                'collections': cols, 'withdrawals': []}
         body = sha256(canonical({k: v for k, v in cat.items() if k not in ('sequence', 'issued')}))
         last = L['releases'][-1] if L['releases'] else None
@@ -121,6 +122,17 @@ class Build:
         self.catalog = cat
         self.recs = recs
         return self
+
+    def locale_entry(self, l):
+        """Everything the app needs to switch to a language with no code change: names, direction, script fonts,
+        fallback chain and where its voice clips live."""
+        e = {k: l[k] for k in ('tag', 'name', 'englishName', 'dir', 'script', 'status', 'fallback') if k in l}
+        sc = self.S.cfg['locales'].get('scripts', {}).get(l.get('script'), {})
+        if sc.get('fonts'): e['fonts'] = sc['fonts']
+        if l.get('numberingSystem'): e['numberingSystem'] = l['numberingSystem']
+        v = l.get('voice')
+        e['voice'] = {'pack': v['pack']} if v else None
+        return e
 
     def put(self, base, obj):
         b = dumps(obj)

@@ -12,7 +12,7 @@ from playwright.async_api import async_playwright
 ROOT=Path(__file__).resolve().parents[1];OUT=Path(sys.argv[1] if len(sys.argv)>1 else '/workspace/cameroon-pilot-shots');OUT.mkdir(parents=True,exist_ok=True)
 sys.path.insert(0,str(ROOT/'tools'))
 from content import hydrate,legacy  # the expected text comes from the content library (hash-verified), in the legacy pack shape
-_cat,_recs=hydrate.load(str(ROOT/'content/library'));PK,BANK=legacy.country(_recs,'ew.country.cameroon')
+_cat,_recs=hydrate.load(str(ROOT/'content/preview'));PK,BANK=legacy.country(_recs,'ew.country.cameroon')
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a):pass
     def handle(self):

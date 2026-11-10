@@ -1,0 +1,87 @@
+{
+ "$schema": "../../../schema/v1/l10n-file.schema.json",
+ "locale": "fr",
+ "note": "Machine-drafted French (Stage 2). Must be checked by a fluent French speaker before French goes active on the live site. French typography: no-break space before ! ? : ; and inside « ».",
+ "translator": "machine draft (Grok Bot), Stage 2",
+ "reviewStatus": "machine-draft",
+ "strings": {
+  "ew.world.home": {
+   "payload.title": "Le monde des Emmavengers",
+   "payload.intro": "Bienvenue dans le monde des Emmavengers ! Choisis un pays à explorer !"
+  },
+  "ew.land.faith": {
+   "payload.name": "Pays de la Foi",
+   "payload.intro": "Bienvenue au Pays de la Foi ! Visite la Maison des Emmavengers, le Pays de la Bible, la journée de Mia et le Coin prière !",
+   "payload.places.house.name": "Maison des Emmavengers",
+   "payload.places.house.sub": "Pièces et jeux",
+   "payload.places.bible.name": "Pays de la Bible",
+   "payload.places.bible.sub": "Histoires de la Bible",
+   "payload.places.mia.name": "La journée de Mia",
+   "payload.places.mia.sub": "La routine du matin",
+   "payload.places.prayer.name": "Coin prière",
+   "payload.places.prayer.sub": "Prie avec moi",
+   "payload.places.prayer.intro": "Le Coin prière ! Touche une prière et prions ensemble !"
+  },
+  "ew.land.letter": {
+   "payload.name": "Pays des Lettres",
+   "payload.intro": "Bienvenue au Pays des Lettres ! Ici, on apprend les lettres et leurs sons en anglais !",
+   "payload.places.abc.name": "Sons ABC",
+   "payload.places.abc.sub": "Touche une lettre",
+   "payload.places.hunt.name": "Chasse aux lettres",
+   "payload.places.hunt.sub": "Jeu de la première lettre"
+  },
+  "ew.land.number": {
+   "payload.name": "Pays des Nombres",
+   "payload.intro": "Bienvenue au Pays des Nombres ! Comptons de un à dix !",
+   "payload.places.numbers.name": "1 à 10",
+   "payload.places.numbers.sub": "Touche un nombre",
+   "payload.places.numbers.intro": "Touche un nombre et compte avec moi !",
+   "payload.places.count.name": "Compte !",
+   "payload.places.count.sub": "Combien ?",
+   "payload.places.count.intro": "On compte ! Touche chaque objet pour le compter, puis choisis le nombre !"
+  },
+  "ew.land.study": {
+   "payload.name": "Pays du Savoir",
+   "payload.intro": "Bienvenue au Pays du Savoir, la grande bibliothèque ! Choisis une étagère et apprends quelque chose de nouveau !"
+  },
+  "ew.land.nature": {
+   "payload.name": "Pays de la Nature",
+   "payload.intro": "Bienvenue au Pays de la Nature ! Allons voir des animaux incroyables !",
+   "payload.places.safari.name": "Safari des animaux",
+   "payload.places.safari.sub": "Le savais-tu ?",
+   "payload.places.safari.intro": "Touche un animal pour découvrir un fait amusant !",
+   "payload.places.animalquiz.name": "Quiz des animaux",
+   "payload.places.animalquiz.sub": "Trouve l'animal",
+   "payload.places.animalquiz.ask": "Trouve {nameDef} !",
+   "payload.places.animalquiz.intro": "Quiz des animaux ! Sauras-tu trouver le bon animal ?"
+  },
+  "ew.land.world": {
+   "payload.name": "Pays du Monde",
+   "payload.intro": "Bienvenue au Pays du Monde ! Partons visiter des pays d'Afrique !",
+   "payload.places.cameroon.name": "Cameroun",
+   "payload.places.cameroon.sub": "Apprendre · Jouer · Quiz · Histoires",
+   "payload.places.countries.name": "Cartes des pays",
+   "payload.places.countries.sub": "Bonjour et cuisine",
+   "payload.places.countries.intro": "Touche un pays pour dire bonjour !",
+   "payload.places.flagquiz.name": "Quiz des drapeaux",
+   "payload.places.flagquiz.sub": "Trouve le drapeau",
+   "payload.places.flagquiz.ask": "Quel est le drapeau {nameOf} ?",
+   "payload.places.flagquiz.intro": "Quiz des drapeaux ! Sauras-tu trouver le bon drapeau ?"
+  },
+  "ew.library.study": {
+   "payload.prompt": "Choisis une étagère !",
+   "payload.sections.animals.name": "Animaux",
+   "payload.sections.animals.intro": "Les animaux ! Touche une image pour en savoir plus !",
+   "payload.sections.house.name": "Objets de la maison",
+   "payload.sections.house.intro": "Les objets de la maison ! Touche une image pour savoir à quoi ça sert !",
+   "payload.sections.flags.name": "Drapeaux des pays",
+   "payload.sections.flags.intro": "Les drapeaux ! Touche un drapeau pour visiter un pays !",
+   "payload.sections.letters.name": "Lettres",
+   "payload.sections.letters.intro": "Les lettres ! Touche une lettre pour entendre son son en anglais !",
+   "payload.sections.numbers.name": "Nombres",
+   "payload.sections.numbers.intro": "Les nombres ! Touche un nombre pour compter avec moi !",
+   "payload.sections.bible.name": "Histoires de la Bible",
+   "payload.sections.bible.intro": "Les histoires de la Bible ! Touche un livre pour le lire !"
+  }
+ }
+}

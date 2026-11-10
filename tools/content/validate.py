@@ -4,10 +4,53 @@ Severity: error = the build must stop; warn = allowed but listed in the report f
 import json, os, re
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
-from .common import ID_RE, LOCALE_RE, is_lt, walk_lt, vh, canonical
+from .common import chain_for, ID_RE, LOCALE_RE, is_lt, walk_lt, vh, canonical
 from . import legacy
 
 PLACEHOLDER = re.compile(r'\{(\w+)\}')
+
+
+def icu_args(s):
+    """Argument names in an ICU-style message ({name}, {n, plural, one {# x} other {# xs}}, {g, select, ...}).
+    Raises ValueError on unbalanced braces or a malformed plural/select (the app would show it wrongly)."""
+    out, i, n = set(), 0, len(s)
+    def block(i, depth):
+        while i < n:
+            c = s[i]
+            if c == '{':
+                j = i + 1
+                while j < n and s[j] not in ',}{': j += 1
+                arg = s[i + 1:j].strip()
+                if j >= n or s[j] == '{' or not re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', arg): raise ValueError(f'bad placeholder near {s[i:i+20]!r}')
+                out.add(arg)
+                if s[j] == '}': i = j + 1; continue
+                k = j + 1
+                while k < n and s[k] not in ',}': k += 1
+                typ = s[j + 1:k].strip()
+                if typ not in ('number', 'plural', 'select', 'selectordinal'): raise ValueError(f'unknown placeholder type {typ!r}')
+                if k < n and s[k] == '}': i = k + 1; continue
+                k += 1; opts = 0
+                while True:
+                    while k < n and s[k].isspace(): k += 1
+                    if k >= n: raise ValueError('unclosed placeholder')
+                    if s[k] == '}': k += 1; break
+                    ks = k
+                    while k < n and s[k] != '{' and not s[k].isspace(): k += 1
+                    key = s[ks:k]
+                    while k < n and s[k].isspace(): k += 1
+                    if k >= n or s[k] != '{' or not key: raise ValueError(f'option {key!r} needs {{...}}')
+                    k = block(k + 1, depth + 1); opts += 1
+                    if typ != 'number' and key == 'other': opts = -999
+                if typ in ('plural', 'select', 'selectordinal') and opts > -900: raise ValueError(f'{typ} needs an "other" option')
+                i = k; continue
+            if c == '}':
+                if depth == 0: raise ValueError('unbalanced }')
+                return i + 1
+            i += 1
+        if depth: raise ValueError('unclosed {')
+        return i
+    block(0, 0)
+    return out
 TAG = re.compile(r'<\s*/?\s*([a-zA-Z][a-zA-Z0-9]*)[^>]*>')
 BAD = re.compile(r'javascript:|\bon[a-z]+\s*=|<\s*script|<\s*iframe|data:text/html', re.I)
 TYPE_PREFIX = {'world': ['world'], 'land': ['land'], 'deck': ['deck'], 'library': ['library'], 'lexicon': ['lexicon'],
@@ -162,7 +205,7 @@ class Validator:
         if r['sourceLanguage'] not in self.locales:
             self.add('error', 'locale', w, f'sourceLanguage {r["sourceLanguage"]} not in locales.json')
         for lg in r.get('l10n', {}):
-            if lg != 'required' and lg not in self.locales:
+            if lg not in ('required', 'sourceOnly') and lg not in self.locales:
                 self.add('error', 'locale', w, f'l10n has unknown locale {lg}')
         markup = self.cap.get('markupFields', {})
         for path, lt in walk_lt({'payload': r['payload'], 'tags': r['tags']}, self.locales):
@@ -172,8 +215,14 @@ class Validator:
             miss = sorted(req - set(lt))
             if miss:
                 self.add('error', 'missing-text', w, f'{path}: no {"/".join(miss)} text (required for this pack)')
-            ph = {lg: set(PLACEHOLDER.findall(s)) for lg, s in lt.items()}
-            if len({frozenset(v) for v in ph.values()}) > 1:
+            ph = {}
+            for lg, s in lt.items():
+                try: ph[lg] = icu_args(s)
+                except ValueError as e: self.add('error', 'placeholders', w, f'{path}.{lg}: {e}: {s[:60]!r}')
+            # a question template on a land place may use different item fields per language (grammar forms such as
+            # {nameDef} = "le lion"); type_land checks each one is a field of the deck items
+            free = r['type'] == 'land' and path.endswith('.ask')
+            if not free and len({frozenset(v) for v in ph.values()}) > 1:
                 self.add('error', 'placeholders', w, f'{path}: placeholders differ between languages {ph}')
             for lg, s in lt.items():
                 self.check_text(w, f'{path}.{lg}', s, None)
@@ -201,7 +250,7 @@ class Validator:
         getattr(self, 'type_' + t.replace('-', '_'), lambda *a: None)(rid, r, w)
         # stale translations
         for lg, st in r.get('l10n', {}).items():
-            if lg != 'required' and isinstance(st, dict) and st.get('sourceRevision') and r.get('revision') and st['sourceRevision'] < r['revision']:
+            if lg not in ('required', 'sourceOnly') and isinstance(st, dict) and st.get('sourceRevision') and r.get('revision') and st['sourceRevision'] < r['revision']:
                 self.add('warn', 'stale-translation', w, f'{lg} was made from revision {st["sourceRevision"]}, record is now revision {r["revision"]}')
 
     def check_text(self, w, path, s, allowed_tags):
@@ -367,6 +416,60 @@ class Validator:
                     self.add('error', 'withdrawn', w, f'{path}: uses withdrawn record {v}')
 
     # ---- files on disk: pictures and voice clips -------------------------
+    # ---- languages: coverage per language, fallback chains, right-to-left --------------------------------------
+    RTL_SCRIPTS = {'Arab', 'Hebr', 'Thaa', 'Syrc', 'Nkoo', 'Adlm', 'Rohg', 'Mand', 'Samr'}
+    STRONG_RTL = re.compile('[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]')
+    BIDI_OVERRIDE = re.compile('[\u202D\u202E]')
+    BIDI_EMBED = re.compile('[\u202A\u202B]')
+
+    def check_languages(self, recs, LOC, chan_locs):
+        S, lcfg = self.S, self.cfg.get('locales', {})
+        src = lcfg.get('sourceLocale', 'en')
+        scripts = lcfg.get('scripts', {})
+        for tag, l in LOC.items():
+            w = 'content/src/locales.json'
+            if l.get('script') and l['script'] not in scripts:
+                self.add('error', 'locale', w, f'{tag}: script {l["script"]} has no font stack in "scripts"')
+            rtl_script = l.get('script') in self.RTL_SCRIPTS
+            if (l.get('dir') == 'rtl') != rtl_script:
+                self.add('error', 'rtl', w, f'{tag}: dir {l.get("dir")!r} does not match script {l.get("script")} (right-to-left scripts: {", ".join(sorted(self.RTL_SCRIPTS))})')
+            for f in l.get('fallback', []):
+                if f not in LOC: self.add('error', 'locale', w, f'{tag}: fallback {f} is not a language in locales.json')
+                elif f == tag: self.add('error', 'locale', w, f'{tag}: falls back to itself')
+            ch = chain_for(lcfg, tag)
+            if ch[-1] != src and src in LOC: self.add('error', 'locale', w, f'{tag}: fallback chain {ch} does not end in the source language {src}')
+            if l.get('status') == 'active' and not l.get('voice'):
+                self.add('warn', 'no-voice', w, f'{tag} is active but has no voice: children see text only')
+        # coverage: share of translatable texts each shipped language has (records marked sourceOnly are skipped)
+        cov = {lg: {} for lg in chan_locs}
+        self.missing_text = {lg: [] for lg in chan_locs}
+        for rid, r in recs.items():
+            if r.get('l10n', {}).get('sourceOnly'): continue
+            pk = S.pack_of(rid)
+            for path, lt in walk_lt({'payload': r['payload']}, self.locales):
+                for lg in chan_locs:
+                    c = cov[lg].setdefault(pk, [0, 0]); c[1] += 1
+                    if lt.get(lg) is not None: c[0] += 1
+                    elif lg != src and len(self.missing_text[lg]) < 2000: self.missing_text[lg].append((rid, path))
+                    if lt.get(lg) is not None and (LOC.get(lg) or {}).get('dir') == 'rtl':
+                        t = lt[lg]; wr = S.where(rid)
+                        if self.BIDI_OVERRIDE.search(t): self.add('error', 'rtl', wr, f'{path}.{lg}: contains a bidi override (U+202D/U+202E) - can reverse text; use isolates (U+2066-2069)')
+                        elif self.BIDI_EMBED.search(t): self.add('warn', 'rtl', wr, f'{path}.{lg}: uses old bidi embeddings (U+202A/B); prefer isolates (U+2066-2069)')
+                        if not self.STRONG_RTL.search(t) and re.search('[A-Za-z]{3,}', t) and t != lt.get(src):
+                            self.add('warn', 'rtl', wr, f'{path}.{lg}: right-to-left language text has no right-to-left letters: {t[:50]!r}')
+                        elif t == lt.get(src) and re.search('[A-Za-z]{3,}', t):
+                            self.add('warn', 'rtl', wr, f'{path}.{lg}: identical to the {src} text (not translated?)')
+        self.coverage = cov
+        for lg in chan_locs:
+            if lg == src: continue
+            n, tot = sum(v[0] for v in cov[lg].values()), sum(v[1] for v in cov[lg].values())
+            st = (LOC.get(lg) or {}).get('status')
+            miss = self.missing_text[lg]
+            msg = f'[{lg}] {n}/{tot} texts translated ({(100 * n / tot if tot else 100):.0f}%); missing ones show in {" -> ".join(chain_for(lcfg, lg, chan_locs)[1:])}'
+            self.add('warn' if st == 'active' and miss else 'info', 'coverage', 'content', msg)
+            for rid, path in miss[:8 if st == 'active' else 0]:
+                self.add('warn', 'missing-translation', S.where(rid), f'[{lg}] {path}')
+
     def check_assets_and_voice(self):
         if not self.check_files:
             return
@@ -387,27 +490,52 @@ class Validator:
                     self.assets.setdefault(v, set()).add(S.pack_of(rid))
                 elif path.endswith(('.icon2', '.bg2', '.art2')) and not os.path.isfile(os.path.join(map2, v)):
                     self.add('info', 'optional-art', w, f'{path}: optional new art {v} not made yet (old art is used)')
-        # spoken lines -> voice clips, using the same rules as the app
-        self.spoken = {}
+        # spoken lines -> voice clips, per language, using the same rules as the app (world.js, country.js)
+        self.spoken = {}            # text -> (pack, language) - first language that speaks it
+        self.spoken_by_lang = {}    # language -> {text: (pack, language the text is in)}
         recs = {rid: S.records[rid] for rid in S.in_channel(self.allowed)}
+        lcfg = self.cfg.get('locales', {})
+        LOC = {l['tag']: l for l in lcfg.get('locales', [])}
+        chan_locs = list(S.channel_locales)
         try:
-            L = legacy.lands(recs, self.locales)
-            for t in legacy.world_spoken(L): self.spoken.setdefault(t, ('core', 'en'))
-            ui = legacy.ui_strings(recs) if 'ew.ui.country-player' in recs else None
-            for r in recs.values():
-                if r['type'] == 'country':
-                    pk, bank = legacy.country(recs, r['id'])
-                    for t, lg in legacy.country_spoken(pk, bank, ui): self.spoken.setdefault(t, (S.pack_of(r['id']), lg))
+            for lang in chan_locs:
+                ch = chain_for(lcfg, lang, chan_locs)
+                seen, got = {}, {}
+                L = legacy.lands(recs, self.locales, ch, seen)
+                ui = legacy.ui_spoken(recs, ch, seen)
+                for t in legacy.world_spoken(L, seen, ui): got.setdefault(t, ('core', seen.get(t, lcfg.get('sourceLocale', 'en'))))
+                uic = legacy.ui_strings(recs) if 'ew.ui.country-player' in recs else None
+                for r in recs.values():
+                    if r['type'] == 'country':
+                        pk, bank = legacy.country(recs, r['id'])
+                        offered = [l for l in pk['locales'] if l in chan_locs] or [lcfg.get('sourceLocale', 'en')]
+                        cl = next((l for l in ch if l in offered), offered[0])   # country.js: app language if the pack has it
+                        for t, lg in legacy.country_spoken(pk, bank, uic, (cl,)): got.setdefault(t, (S.pack_of(r['id']), lg))
+                self.spoken_by_lang[lang] = got
+                for t, v in got.items(): self.spoken.setdefault(t, v)
         except Exception as e:
             self.add('error', 'adapter', 'content/src', f'could not build the app view of the content: {type(e).__name__}: {e}')
             return
-        missing = [(t, p, lg) for t, (p, lg) in self.spoken.items() if not os.path.isfile(os.path.join(root, 'voice', vh(t) + '.mp3'))]
-        for t, p, lg in missing[:40]:
-            self.add('error', 'missing-voice', p, f'[{lg}] no voice clip voice/{vh(t)}.mp3 for: {t[:80]!r}')
-        if len(missing) > 40:
-            self.add('error', 'missing-voice', 'content', f'... and {len(missing) - 40} more lines without voice clips')
+        self.voice_missing = {}
+        src = lcfg.get('sourceLocale', 'en')
+        for lang, got in self.spoken_by_lang.items():
+            miss = []
+            for t, (p, lg) in got.items():
+                V = (LOC.get(lg) or {}).get('voice')
+                if not V: continue          # that language has no voice yet (text only) - reported in coverage
+                if not os.path.isfile(os.path.join(root, V['pack'], vh(t) + '.mp3')): miss.append((t, p, lg, V['pack']))
+            self.voice_missing[lang] = miss
+            st = (LOC.get(lang) or {}).get('status')
+            sev = 'error' if (lang == src or st == 'active') else 'warn' if st == 'in-review' else 'info'
+            for t, p, lg, pk in miss[:25]:
+                self.add(sev, 'missing-voice', p, f'[{lang}] no voice clip {pk}{vh(t)}.mp3 for ({lg}): {t[:80]!r}')
+            if len(miss) > 25:
+                self.add(sev, 'missing-voice', 'content', f'[{lang}] ... and {len(miss) - 25} more lines without voice clips')
         self.stats['spoken'] = len(self.spoken)
-        self.stats['voiceMissing'] = len(missing)
+        self.stats['voiceMissing'] = sum(len(v) for v in self.voice_missing.values())
+        self.stats['voiceByLang'] = {lg: {'lines': len(got), 'missing': len(self.voice_missing.get(lg, [])),
+                                          'voice': bool((LOC.get(lg) or {}).get('voice'))} for lg, got in self.spoken_by_lang.items()}
+        self.check_languages(recs, LOC, chan_locs)
         lex = S.records.get('ew.lexicon.letter-sounds')
         if lex:
             for e in lex['payload']['entries']:
