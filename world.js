@@ -47,8 +47,20 @@ addEventListener('popstate',()=>{if(hIgnore){hIgnore=false;return}hGuard=false;
 /* --- map sizing: the 9:16 map fills the space under the header without overflowing --- */
 function fitMap(){const m=$('#wmap');if(!m)return;const cs=getComputedStyle(main);
  const top=m.offsetTop-main.offsetTop,avH=main.clientHeight-top-parseFloat(cs.paddingBottom)-10,avW=main.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
- const w=Math.max(160,Math.min(avW,avH*9/16));m.style.width=w+'px';m.style.height=(w*16/9)+'px'}
+ const w=Math.max(160,Math.min(avW,avH*9/16));m.style.width=w+'px';m.style.height=(w*16/9)+'px';fitLabels(m)}
+/* Names differ in length from language to language ("Le monde des Emmavengers", "Pays des Nombres"): the title board
+   and the land signs shrink a little, wrap onto two lines if still too wide, and are nudged back inside the map. */
+function fitLabels(m){const W=m.clientWidth;if(!W)return;
+ m.querySelectorAll('.w6title,.wsign').forEach(e=>{e.style.fontSize='';e.style.whiteSpace='';e.style.maxWidth='';e.style.textAlign=''});
+ const t=m.querySelector('.w6title');if(t){let fs=parseFloat(getComputedStyle(t).fontSize);for(let i=0;i<14&&t.offsetWidth>W*.94;i++){fs*=.93;t.style.fontSize=fs+'px'}}
+ const mr=m.getBoundingClientRect();
+ m.querySelectorAll('.wsignb').forEach(b=>{const s=b.querySelector('.wsign');if(!s)return;b.style.marginLeft='';
+  if(s.offsetWidth>W*.5){s.style.whiteSpace='normal';s.style.maxWidth=(W*.46)+'px';s.style.textAlign='center'}
+  let fs=parseFloat(getComputedStyle(s).fontSize);for(let i=0;i<6&&s.offsetWidth>W*.5;i++){fs*=.93;s.style.fontSize=fs+'px'}
+  const r=b.getBoundingClientRect();let dx=0;if(r.left<mr.left+3)dx=mr.left+3-r.left;else if(r.right>mr.right-3)dx=mr.right-3-r.right;
+  if(dx)b.style.marginLeft=dx+'px'})}
 addEventListener('resize',fitMap);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{const m=$('#wmap');if(m)fitLabels(m)});
 
 /* --- World map (home) --- */
 function home(){curLand=null;state={};if(!LANDS){go('house');return}const W=LANDS.world;$('#title').textContent=W.title;

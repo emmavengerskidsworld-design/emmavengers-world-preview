@@ -144,7 +144,9 @@ function ctLangBind(re){main.querySelectorAll('.clang').forEach(b=>b.onclick=()=
 addEventListener('ewlang',()=>{const re=CT.onLang;CT.onLang=null;Promise.all(Object.keys(CT.packs).map(ctLoadOne)).then(()=>{if(CT.cur)CT.cur=CT.packs[CT.cur.payload.slug]||CT.cur;
  if(CT_SCREENS.includes(screen)){if(re)re();else go(screen,ctA())}}).catch(e=>console.warn(e))});
 /* before Stage 2 the country player kept its own language; carry a French choice over once */
-if(window.EWi18n)EWi18n.ready.then(()=>{try{if(!localStorage.getItem('emmaLang')&&ctPrefs().lang&&ctPrefs().lang!==EWi18n.lang&&EWi18n.offered().some(x=>x.tag===ctPrefs().lang))EWi18n.set(ctPrefs().lang)}catch(e){}}).catch(()=>{});
+/* one-time: a language chosen in the Cameroon player before Stage 2 becomes the app language (only if one was really saved) */
+if(window.EWi18n)EWi18n.ready.then(()=>{try{const old=JSON.parse(localStorage.getItem('emmaCtryPrefs')||'{}').lang;
+ if(!localStorage.getItem('emmaLang')&&old&&old!==EWi18n.lang&&EWi18n.offered().some(x=>x.tag===old))EWi18n.set(old)}catch(e){}}).catch(()=>{});
 
 /* ---- Learn: one card per screen (image + ≤2 sentences + read aloud / replay / next) ---- */
 function clearn(a){if(ctRequire(a,clearn))return;const L=CT.cur.payload.learn[ctBand()],cards=L.cards,i=Math.max(0,Math.min(a.i||0,cards.length-1)),c=cards[i];ctTop(UT('learn'));

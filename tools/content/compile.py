@@ -180,7 +180,8 @@ class Build:
             strs = [lt.get(lg) for lt in table]
             n = sum(1 for x in strs if x is not None)
             if not n: continue
-            lr = self.put(f'packs/{pid}@{lg}', {'format': FORMAT, 'pack': pid, 'locale': lg, 'struct': sref['sha256'], 'strings': strs})
+            lr = self.put(f'packs/{pid}@{lg.lower()}',   # tags are case-insensitive (BCP 47): file names lower-case
+                          {'format': FORMAT, 'pack': pid, 'locale': lg, 'struct': sref['sha256'], 'strings': strs})
             lr['coverage'] = round(n / len(table), 4) if table else 1.0
             locs[lg] = lr
         # assets: pictures referenced by records + voice clips of the lines this pack speaks

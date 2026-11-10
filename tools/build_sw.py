@@ -116,7 +116,8 @@ for d, ds, fs in os.walk(ROOT):
         url = './' + rel
         if under_voice_pack:
             vd = rel.split('/')[1]
-            voice_packs.setdefault('lang:' + LANG_VOICE[vd] if vd in LANG_VOICE else vd, []).append(url)
+            # a language's voice folder is pack 'lang:<folder>' (fr and fr-CM share voice/fr/ -> one pack 'lang:fr')
+            voice_packs.setdefault('lang:' + vd if vd in LANG_VOICE else vd, []).append(url)
             continue
         slug = next((s for s, bd in book_dirs.items() if rel.startswith(bd)), None)
         if slug and f not in ('cover.jpg', 'thumb.jpg'):

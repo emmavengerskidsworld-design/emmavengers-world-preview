@@ -114,7 +114,7 @@ I.set = async tag => {
   return I.chain;
 };
 /* languages a child can pick here: what this site's catalog offers (live: active only; preview: + in-review) */
-I.offered = () => I.locales.map(l => ({ tag: l.tag, name: l.name, englishName: l.englishName, dir: l.dir, status: l.status }));
+I.offered = () => I.locales.map(l => ({ tag: l.tag, name: l.name, englishName: l.englishName, dir: l.dir, status: l.status, voicePack: (l.voice && l.voice.pack) || null }));
 /* I.ready: Promise resolved when the library and the chosen language are loaded; I.ok: true from then on */
 I.ready = (G.EWLib ? G.EWLib.ready : Promise.reject(new Error('no library'))).then(L => { LIB = L; sync(); I.ok = true; return I });
 I.ready.catch(() => {});

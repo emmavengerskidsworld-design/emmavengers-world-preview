@@ -1503,7 +1503,8 @@ function openLanguage(){audioUnlock();sfx.tap();const langs=langOffered();if(lan
  d.addEventListener('click',e=>{if(e.target===d){sfx.tap();d.remove()}});document.body.appendChild(d);draw()}
 $('#langBtn').onclick=()=>openLanguage();
 /* the chosen language's own voice clips (not English) are downloaded for offline use by the service worker */
-function setLangVoice(){const I=window.EWi18n;if(!I||I.ready!==true||voiceOff)return;const L=(I.offered().find(x=>x.tag===I.lang));if(I.lang!=='en')swPost({type:'cacheVoice',id:'lang:'+I.lang})}
+function setLangVoice(){const I=window.EWi18n;if(!I||!I.ok||voiceOff)return;const L=I.offered().find(x=>x.tag===I.lang),dir=L&&L.voicePack&&L.voicePack.replace(/\/$/,'').split('/').pop();
+ if(dir&&dir!=='voice')swPost({type:'cacheVoice',id:'lang:'+dir})} /* pack 'lang:<folder>' (tools/build_sw.py) */
 if(window.EWi18n)EWi18n.ready.then(()=>{$('#langBtn').classList.toggle('on',langOffered().length>1);syncVoiceUI();setScore();setTimeout(setLangVoice,3000)}).catch(()=>{});
 /* Android app back button hook: returns true if handled inside the game. */
 window.emmaBack=function(){const pn=document.querySelector('#ppanel,#vpanel,#lpanel,.pop');if(pn){pn.remove();return true}if(screen!=='home'){$('#backBtn').click();return true}return false};
