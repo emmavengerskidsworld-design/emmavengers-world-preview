@@ -28,11 +28,16 @@ async def check(pg,tag,shot=None):
     if r['mapBottom']: ok(r['mapBottom']<=r['H']+1,f'{tag}: map runs off screen ({r["mapBottom"]}>{r["H"]})')
     if shot: await pg.screenshot(path=str(OUT/shot))
     return r
+DIAG="()=>({screen,tok:(typeof state!=='undefined'&&state)?state.tok:null,round:state&&state.round,total:state&&state.total,vplay:vPlaying(),hold:sayHold-Date.now(),disabled:document.querySelectorAll('[data-ok][disabled],.wn[disabled]').length,t:Date.now()})"
+async def settle(pg,cond,tag,t=8000):
+    try: await pg.wait_for_function(cond,timeout=t)
+    except Exception:
+        log('  DIAG',tag,await pg.evaluate(DIAG));raise
 async def play_quiz(pg,tag):
     for _ in range(12):
         if await pg.evaluate("screen")=='wreward':break
         await pg.wait_for_selector('[data-ok="1"]:not([disabled])',timeout=5000)
-        await pg.click('[data-ok="1"]');await pg.wait_for_function("screen==='wreward'||!document.querySelector('[data-ok=\"1\"][disabled]')",timeout=8000)
+        await pg.click('[data-ok="1"]');await settle(pg,"screen==='wreward'||!document.querySelector('[data-ok=\"1\"][disabled]')",tag)
     ok(await pg.evaluate("screen")=='wreward',f'{tag}: quiz did not reach reward')
 async def run(b,url,vw,vh):
     log(f'--- {vw}x{vh}')
@@ -90,7 +95,7 @@ async def run(b,url,vw,vh):
         await pg.wait_for_selector('.wobj',timeout=5000);n=await pg.evaluate("document.querySelectorAll('.wobj').length")
         for i in range(n): await pg.click(f'.wobj >> nth={i}')
         ok(await pg.evaluate("document.querySelectorAll('.wobj.counted').length")==n,'tap-to-count marks every object')
-        await pg.click(f'.wn[data-n="{n}"]');await pg.wait_for_function(f"screen==='wreward'||document.querySelectorAll('.wn[disabled]').length===0",timeout=8000)
+        await pg.click(f'.wn[data-n="{n}"]');await settle(pg,f"screen==='wreward'||document.querySelectorAll('.wn[disabled]').length===0",'count')
     ok(await wait_scr(pg,'wreward')=='wreward','counting reaches reward')
     await pg.click('#tomap');await wait_scr(pg,'land');await pg.click('#wback');await wait_scr(pg,'home')
     # Nature Land: animal cards + quiz
@@ -141,7 +146,9 @@ async def main():
     url=f'http://127.0.0.1:{port}/'
     async with async_playwright() as p:
         b=await p.chromium.launch(args=['--autoplay-policy=no-user-gesture-required'])
-        for vw,vh in [(390,844),(412,915)]: await run(b,url,vw,vh)
+        for vw,vh in [(390,844),(412,915)]:
+            if os.environ.get('EW_VIEWPORT') and os.environ['EW_VIEWPORT']!=str(vw): continue
+            await run(b,url,vw,vh)
         if '--no-offline' not in sys.argv: await offline(b,url)
         await b.close()
     print('screenshots in',OUT);print('WORLD TESTS','PASSED' if not fails else f'FAILED ({len(fails)})');sys.exit(1 if fails else 0)
