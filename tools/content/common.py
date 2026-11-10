@@ -105,3 +105,18 @@ def chain_for(locales_cfg, tag, offered=None):
     src = locales_cfg.get('sourceLocale', 'en')
     add(tag); add(src)
     return out or [src]
+
+
+IMG_RE = re.compile(r'^img/.+\.(webp|jpg|jpeg|png)$')
+
+
+def variant_path(path, tag):
+    """Localized picture: img/world/nature-land.jpg -> img/world/nature-land.fr.jpg (text drawn in the picture)."""
+    stem, dot, ext = path.rpartition('.')
+    return f'{stem}.{tag}.{ext}'
+
+
+def picture_variants(root, path, tags):
+    """{tag: variant path} for the localized copies of one picture that exist on disk."""
+    import os
+    return {t: variant_path(path, t) for t in tags if os.path.isfile(os.path.join(root, variant_path(path, t)))}

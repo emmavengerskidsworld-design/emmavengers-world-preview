@@ -106,7 +106,11 @@ function create(opts) {
   const cfg = Object.assign({ base: defaultBase(), db: null, locales: null, lang: null, autoUpdate: true, updateDelay: 4000,
     minIntervalMs: 6 * 3600 * 1000, timeoutMs: 20000, retries: 2, player: PLAYER, templates: TEMPLATES, fetch: null, log: false }, opts || {});
   /* one database per site folder + channel: the live and preview sites share an origin on GitHub Pages */
-  if (!cfg.db) cfg.db = 'ew-content-v1:' + siteKey() + ':' + cfg.base;
+  if (!cfg.db) {
+    cfg.db = 'ew-content-v1:' + siteKey() + ':' + cfg.base;
+    /* Stage 1 stored one shared copy under this name (before the live and preview sites each kept their own) */
+    try { if (G.indexedDB && !(G.localStorage && G.localStorage.getItem('ewOldDbGone'))) { G.indexedDB.deleteDatabase('ew-content-v1'); G.localStorage && G.localStorage.setItem('ewOldDbGone', '1') } } catch (e) {}
+  }
   const fetchFn = cfg.fetch || ((u, o) => G.fetch(u, o));
   const listeners = {};
   const S = { ready: false, sequence: 0, source: null, lastCheck: 0, lastResult: null, errors: [], fetched: [], bytes: 0, storage: null, skipped: [], pending: null };
@@ -377,6 +381,16 @@ function create(opts) {
   const pickC = (lt, ch) => { for (const l of ch) if (lt[l] != null) { LANG_OF.set(lt[l], l); return lt[l] } const k = Object.keys(lt)[0]; return lt[k] };
   const flat = (o, ch) => isLtE(o) ? pickC(o, ch) : Array.isArray(o) ? o.map(x => flat(x, ch)) : (o && typeof o === 'object') ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, flat(v, ch)])) : o;
   const curChain = () => wantLocales(M.cat);
+  /* pictures with text drawn in them: <name>.<tag>.<ext> when the language (or the next one in its chain) has a copy.
+     Data only: drop the file next to the picture and rebuild; the catalog lists it under that language's "pictures". */
+  const variantPath = (p, t) => { const i = p.lastIndexOf('.'); return p.slice(0, i) + '.' + t + p.slice(i) };
+  api.picture = (path, tag) => { const ch = tag ? chainFor(M.cat, tag) : curChain(), src = M.cat.sourceLocale || 'en';
+    for (const l of ch) { if (l === src) return path; const L = (M.cat.locales || []).find(x => x.tag === l);
+      if (L && (L.pictures || []).includes(path)) return variantPath(path, l) } return path };
+  const locPics = (o, ch) => { const any = (M.cat.locales || []).some(l => l.pictures && l.pictures.length); if (!any) return o;
+    const tag = ch[0], walk = v => typeof v === 'string' ? (/^img\/.+\.(webp|jpe?g|png)$/.test(v) ? api.picture(v, tag) : v)
+      : Array.isArray(v) ? v.map(walk) : (v && typeof v === 'object') ? (() => { for (const k of Object.keys(v)) v[k] = walk(v[k]); return v })() : v;
+    return walk(o) };
   const R = id => M.recs.get(id);
   const key = id => R(id).payload.key;
   api.legacy = {
@@ -400,7 +414,7 @@ function create(opts) {
       if (st) { const p = flat(st.payload, ch); out.study = { prompt: p.prompt, sections: p.sections.map(s => { const o = {};
           for (const [k, v] of Object.entries(s)) { if (k === 'key') o.id = v; else if (k === 'source') o[k] = v.deck ? 'deck:' + key(v.deck) : (v.module || ''); else o[k] = v } return o }) };
         if (st.evidence && st.evidence.note) out.study._help = st.evidence.note }
-      return out },
+      return locPics(out, ch) },
     countryIndex() {
       const cs = Object.values(M.entries).filter(e => e.summary && e.summary.type === 'country').map(e => e.summary);
       return { schemaVersion: '1.0.0', id: 'ew.index.countries', revision: 1, status: 'draft',
@@ -445,6 +459,7 @@ function create(opts) {
         for (const f of ['hint', 'feedback']) if (ip[f] && ip[f][lg] != null) blk[f] = ip[f][lg]; o[k] = blk }
       o.readAloudAllowed = ip.readAloudAllowed; o.shuffleOptions = ip.shuffleOptions; o.factCheckStatus = (it.review || {}).factCheck; o.reviewStatus = (it.review || {}).note; return o });
     const bank = { bank: B.id, revision: B.revision, status: B.status, note: (B.evidence || {}).note, sources: Object.fromEntries((bp.sources || []).map(id => [skey(id), sv(id)])), items, roundRules: bp.roundRules };
+    pay.media = locPics(pay.media, curChain()); pay.flag = locPics(pay.flag, curChain());
     return { pack, bank };
   }
   api.ready = init().catch(e => { S.ready = false; note('init-' + (e.code || 'error'), e.message); throw e });

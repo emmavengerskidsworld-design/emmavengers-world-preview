@@ -90,15 +90,29 @@ async def main():
         await pg.goto(URL)
         mk = lambda db, base=None, extra=None: pg.evaluate(MK, [db, base, extra])
 
-        print('1. legacy adapter (JS) = the original files')
-        r = await mk('ew-real', '/content/library/'); ok(r['ok'], 'committed content/library loads')
+        print('1. legacy adapter (JS) = the Python adapter (which test_content.py proves equal to the original files)')
+        # both languages downloaded (a device normally fetches only the chosen language + its fallbacks)
+        r = await mk('ew-real', '/content/library/', {'locales': ['en', 'fr']}); ok(r['ok'], 'committed content/library loads')
         got = json.loads(await pg.evaluate("""async () => { const L = window.__L, c = await L.legacy.country('cameroon');
             return JSON.stringify({ lands: L.legacy.lands(), index: L.legacy.countryIndex(), ui: L.legacy.uiStrings(), cameroon: c.pack, 'cameroon-quiz': c.bank }) }"""))
+        from content import hydrate, legacy as PL
+        _, precs = hydrate.load(os.path.join(ROOT, 'content/library'))
+        pk, bank = PL.country(precs, 'ew.country.cameroon')
+        PY = {'lands': PL.lands(precs, ['en', 'fr']), 'index': PL.country_index(precs), 'ui': PL.ui_strings(precs), 'cameroon': pk, 'cameroon-quiz': bank}
         for k in ('lands', 'index', 'ui', 'cameroon', 'cameroon-quiz'):
-            want = editorial_free(load_json(os.path.join(FIX, k + '.json'))); got[k] = editorial_free(got[k])
+            want = json.loads(json.dumps(PY[k])); got[k] = got[k]
             same = got[k] == want
             strict = json.dumps(got[k]) == json.dumps(want) if k != 'lands' else json.dumps({**got[k], 'lands': None}) == json.dumps({**want, 'lands': None})
-            ok(same and strict, f'{k}: identical' + (' (values and key order)' if strict else '') + ' (review-state fields aside)')
+            if not same and os.environ.get('EW_DIFF'):
+                import difflib; print('\n'.join(list(difflib.unified_diff(json.dumps(want, indent=1, ensure_ascii=False).splitlines(), json.dumps(got[k], indent=1, ensure_ascii=False).splitlines(), lineterm='', n=1))[:40]))
+            ok(same and strict, f'{k}: identical' + (' (values and key order)' if strict else ''))
+
+        # French chain on the preview library (machine-draft French): JS and Python flatten to the same French lands
+        r = await mk('ew-prev', '/content/preview/', {'locales': ['fr', 'en']}); ok(r['ok'], 'committed content/preview loads (fr + en)')
+        jfr = json.loads(await pg.evaluate("() => JSON.stringify(window.__L.legacy.lands('fr'))"))
+        _, vrecs = hydrate.load(os.path.join(ROOT, 'content/preview'))
+        pfr = json.loads(json.dumps(PL.lands(vrecs, ['en', 'fr'], chain=('fr', 'en'))))
+        ok(jfr == pfr and jfr['lands'][0]['name'] != PY['lands']['lands'][0]['name'], f'French lands (fallback fr -> en) identical in JS and Python ("{jfr["lands"][0]["name"]}")')
 
         print('2. first visit, then offline start')
         SERVE['rel'] = 'A'; LOG.clear()

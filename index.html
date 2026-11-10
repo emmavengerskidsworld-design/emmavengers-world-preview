@@ -716,6 +716,8 @@ const vh=t=>{let h=0x811c9dc5;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=M
 function voiceUrl(t){const I=window.EWi18n,lg=I&&I.langOf(t);
  if(lg&&lg!=='en'){const b=I.voiceBase(t);return b?b+vh(t)+'.mp3':null}
  return ((window.voiceOnlyMia&&voiceOnlyMia(t))?'voice/':voiceBase())+vh(t)+'.mp3'} // pilot country clips live once in voice/
+/* the main English voice's clip for a line: used when the chosen friend voice has no clip for it (never for a language's own voice) */
+function miaUrl(t){const I=window.EWi18n,lg=I&&I.langOf(t);if(lg&&lg!=='en')return null;const u='voice/'+vh(t)+'.mp3';return voiceUrl(t)===u?null:u}
 let vAud=null,vTok=0,vPend=null;
 /* Silent reading: the reading voice can be switched off (music + sound effects keep playing). */
 let voiceOff=localStorage.getItem('emmaVoiceOff')==='1';
@@ -767,7 +769,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){vStopNodes
 function stopVoice(){vTok++;vEndAt=0;vEl.onended=vEl.onerror=vEl.onplaying=null;try{vEl.pause()}catch(e){}vAud=null;vStopNodes();try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}}
 function ttsFallback(t,done){vStarted();try{if(!('speechSynthesis' in window))return done();const u=new SpeechSynthesisUtterance(t);u.rate=.9*vSet.speed;u.pitch=1.15*vSet.pitch;u.lang=(window.EWi18n&&EWi18n.langOf(t))||(window.ttsLangFor&&ttsLangFor(t))||'en-US';u.onend=u.onerror=done;speechSynthesis.speak(u)}catch(e){done()}}
 function sayHtml(txt,tok,next){const a=vEl;vAud=a;let fell=false;a.muted=false;
- const fb=()=>{if(fell||tok!==vTok)return;fell=true;ttsFallback(txt,next)};
+ let alt=miaUrl(txt);const fb=()=>{if(fell||tok!==vTok)return;
+  if(alt){const u=alt;alt=null;a.src=u;const p=a.play();if(p&&p.catch)p.catch(()=>{if(tok===vTok&&!fell){fell=true;ttsFallback(txt,next)}});return}
+  fell=true;ttsFallback(txt,next)};
  a.onended=()=>{if(tok===vTok)next()};a.onplaying=()=>{if(tok===vTok)vStarted()};a.onerror=fb;a.src=voiceUrl(txt);a.preservesPitch=Math.abs(vDetune)<1;a.playbackRate=vDetune?Math.min(2,Math.max(.5,vRate*Math.pow(2,vDetune/1200))):vRate;
  const pr=a.play();if(pr&&pr.catch)pr.catch(e=>{if(tok!==vTok)return;if(e&&e.name==='NotAllowedError'){vPend={t:[txt],h:null};return}if(e&&e.name==='AbortError')return;fb()})}
 function say(t,h,quiet){busy();const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!quiet)mascot(parts.join(' '),h);stopVoice();vPend=null;if(voiceOff)return;const tok=vTok;let i=0;vEndAt=0;vWait=parts.length?Date.now():0;vAfter=(!vDetune&&Math.abs(vRate-1)>.02)?[]:parts.slice(1).map(voiceUrl).filter(Boolean);
@@ -785,7 +789,7 @@ function say(t,h,quiet){busy();const parts=(Array.isArray(t)?t:[t]).filter(Boole
   /* Not decoded yet. Cached on the phone: decode now (a few ms). Only on the network: stream it with HTMLAudio right away
      (it starts before the whole file arrives) and decode in the background for next time. */
   const u=voiceUrl(txt);let done=false;const go=buf=>{if(done||tok!==vTok)return;done=true;playBuf(buf)};const html=()=>{if(done||tok!==vTok)return;done=true;sayHtml(txt,tok,next)};
-  const viaBuf=wait=>{decodeClip(u).then(go).catch(()=>{const mia='voice/'+vh(txt)+'.mp3';if(u!==mia)decodeClip(mia).then(go).catch(html);else html()});setTimeout(html,wait)};
+  const viaBuf=wait=>{decodeClip(u).then(go).catch(()=>{const mia=miaUrl(txt);if(mia)decodeClip(mia).then(go).catch(html);else html()});setTimeout(html,wait)};
   if(!window.caches){viaBuf(250);return}
   caches.match(u,{ignoreSearch:true}).then(r=>{if(done||tok!==vTok)return;if(r)viaBuf(400);else{warmYield();vAfter.push(u);html()}}).catch(()=>viaBuf(250))};
  {const w=sayHold-Date.now();if(w>0)setTimeout(()=>{if(tok===vTok)next()},w);else next()}}
@@ -1523,7 +1527,7 @@ if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWo
  // A new version downloaded in the background last time: switch to it now, as the game opens.
  if(reg.waiting&&navigator.serviceWorker.controller){let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!done){done=true;location.reload()}});reg.waiting.postMessage('skipWaiting')}
  // A new version finished downloading while the app is open: show a tap-to-update button.
- const offer=w=>{if(!w||!navigator.serviceWorker.controller||document.getElementById('updBtn'))return;const b=document.createElement('button');b.id='updBtn';b.textContent='✨ New update ready! Tap to open';b.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;padding:14px 22px;border:0;border-radius:30px;background:#ffcc00;color:#3a2a00;font:800 18px system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.3)';b.onclick=()=>{let d=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!d){d=true;location.reload()}});w.postMessage('skipWaiting');setTimeout(()=>location.reload(),4000)};document.body.appendChild(b)};
+ const offer=w=>{if(!w||!navigator.serviceWorker.controller||document.getElementById('updBtn'))return;const b=document.createElement('button');b.id='updBtn';b.textContent=(window.TT?TT('updateReady',null,'✨ New update ready! Tap to open'):'✨ New update ready! Tap to open');b.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;padding:14px 22px;border:0;border-radius:30px;background:#ffcc00;color:#3a2a00;font:800 18px var(--ew-font,system-ui,sans-serif);max-width:92vw;box-shadow:0 6px 18px rgba(0,0,0,.3)';b.onclick=()=>{let d=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!d){d=true;location.reload()}});w.postMessage('skipWaiting');setTimeout(()=>location.reload(),4000)};document.body.appendChild(b)};
  reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed')offer(w)})});
  addEventListener('online',()=>reg.update().catch(()=>{}));setInterval(()=>navigator.onLine&&reg.update().catch(()=>{}),30*60*1000)}).catch(()=>{})})
 </script></body></html>

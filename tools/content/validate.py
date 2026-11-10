@@ -440,6 +440,23 @@ class Validator:
             if ch[-1] != src and src in LOC: self.add('error', 'locale', w, f'{tag}: fallback chain {ch} does not end in the source language {src}')
             if l.get('status') == 'active' and not l.get('voice'):
                 self.add('warn', 'no-voice', w, f'{tag} is active but has no voice: children see text only')
+        # localized pictures <name>.<tag>.<ext>: the language must exist and the original picture must be there too
+        pat = re.compile(r'^(.+)\.([A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.(webp|jpe?g|png)$')
+        imgdir = os.path.join(S.root, 'img')
+        self.stats['pictureVariants'] = {}
+        for d, _, fs in os.walk(imgdir):
+            for f in fs:
+                m = pat.match(f)
+                if not m or m.group(2).lower() in ('min', 'thumb', 'bg', 'old'): continue
+                rel = os.path.relpath(os.path.join(d, f), S.root).replace(os.sep, '/')
+                base = os.path.relpath(os.path.join(d, m.group(1) + '.' + m.group(3)), S.root).replace(os.sep, '/')
+                tag = m.group(2)
+                if tag not in LOC:
+                    self.add('warn', 'picture-variant', rel, f'looks like a localized picture for {tag!r}, which is not a language in locales.json')
+                elif not os.path.isfile(os.path.join(S.root, base)):
+                    self.add('error', 'picture-variant', rel, f'localized picture has no original {base} (the original is shown in every other language)')
+                else:
+                    self.stats['pictureVariants'].setdefault(tag, []).append(base)
         # coverage: share of translatable texts each shipped language has (records marked sourceOnly are skipped)
         cov = {lg: {} for lg in chan_locs}
         self.missing_text = {lg: [] for lg in chan_locs}

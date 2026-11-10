@@ -10,7 +10,7 @@
 app downloads only what changed. content/registry.lock.json keeps record + pack revisions, retired ids and the
 release history (sequence numbers only go up)."""
 import copy, datetime, os, re, shutil
-from .common import FORMAT, SCHEMA_VERSION, dumps, canonical, sha256, is_lt, map_lt, walk_lt, vh, load_json, write_json
+from .common import FORMAT, SCHEMA_VERSION, dumps, canonical, sha256, is_lt, map_lt, walk_lt, vh, load_json, write_json, IMG_RE, picture_variants
 from . import legacy
 
 H = 16
@@ -33,6 +33,7 @@ class Build:
         self.notes = []          # human notes for the report
         self.pruned = []
         self.stats = {}
+        self.variants = {}       # language -> pictures that have a localized copy
 
     def included(self):
         return self.S.in_channel(self.S.cfg['build']['channels'][self.channel]['statuses'])
@@ -132,6 +133,8 @@ class Build:
         if l.get('numberingSystem'): e['numberingSystem'] = l['numberingSystem']
         v = l.get('voice')
         e['voice'] = {'pack': v['pack']} if v else None
+        pics = sorted(self.variants.get(l['tag'], ()))
+        if pics: e['pictures'] = pics   # pictures with a copy in this language: <name>.<tag>.<ext>
         return e
 
     def put(self, base, obj):
@@ -182,6 +185,8 @@ class Build:
             locs[lg] = lr
         # assets: pictures referenced by records + voice clips of the lines this pack speaks
         files = {}
+        src = cfg['locales'].get('sourceLocale', 'en')
+        LOC = {l['tag']: l for l in cfg['locales']['locales']}
         rules = sorted(cfg['rights']['rules'], key=lambda x: -len(x['prefix']))
         def asset(path, kind, locale=None):
             full = os.path.join(S.root, path)
@@ -194,9 +199,17 @@ class Build:
             files[path] = f
         for r in rs:
             for _, v in _scalars(r['payload']):
-                if isinstance(v, str) and re.match(r'^img/.+\.(webp|jpg|jpeg|png)$', v): asset(v, 'image')
-        for t, (p, lg) in sorted(getattr(self.V, 'spoken', {}).items()):
-            if p == pid: asset(f'voice/{vh(t)}.mp3', 'audio', lg)
+                if isinstance(v, str) and IMG_RE.match(v):
+                    asset(v, 'image')
+                    # localized copies (text drawn in the picture): fetched only by devices using that language
+                    for lg, vp in picture_variants(S.root, v, [x for x in locales if x != src]).items():
+                        asset(vp, 'image', lg); self.variants.setdefault(lg, set()).add(v)
+        # voice: each spoken line in every language this channel ships, from that language's voice folder
+        for lg, got in sorted(getattr(self.V, 'spoken_by_lang', {}).items()):
+            if lg not in locales: continue
+            for t, (p, tl) in sorted(got.items()):
+                v = (LOC.get(tl) or {}).get('voice')
+                if p == pid and v: asset(f'{v["pack"]}{vh(t)}.mp3', 'audio', tl)
         aref = self.put(f'packs/{pid}.assets', {'format': FORMAT, 'pack': pid, 'files': sorted(files.values(), key=lambda f: f['path'])})
         used = sorted({r['payload'].get('template') for r in rs if r['type'] == 'activity'} - {None})
         e = {'id': pid, 'revision': pe['rev'], 'preload': bool(P['meta'].get('preload')), 'records': len(out),
