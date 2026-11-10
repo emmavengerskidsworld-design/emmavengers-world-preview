@@ -141,7 +141,8 @@ const ctLangRow=()=>`<div class="crow">${ctLangSeg()}</div>`;
 function ctLangBind(re){main.querySelectorAll('.clang').forEach(b=>b.onclick=()=>{sfx.tap();if(b.dataset.lang===ctLang())return;main.querySelectorAll('.clang').forEach(x=>x.disabled=true);
  CT.onLang=re;EWi18n.set(b.dataset.lang).catch(e=>{console.warn(e);CT.onLang=null;re()})})}
 /* app language changed: re-read the loaded countries in the new language and redraw */
-addEventListener('ewlang',()=>{const re=CT.onLang;CT.onLang=null;Promise.all(Object.keys(CT.packs).map(ctLoadOne)).then(()=>{if(CT.cur)CT.cur=CT.packs[CT.cur.payload.slug]||CT.cur;
+addEventListener('ewlang',()=>{const re=CT.onLang;CT.onLang=null;try{CT.ui=EWLib.legacy.uiStrings()}catch(e){} /* app words in the new language too */
+ Promise.all(Object.keys(CT.packs).map(ctLoadOne)).then(()=>{if(CT.cur)CT.cur=CT.packs[CT.cur.payload.slug]||CT.cur;
  if(CT_SCREENS.includes(screen)){if(re)re();else go(screen,ctA())}}).catch(e=>console.warn(e))});
 /* before Stage 2 the country player kept its own language; carry a French choice over once */
 /* one-time: a language chosen in the Cameroon player before Stage 2 becomes the app language (only if one was really saved) */
