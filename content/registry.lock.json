@@ -634,26 +634,6 @@
  },
  "releases": [
   {
-   "sequence": 2,
-   "issued": "2026-11-10T19:47:01Z",
-   "channel": "live",
-   "contentHash": "0533b14c23e8aba8afc53072f94fb16a41c2dc99dc8b717d9ba6ad5ebcfa8ee9",
-   "catalogSha256": "4c962a1078ce5a0819c5b81faca55e6700fe1052b0bfa9fb335c5b544431f677",
-   "files": [
-    "catalog.json",
-    "indexes/core.1e9c23d2c9b5bcf6.json",
-    "indexes/countries.africa.804ee1b76bc9362e.json",
-    "packs/core.694b3f263fc02681.json",
-    "packs/core.assets.c10260af1c872991.json",
-    "packs/core@en.adf8532af0979541.json",
-    "packs/core@fr.c765eddcd563c3df.json",
-    "packs/country.cameroon.531bcaa945e83704.json",
-    "packs/country.cameroon.assets.e93acf05b8b468f4.json",
-    "packs/country.cameroon@en.334e0a59f758de6d.json",
-    "packs/country.cameroon@fr.2e92937f8fee430e.json"
-   ]
-  },
-  {
    "sequence": 3,
    "issued": "2026-11-10T20:24:07Z",
    "channel": "live",
@@ -672,7 +652,27 @@
     "packs/country.cameroon@en.334e0a59f758de6d.json",
     "packs/country.cameroon@fr.2e92937f8fee430e.json"
    ]
+  },
+  {
+   "sequence": 4,
+   "issued": "2026-11-10T20:30:00Z",
+   "channel": "live",
+   "contentHash": "c44a6e5534ac0b2fee91005c578630a13497d71831f45e437ec9e2c2d182c857",
+   "catalogSha256": "74eae4408bef2fdfd1a20e935b89ce7d5dd155d0115b614aca0929ba8f22ed22",
+   "files": [
+    "catalog.json",
+    "indexes/core.67e06cda247f3189.json",
+    "indexes/countries.africa.45e8fea084a844c8.json",
+    "packs/core.assets.672e1a192abf48b6.json",
+    "packs/core.cca5ef4f3a524934.json",
+    "packs/core@en.be3b59e8ece9b5fe.json",
+    "packs/core@fr.3477ebacb6dbca1a.json",
+    "packs/country.cameroon.531bcaa945e83704.json",
+    "packs/country.cameroon.assets.77acf372b47fa00a.json",
+    "packs/country.cameroon@en.334e0a59f758de6d.json",
+    "packs/country.cameroon@fr.2e92937f8fee430e.json"
+   ]
   }
  ],
- "sequence": 3
+ "sequence": 4
 }

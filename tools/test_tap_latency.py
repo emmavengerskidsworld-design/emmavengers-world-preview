@@ -54,13 +54,18 @@ async def main():
             bad = med is None or med > A.budget or len(ms) < n or max(ms) > 2 * A.budget
             if bad: fails.append(name)
             print(f'{"ok  " if not bad else "FAIL"} {name:<44} median {med} ms  max {max(ms) if ms else None} ms  path {rs[0]["path"]}  {[r["ms"] for r in rs]}', flush=True)
-        prefs = lambda lg: f"localStorage.setItem('emmaCtryPrefs',JSON.stringify({{lang:'{lg}',age:'little',guide:false}}));"
+        # Stage 2: the app language (EWi18n) decides which text and voice a line has
+        prefs = lambda lg: f"localStorage.setItem('emmaCtryPrefs',JSON.stringify({{lang:'{lg}',age:'little',guide:false}}));(window.EWi18n&&EWi18n.lang!=='{lg}'?EWi18n.set('{lg}'):Promise.resolve()).then(()=>0);"
         for lg in ('en', 'fr'):
             await case(f'Cameroon: next card, new line ({lg})', prefs(lg) + "go('clearn',{c:'cameroon',i:0})", ['#cnext'] * 5)
             await case(f'Cameroon: replay button ({lg})', prefs(lg) + "go('clearn',{c:'cameroon',i:0})", '#csay')
         for land, place, nm in (('world', 'countries', 'country cards'), ('letter', 'abc', 'ABC cards'), ('nature', 'safari', 'animal cards')):
             await case(f'{nm}: new line each tap (en)', f"go('wcards',{{l:'{land}',p:'{place}'}})", [f'.wtile[data-i="{i}"]' for i in range(5)])
         await case('animal cards: same line again (en)', "go('wcards',{l:'nature',p:'safari'})", '.wtile[data-i="3"]')
+        # a friend voice (Lily) chosen in Voice Settings: lines her pack has no clip for use Mia's clip, never the phone voice
+        await case('animal cards, Lily voice: new line each tap (en)', "vSet.id='lily';saveVoiceSet();go('wcards',{l:'nature',p:'safari'})", [f'.wtile[data-i="{i}"]' for i in range(5)])
+        await case('Cameroon, Lily voice: next card (en)', "vSet.id='lily';saveVoiceSet();" + prefs('en') + "go('clearn',{c:'cameroon',i:0})", ['#cnext'] * 5)
+        await pg.evaluate("vSet.id='mia';saveVoiceSet()")
         await b.close()
     json.dump(out, open(f'/tmp/ew-tap-latency-{A.label}.json', 'w'), indent=1)
     print('TAP LATENCY', 'PASSED' if not fails else 'FAILED: ' + ', '.join(fails))
