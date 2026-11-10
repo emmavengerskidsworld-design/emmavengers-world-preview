@@ -100,12 +100,9 @@ the screens onto the query API and then the legacy adapter can be deleted.
 
 ## How the plug-in stages fit
 
-- **Stage 2 (languages + voice)**: languages are already data (`locales.json`, per-language files, per-language review
-  status). The voice clip name is still the FNV-1a hash of the exact text (unchanged in Stage 1); the validator already
-  checks every spoken line has a clip, using the same rules as the app. Stage 2 can add per-language voice manifests
-  in the `assets` file without changing the catalog format. Unicode MessageFormat 2 (stable in CLDR 47+) is the
-  intended format for plurals/gender when needed; JavaScript's `Intl.MessageFormat` is not standard yet, so Stage 1
-  only allows simple `{name}` placeholders.
+- **Stage 2 (languages + voice)**: done — see `docs/languages.md` (language records, translation files, fallback
+  chain, ICU-lite messages with CLDR plurals, right-to-left, localized pictures, per-language voice folders, only the
+  chosen languages on the device).
 - **Stage 3 (quiz engine)**: quiz items are records with stable option ids, answer keys, sources, age bands and
   difficulty; `find({type:'quiz-item', ageBand, topic})` is the pool query.
 - **Stage 4 (kid-safe search)**: search only over records in the library (never the open web): `forEachText` gives

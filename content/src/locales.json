@@ -1,6 +1,6 @@
 {
  "$schema": "../schema/v1/locales.schema.json",
- "note": "Every language the game knows. A new language is added with DATA only: (1) an entry here (BCP 47 tag, own name, direction, script, fallback, voice), (2) its texts - inside records or as string files in content/src/l10n/<tag>/, (3) its voice clips (tools/gen_voice.py --lang <tag>). Nothing in the app is hard-coded to English or French. status: active = offered to children on the live site; in-review = offered on the preview site only (texts are drafts awaiting a fluent reviewer); planned = not offered; test-only = never shipped, used by the test suite only.",
+ "note": "Every language the game knows. A new language is added with DATA only: (1) an entry here (BCP 47 tag, own name, direction, script, fallback, voice), (2) its texts - inside records or as string files in content/src/l10n/<tag>/, (3) its voice clips (python3 tools/voice_jobs.py --lang <tag> > jobs.json; python3 tools/gen_voice.py jobs.json --locale <tag>), (4) optional pictures with text drawn in them: <name>.<tag>.<ext> next to the original. Nothing in the app is hard-coded to English or French. status: active = ready for children; in-review = shipped with only reviewed/approved texts on live and with drafts on preview (see build.json channels); planned = not offered; test-only = never shipped, used by the test suite only. Guide: docs/languages.md.",
  "sourceLocale": "en",
  "scripts": {
   "Latn": {
