@@ -22,7 +22,7 @@ const wFill=(t,it)=>{const tl=window.EWi18n&&EWi18n.langOf(t),raw=it._lt||{};
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* app words in the chosen language (i18n.js); N = number in the language's digits */
 const T=(k,v)=>window.EWi18n?EWi18n.t(k,v):k;
-const N=x=>window.EWi18n?EWi18n.n(x):String(x);
+const NF=x=>window.EWi18n?EWi18n.n(x):String(x);
 const wPraise=()=>{const l=window.EWi18n&&EWi18n.has('praise')?EWi18n.list('praise'):PRAISE;return l[Math.random()*l.length|0]};
 window.worldTry=()=>{if(!window.EWi18n||!EWi18n.has('tryAgain')||!(WORLD_SCREENS.includes(screen)))return null;const l=EWi18n.list('tryAgain');return l[Math.random()*l.length|0]};
 /* every line the world can speak (used by tools/check_voice.py to find clips that still need generating) */
@@ -107,7 +107,7 @@ function cardHTML(k,it){
  return `<img class="hero" src="${it.img}" alt=""><div class="wword"><b>${esc(it.name)}</b></div><div class="fact">${esc(it.text||'')}</div>`}
 function wcards(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLand=L.id;state={land:L.id,place:p.id};$('#title').textContent=p.name;
  const sv=wSave(),seen=new Set(((sv.seen||{})[p.deck])||[]);
- main.innerHTML=`<div class="prompt"><span>${esc(p.intro)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="wprog">⭐ <bdi><b id="wseen">${N(seen.size)}</b> / ${N(D.items.length)}</bdi></div><div class="wgrid k-${D.kind}">${D.items.map((it,i)=>tileHTML(D.kind,it,i,seen)).join('')}</div>`;
+ main.innerHTML=`<div class="prompt"><span>${esc(p.intro)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="wprog">⭐ <bdi><b id="wseen">${NF(seen.size)}</b> / ${NF(D.items.length)}</bdi></div><div class="wgrid k-${D.kind}">${D.items.map((it,i)=>tileHTML(D.kind,it,i,seen)).join('')}</div>`;
  bindSay(p.intro);showShelfImgs();
  main.querySelectorAll('.wtile').forEach(b=>b.onclick=()=>{sfx.tap();showWCard(D,p,+b.dataset.i)});
  warmVoice(D.items.flatMap(it=>it.say),1)}
@@ -118,7 +118,7 @@ function showWCard(D,p,i){document.querySelectorAll('.pop').forEach(x=>x.remove(
  document.body.appendChild(d);
  let lines=it.say.slice();
  if(fresh){seen.add(key);sv.seen[p.deck]=[...seen];wPut(sv);stars++;setScore();const t=main.querySelector(`.wtile[data-i="${i}"]`);if(t){t.classList.add('seen');const r=t.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2)}
-  const c=$('#wseen');if(c)c.textContent=N(seen.size);
+  const c=$('#wseen');if(c)c.textContent=NF(seen.size);
   if(seen.size===D.items.length&&D.done){lines.push(D.done);confetti(160);setTimeout(()=>{for(let k=0;k<3;k++)setTimeout(()=>burst(innerWidth*(.25+.25*k),innerHeight*.3),k*200)},300)}}
  if(D.kind==='prayer')confetti(40);
  say(lines);
@@ -154,10 +154,10 @@ function wcount(a){const L=landById(a.l),p=placeById(L,a.p),NUM=wDeck(p.deck).it
  let N;do{N=1+(Math.random()*10|0)}while(N===state.prev);state.prev=N;
  const O=OB[Math.random()*OB.length|0];
  const near=shuffle([N-2,N-1,N+1,N+2,N+3,N-3].filter(x=>x>=1&&x<=10));const opts=shuffle([N,near[0],near[1]]);
- main.innerHTML=header(O.ask)+`<div class="wcount" id="wc">${Array.from({length:N},(_,i)=>`<button class="wobj" style="animation-delay:${(i*.06).toFixed(2)}s" aria-label="${esc(T('count'))}"><img src="${O.img}" alt=""></button>`).join('')}</div><div class="hint">${esc(T('tapToCount'))}</div><div class="choices wnums">${opts.map(n=>`<button class="opt wn" data-n="${n}">${N(n)}</button>`).join('')}</div>`;
+ main.innerHTML=header(O.ask)+`<div class="wcount" id="wc">${Array.from({length:N},(_,i)=>`<button class="wobj" style="animation-delay:${(i*.06).toFixed(2)}s" aria-label="${esc(T('count'))}"><img src="${O.img}" alt=""></button>`).join('')}</div><div class="hint">${esc(T('tapToCount'))}</div><div class="choices wnums">${opts.map(n=>`<button class="opt wn" data-n="${n}">${NF(n)}</button>`).join('')}</div>`;
  main.querySelector('.say').onclick=()=>say(O.ask);
  say(state.round===0&&!a.r?[p.intro,O.ask]:[O.ask]);
- let c=0;main.querySelectorAll('.wobj').forEach(b=>b.onclick=()=>{if(b.classList.contains('counted')||b.disabled)return;c++;b.classList.add('counted');b.dataset.c=N(c);sfx.pop();say(NUM[c-1].say[0],0,1)});
+ let c=0;main.querySelectorAll('.wobj').forEach(b=>b.onclick=()=>{if(b.classList.contains('counted')||b.disabled)return;c++;b.classList.add('counted');b.dataset.c=NF(c);sfx.pop();say(NUM[c-1].say[0],0,1)});
  main.querySelectorAll('.wn').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(+b.dataset.n===N)wGood(b,NUM[N-1].say[0],()=>wNext(a,'wcount'));else wrong(b)});
  warmVoice(OB.map(o=>o.ask).concat(NUM.map(n=>n.say[0])),1)}
 function wreward(a){const L=landById(a.l),p=placeById(L,a.p);curLand=L.id;const s=starsForMiss(state.miss||0),n=state.score,tot=state.total;
@@ -205,12 +205,12 @@ function studyItems(s){const src=s.source||'';
   const text=D.kind==='country'?`${it.greeting} ${T('meaningIn',{meaning:it.meaning,language:it.language})}`:it.fact||it.text||'';
   return {label,img,thumb:wThumb(img),text,say:it.say,big:D.kind==='letter'?it.id:D.kind==='number'?String(it.n):''}})}
  return []}
-function study(){const S=LANDS.lands.find(l=>l.type==='library'),T=LANDS.study;curLand=S.id;state={land:S.id};studyFrom=null;$('#title').textContent='📚 '+S.name;
- main.innerHTML=`<div class="prompt"><span>${esc(T.prompt)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="sshelves">${T.sections.map(s=>
+function study(){const S=LANDS.lands.find(l=>l.type==='library'),ST=LANDS.study;curLand=S.id;state={land:S.id};studyFrom=null;$('#title').textContent='📚 '+S.name;
+ main.innerHTML=`<div class="prompt"><span>${esc(ST.prompt)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="sshelves">${ST.sections.map(s=>
   `<button class="ssec" data-s="${s.id}" style="--c:${s.color||'#2f86e8'}"><span class="si"><img src="${m2(s.icon2,s.icon)}"${m2(s.icon2,"")?' class="art"':''} alt=""></span><span class="sn">${esc(s.name)}</span><span class="sc">${esc(T('toLearn',{n:studyItems(s).length}))}</span></button>`).join('')}</div>`;
  main.querySelector('.say').onclick=()=>say(S.intro);say(S.intro);
  main.querySelectorAll('.ssec').forEach(b=>b.onclick=()=>{sfx.tap();go('ssec',{s:b.dataset.s})});
- warmVoice(T.sections.map(s=>s.intro),1)}
+ warmVoice(ST.sections.map(s=>s.intro),1)}
 function ssec(a){const S=LANDS.lands.find(l=>l.type==='library'),s=LANDS.study.sections.find(x=>x.id===a.s);if(!s){go('study');return}curLand=S.id;state={land:S.id,sec:s.id};
  const items=studyItems(s);$('#title').textContent=s.name;let grp=null;
  main.innerHTML=`<div class="prompt"><span>${esc(s.intro||s.name)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="sgrid">${items.map((it,i)=>{

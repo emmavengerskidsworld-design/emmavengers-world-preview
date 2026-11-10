@@ -1,6 +1,8 @@
 """List every spoken prompt string that has no matching voice/<fnv>.mp3 clip.
 Usage: python3 tools/check_voice.py [URL_or_local_dir]   (default: repo dir, served locally)
-Prints missing lines as JSON [text, path] (feed to Kokoro gen.py). Exit 1 if any missing."""
+Prints missing lines as JSON [text, path] (feed to Kokoro gen.py). Exit 1 if any missing.
+  --all   print EVERY spoken line of the app as [text, path(, IPA)] (to regenerate a whole voice; letter sounds get the
+          lexicon phonemes). Exit 0."""
 import sys,os,json,asyncio,threading,http.server,functools
 from playwright.async_api import async_playwright
 ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,10 +35,16 @@ async def main(target):
         await pg.goto(url,wait_until='networkidle')
         await pg.wait_for_function('typeof LANDS!=="undefined"&&LANDS!==null&&window.CTRY_READY',timeout=15000)
         rows=await pg.evaluate(ENUM)
+        PH.update(await pg.evaluate("(LANDS&&LANDS.phonemes)||{}"))
         st=await pg.evaluate("async r=>Promise.all(r.map(([t,h])=>fetch('voice/'+h+'.mp3',{method:'HEAD',cache:'no-store'}).then(x=>x.status)))",rows)
         await b.close()
+    if ALL:
+        out=[[t,f'voice/{h}.mp3']+([PH[t]] if t in PH else []) for t,h in rows]
+        print(f'{len(out)} prompt strings ({sum(1 for s in st if s==200)} have a clip now)',file=sys.stderr)
+        print(json.dumps(out,ensure_ascii=False,indent=0)); return 0
     miss=[[t,f'voice/{h}.mp3'] for (t,h),s in zip(rows,st) if s!=200]
     print(f'{len(rows)} prompt strings, {len(rows)-len(miss)} with clips, {len(miss)} missing',file=sys.stderr)
     print(json.dumps(miss,ensure_ascii=False,indent=0))
     return 1 if miss else 0
-if __name__=="__main__": sys.exit(asyncio.run(main(sys.argv[1] if len(sys.argv)>1 else ROOT)))
+PH={};ALL='--all' in sys.argv;ARGS=[a for a in sys.argv[1:] if a!='--all']
+if __name__=="__main__": sys.exit(asyncio.run(main(ARGS[0] if ARGS else ROOT)))
