@@ -17,7 +17,7 @@
 (function (G) {
 'use strict';
 const D = G.document;
-const I = { lang: 'en', dir: 'ltr', chain: ['en'], ready: false, locales: [] };
+const I = { lang: 'en', dir: 'ltr', chain: ['en'], ok: false, ready: null, locales: [] };
 let LIB = null, UI = {}, nfCache = {}, prCache = {};
 const loc = t => I.locales.find(l => l.tag === t) || null;
 
@@ -115,7 +115,8 @@ I.set = async tag => {
 };
 /* languages a child can pick here: what this site's catalog offers (live: active only; preview: + in-review) */
 I.offered = () => I.locales.map(l => ({ tag: l.tag, name: l.name, englishName: l.englishName, dir: l.dir, status: l.status }));
-I.ready = (G.EWLib ? G.EWLib.ready : Promise.reject(new Error('no library'))).then(L => { LIB = L; sync(); I.ready = true; return I });
-if (I.ready.catch) I.ready.catch(() => {});
+/* I.ready: Promise resolved when the library and the chosen language are loaded; I.ok: true from then on */
+I.ready = (G.EWLib ? G.EWLib.ready : Promise.reject(new Error('no library'))).then(L => { LIB = L; sync(); I.ok = true; return I });
+I.ready.catch(() => {});
 G.EWi18n = I;
 })(typeof window !== 'undefined' ? window : globalThis);

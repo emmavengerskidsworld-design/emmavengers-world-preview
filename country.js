@@ -14,8 +14,13 @@ function ctPrefs(){try{return Object.assign({lang:'en',age:null,guide:true},JSON
 function ctSetPrefs(p){try{localStorage.setItem('emmaCtryPrefs',JSON.stringify(Object.assign(ctPrefs(),p)))}catch(e){}}
 function ctProg(){try{return JSON.parse(localStorage.getItem('emmaCtry')||'{}')}catch(e){return{}}}
 function ctPutProg(s){try{localStorage.setItem('emmaCtry',JSON.stringify(s))}catch(e){}}
-const ctLang=()=>ctPrefs().lang==='fr'?'fr':'en';
-const LT=o=>o==null?'':typeof o==='string'?o:(o[ctLang()]!=null?o[ctLang()]:o.en);
+/* Language: the app's chosen language (i18n.js) when this country has it, else the next language of the fallback
+   chain the country has, else its source language. The language switch in the country player changes the app
+   language (one choice for the whole app, remembered on the device). */
+const ctPackLangs=()=>{const pk=CT.cur;const l=pk&&pk.locales?Object.keys(pk.locales):[];return l.length?l:['en']};
+const ctChain=()=>{const ch=(window.EWi18n&&EWi18n.ok)?EWi18n.chain:['en'],have=ctPackLangs();const out=ch.filter(l=>have.includes(l));return out.length?out:[(CT.cur&&CT.cur.sourceLanguage)||'en']};
+const ctLang=()=>ctChain()[0];
+const LT=o=>{if(o==null)return'';if(typeof o==='string')return o;for(const l of ctChain())if(o[l]!=null){if(window.EWi18n)EWi18n.markLang(o[l],l);return o[l]}const k=o.en!=null?'en':Object.keys(o)[0];if(k&&window.EWi18n)EWi18n.markLang(o[k],k);return k?o[k]:''};
 const UT=k=>LT((CT.cur&&CT.cur.payload.ui&&CT.cur.payload.ui[k])||(CT.ui&&CT.ui.strings[k])||k);
 const ctBand=()=>ctPrefs().age==='big'?'big':'little';
 const ctToday=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -129,9 +134,17 @@ function ctry(a){if(ctRequire(a,ctry))return;const pk=CT.cur,P=ctPrefs(),pr=ctPr
  if(fromLand){const P2=ctProg(),k=pk.payload.slug;P2[k]=P2[k]||{};const again=(P2[k].visits||0)>0;P2[k].visits=(P2[k].visits||0)+1;ctPutProg(P2);
   ctGuide([pk.payload.hub.travel,again?pk.payload.hub.introAgain:pk.payload.hub.intro])}
  warmVoice(['ari.cm.learn','ari.cm.story'].map(id=>ctLine(id).text),0)}
-function ctLangSeg(){const l=ctLang();return `<div class="cseg" role="group" aria-label="Language / Langue"><button class="clang${l==='en'?' on':''}" data-lang="en" aria-pressed="${l==='en'}">English</button><button class="clang${l==='fr'?' on':''}" data-lang="fr" aria-pressed="${l==='fr'}">Français</button></div>`}
+/* languages of this country that this site offers (catalog), each in its own name */
+function ctLangSeg(){const l=ctLang(),offered=(window.EWi18n&&EWi18n.ok)?EWi18n.offered().map(x=>x.tag):['en'];const ls=ctPackLangs().filter(x=>offered.includes(x));if(ls.length<2)return '';
+ return `<div class="cseg" role="group" aria-label="${esc(T('language'))}">${ls.map(x=>`<button class="clang${l===x?' on':''}" data-lang="${esc(x)}" lang="${esc(x)}" aria-pressed="${l===x}">${esc(window.EWi18n?EWi18n.name(x):x)}</button>`).join('')}</div>`}
 const ctLangRow=()=>`<div class="crow">${ctLangSeg()}</div>`;
-function ctLangBind(re){main.querySelectorAll('.clang').forEach(b=>b.onclick=()=>{sfx.tap();ctSetPrefs({lang:b.dataset.lang});re()})}
+function ctLangBind(re){main.querySelectorAll('.clang').forEach(b=>b.onclick=()=>{sfx.tap();if(b.dataset.lang===ctLang())return;main.querySelectorAll('.clang').forEach(x=>x.disabled=true);
+ CT.onLang=re;EWi18n.set(b.dataset.lang).catch(e=>{console.warn(e);CT.onLang=null;re()})})}
+/* app language changed: re-read the loaded countries in the new language and redraw */
+addEventListener('ewlang',()=>{const re=CT.onLang;CT.onLang=null;Promise.all(Object.keys(CT.packs).map(ctLoadOne)).then(()=>{if(CT.cur)CT.cur=CT.packs[CT.cur.payload.slug]||CT.cur;
+ if(CT_SCREENS.includes(screen)){if(re)re();else go(screen,ctA())}}).catch(e=>console.warn(e))});
+/* before Stage 2 the country player kept its own language; carry a French choice over once */
+if(window.EWi18n)EWi18n.ready.then(()=>{try{if(!localStorage.getItem('emmaLang')&&ctPrefs().lang&&ctPrefs().lang!==EWi18n.lang&&EWi18n.offered().some(x=>x.tag===ctPrefs().lang))EWi18n.set(ctPrefs().lang)}catch(e){}}).catch(()=>{});
 
 /* ---- Learn: one card per screen (image + ≤2 sentences + read aloud / replay / next) ---- */
 function clearn(a){if(ctRequire(a,clearn))return;const L=CT.cur.payload.learn[ctBand()],cards=L.cards,i=Math.max(0,Math.min(a.i||0,cards.length-1)),c=cards[i];ctTop(UT('learn'));
