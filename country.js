@@ -133,7 +133,9 @@ function ctry(a){if(ctRequire(a,ctry))return;const pk=CT.cur,P=ctPrefs(),pr=ctPr
  ctBind();
  if(fromLand){const P2=ctProg(),k=pk.payload.slug;P2[k]=P2[k]||{};const again=(P2[k].visits||0)>0;P2[k].visits=(P2[k].visits||0)+1;ctPutProg(P2);
   ctGuide([pk.payload.hub.travel,again?pk.payload.hub.introAgain:pk.payload.hub.intro])}
- warmVoice(['ari.cm.learn','ari.cm.story'].map(id=>ctLine(id).text),0)}
+ /* this country's lines in the child's language go onto the phone first (English used to wait for the background precache) */
+ {const lg=ctLang();cacheClips(ctStrings(pk).filter(x=>x[1]===lg).map(x=>x[0]))}
+ const b0=pk.payload.learn[ctBand()];warmVoice([...['ari.cm.learn','ari.cm.story'].map(id=>ctLine(id).text),b0&&b0.cards[0]&&LT(b0.cards[0].text)],1)}
 /* languages of this country that this site offers (catalog), each in its own name */
 function ctLangSeg(){const l=ctLang(),offered=(window.EWi18n&&EWi18n.ok)?EWi18n.offered().map(x=>x.tag):['en'];const ls=ctPackLangs().filter(x=>offered.includes(x));if(ls.length<2)return '';
  return `<div class="cseg" role="group" aria-label="${esc(T('language'))}">${ls.map(x=>`<button class="clang${l===x?' on':''}" data-lang="${esc(x)}" lang="${esc(x)}" aria-pressed="${l===x}">${esc(window.EWi18n?EWi18n.name(x):x)}</button>`).join('')}</div>`}
@@ -161,7 +163,7 @@ function clearn(a){if(ctRequire(a,clearn))return;const L=CT.cur.payload.learn[ct
  if(c.kind==='try')ctTryGrid(c);
  ctBind();
  const key='learn:'+c.id+':'+ctLang();const ids=CT.shownLines.has(key)?[]:(c.lines||[]);CT.shownLines.add(key);ctGuide(ids,[text]);
- warmVoice(cards.slice(i+1,i+3).map(x=>LT(x.text)),0)}
+ warmVoice(cards.slice(i+1,i+3).map(x=>LT(x.text)),1)}
 function ctTryGrid(c){const M=CT.cur.payload.media[c.image];let pos=[1,1];const host=main.querySelector('.cmedia');
  const draw=()=>{host.innerHTML=ctGrid({interactive:true,pos})+`<div class="cdirs one"><button class="cdir-btn" data-d="n">⬆ ${esc(UT('north'))}</button></div>`;
   host.querySelectorAll('.ccell').forEach(b=>b.onclick=()=>{const r=+b.dataset.r,k=+b.dataset.c;if(Math.abs(r-pos[0])+Math.abs(k-pos[1])===1)mv([r,k])});
@@ -298,7 +300,7 @@ function cquiz(a){if(ctRequire(a,cquiz))return;ctTop(UT('quiz'));const band=ctBa
  $('#csay').onclick=()=>{ctHideGuide();ctSay([q.prompt,...ids.map(id=>q.options[id])])};
  $('#chelp').onclick=()=>{hint=true;ctHint(q.hint);showSkip()};
  ctBind();const opts=ids.map(id=>q.options[id]);ctSay(band==='little'?[q.prompt,...opts]:[q.prompt]);
- if(a.i+1<a.round.length){const nx=ctQ(bank.items.find(x=>x.id===a.round[a.i+1]));warmVoice([nx.prompt],0)}}
+ if(a.i+1<a.round.length){const nx=ctQ(bank.items.find(x=>x.id===a.round[a.i+1]));warmVoice([nx.prompt],1)}}
 function ctExhausted(a){const Q=CT.cur.payload.quiz;ctTop(UT('quiz'));
  main.innerHTML=`<div class="cscr cexh"><img class="cbigari" src="img/world/guides/ari-thumbs.webp" alt="Ari"><p class="ctext" id="cexh">${esc(LT(Q.exhausted))}</p>
   <div class="cmodes one"><button class="cmode" id="cfinish"><i>🏁</i><b>${esc(LT(Q.finish))}</b></button><button class="cmode" id="cpractise"><i>🔁</i><b>${esc(LT(Q.practise))}</b></button></div>${GUIDE_HTML}</div>`;
@@ -326,7 +328,7 @@ function cread(a){if(ctRequire(a,cread))return;const s=CT.cur.payload.stories[a.
  main.innerHTML=`<div class="cscr cstory"><h2 class="cstitle">${esc(LT(s.title))}</h2><div class="cbanner">${esc(LT(s.banner))}</div><div class="cprog">${esc(UT('page'))} ${i+1} / ${n}</div>${ctStoryArt(p.scene)}<p class="ctext story" id="ctext">${esc(t)}</p>
   <div class="cnav"><button class="cbtn2" id="cprev"${i?'':' disabled'}>◀ ${esc(UT('prev'))}</button><button class="say" id="csay" aria-label="${esc(UT('replay'))}">🔊</button><button class="btn" id="cnext">${esc(UT('next'))} ▶</button></div>${GUIDE_HTML}</div>`;
  $('#cprev').onclick=()=>{sfx.tap();go('cread',ctA({s:a.s,i:i-1}))};$('#cnext').onclick=()=>{sfx.tap();go('cread',ctA({s:a.s,i:i+1}))};$('#csay').onclick=()=>ctSay([t]);
- ctBind();ctSay([t]);if(i+1<n)warmVoice([LT(pages[i+1].text)],0)}
+ ctBind();ctSay([t]);if(i+1<n)warmVoice([LT(pages[i+1].text)],1)}
 
 /* ---- Done card: Ari + Ezra lines, quiet "visited" stamp once, back to hub or fly home ---- */
 function cdone(a){if(ctRequire(a,cdone))return;ctTop(LT(CT.cur.payload.name));const first=ctStamp();

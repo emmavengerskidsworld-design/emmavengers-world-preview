@@ -3,7 +3,7 @@
      else runs - broken or un-built content must never reach the app.
   2. content tests (test_content.py) and loader tests in a browser (test_library.py)
   3. the game suites (world, Cameroon pilot, languages/RTL, study, parents, voice, offline, Bible offline, voice clip
-     check, quick taps, tap-to-sound latency on cached clips)
+     check, quick taps, tap-to-sound latency on cached clips, first-visit EN vs FR tap latency on slow 4G)
   --quick         only 1 + 2 (about 20 s)       --scale   also the 200-country x 5-language scale test
   --install-hook  install a local git pre-commit hook that runs --quick (never pushes anything)
 Writes a summary to stdout; each suite's full log goes to /tmp/ew-tests/<name>.log."""
@@ -50,6 +50,7 @@ def main():
             res.append(run('test_quick_tap', [PY, 'tools/test_quick_tap.py', f'http://127.0.0.1:{p}/', '--cold']))
             res.append(run('test_tap_latency', [PY, 'tools/test_tap_latency.py', '--label', 'suite']))
         finally: srv.send_signal(signal.SIGTERM)
+        res.append(run('test_cold_tap', [PY, 'tools/test_cold_tap.py']))
     if '--scale' in a:
         res.append(run('test_scale', [PY, 'tools/test_scale.py']))
     print(f'\n{sum(res)}/{len(res)} suites passed (+ required content check)')

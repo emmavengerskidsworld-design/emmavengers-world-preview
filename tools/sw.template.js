@@ -44,6 +44,15 @@ async function cacheVoicePack(id){
   }
   return {ok:n>0,id,n,total:list.length};
 }
+/* The voice of what the child is using RIGHT NOW (e.g. the country they just opened, in their language): fetched
+   urgently, like a language pack, instead of waiting in the background precache - which pauses on every tap, so
+   English clips (part of the big core precache) used to stream from the network on each tap. Only voice clips. */
+const CLIP_RE=/^\.\/voice\/(?:[a-z]{2,3}(?:-[A-Za-z0-9]+)?\/)?[0-9a-f]{8}\.mp3$/;let clipQ=Promise.resolve();
+function cacheClips(urls){const list=[...new Set((urls||[]).filter(u=>typeof u==='string'&&CLIP_RE.test(u)))].slice(0,800);
+  return clipQ=clipQ.then(async()=>{const c=await caches.open(CACHE);let n=0;
+    for(let i=0;i<list.length;i+=BATCH){if(updating())break;const part=list.slice(i,i+BATCH);
+      const ok=await Promise.all(part.map(u=>caches.match(u,{ignoreSearch:true}).then(r=>r?true:getOne(c,u,true))));ok.forEach(x=>{if(x)n++})}
+    return {n,total:list.length}}).catch(()=>({n:0,total:list.length}))}
 /* ---- Bible books: full book cached on first open; all listed books prefetched when online ---- */
 const vUrl=(id,h)=>'./voice/'+(id&&id!=='mia'?id+'/':'')+h+'.mp3';
 async function refreshManifest(){try{const r=await fetch('./bible-manifest.json',{cache:'no-store'});if(r.ok){const j=await r.json();if(j&&j.books)BOOKS=j.books}}catch(e){}return BOOKS}
@@ -70,6 +79,7 @@ self.addEventListener('message',e=>{
   if(d&&d.type==='cacheVoice'){
     e.waitUntil((async()=>{const r=await cacheVoicePack(d.id);tell({type:'voiceCached',...r})})());
   }
+  if(d&&d.type==='cacheClips'){e.waitUntil((async()=>{const r=await cacheClips(d.urls);tell({type:'clipsCached',...r})})())}
   if(d&&d.type==='cacheBook'){e.waitUntil((async()=>{const r=await cacheBook(d.slug,d.voice);tell({type:'bookCached',...r})})())}
   if(d&&d.type==='cacheBooks'){/* no waitUntil: a long background download must never block a new version */(async()=>{const r=await cacheAllBooks(d.voice);tell({type:'booksCached',books:r})})()}
 });

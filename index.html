@@ -1510,6 +1510,8 @@ if(window.EWi18n)EWi18n.ready.then(()=>{$('#langBtn').classList.toggle('on',lang
 window.emmaBack=function(){const pn=document.querySelector('#ppanel,#vpanel,#lpanel,.pop');if(pn){pn.remove();return true}if(screen!=='home'){$('#backBtn').click();return true}return false};
 
 /* Offline Bible books: cache the whole book when it is opened, and prefetch every book (incl. newly added ones) whenever online. */
+/* the voice clips of the screen the child is on: the service worker downloads them first (sw.template.js cacheClips) */
+function cacheClips(texts){if(voiceOff)return;const u=[...new Set((texts||[]).flat().filter(Boolean).map(voiceUrl).filter(Boolean))].map(x=>'./'+x);if(u.length)swPost({type:'cacheClips',urls:u})}
 function swPost(m){if(!('serviceWorker' in navigator))return false;const c=navigator.serviceWorker.controller;if(c){c.postMessage(m);return true}navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage(m)).catch(()=>{});return true}
 function cacheBook(slug){if(navigator.onLine!==false)swPost({type:'cacheBook',slug,voice:vSet.id})}
 function prefetchBooks(){if(navigator.onLine===false)return;if(Date.now()-lastTap<20000){clearTimeout(prefetchBooks.t);prefetchBooks.t=setTimeout(prefetchBooks,8000);return}swPost({type:'cacheBooks',voice:vSet.id})}
