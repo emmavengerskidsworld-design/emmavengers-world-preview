@@ -76,11 +76,11 @@
    "voice": {
     "pack": "voice/",
     "engine": "kokoro",
-    "voice": "af_heart",
-    "lang": "en-us",
-    "speed": 0.72,
-    "pitch": 1.18,
-    "note": "Default English voice (Mia). Stage 2 replaces it after the clarity test."
+    "voice": "bf_isabella",
+    "lang": "en-gb",
+    "speed": 0.85,
+    "pitch": 1.05,
+    "note": "Main English voice (still called Mia in Voice Settings). Chosen in Stage 2: the French voice ff_siwis read English with 15.7%/12.4% word errors (ASR, 40 real app lines), bf_isabella had the fewest of all clear female voices (5.4%/3.3%) and the closest pitch to ff_siwis. See docs/voice-choice.md."
    }
   },
   {

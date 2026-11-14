@@ -18,7 +18,7 @@ KOK = Path(os.environ.get("KOKORO_DIR", "/workspace/kok"))
 
 # Friendly voice pack: id -> (kokoro_voice, speed, pitch_shift, gender, label)
 VOICES = {
-    "mia":  ("af_heart",   0.72, 1.18, "girl", "Mia"),   # default — same pitch as before, ~10%+ faster
+    "mia":  ("bf_isabella", 0.85, 1.05, "girl", "Mia"),  # default English voice (Stage 2 clarity test, docs/voice-choice.md); keep in step with locales.json "en"
     "lily": ("af_jessica", 0.72, 1.28, "girl", "Lily"),
     "zara": ("af_bella",   0.78, 1.38, "girl", "Zara"),
     "sam":  ("am_puck",    0.70, 2.30, "boy",  "Sam"),
