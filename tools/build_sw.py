@@ -2,7 +2,11 @@
 Run after ANY change (new room, images, voice clips, Bible book, index.html):  python3 tools/build_sw.py
 
 Caching layers
-  1. CORE (precached at install): html/css/js/icons/manifest, room pictures, morning clips, default Mia voice,
+  0. SHELL (downloaded at install, ~5 MB): html/css/js/fonts/icons/manifest + Emmavengers World map art (img/world/).
+     The service worker takes over as soon as the shell is on the phone; the rest of CORE then downloads in the
+     background (pausing while the child taps). Before Stage 2's fix the whole 55 MB core had to finish first, so on
+     a slow phone the app could stay uncontrolled for a long time: no offline, every voice clip from the network.
+  1. CORE (all of it on the phone after the first visit): html/css/js/icons/manifest, room pictures, morning clips, default Mia voice,
      and every Bible book COVER (so the library shelf shows offline).
   2. BIBLE BOOKS (cache 'emma-books', survives app updates): each book's pages (img/bible/<slug>/*.jpg) and its
      narration clips. Cached in full the first time a book is opened online, and every book listed in
@@ -134,11 +138,19 @@ voice_packs['mia'] = [u for u in files if u.startswith('./voice/') and u.endswit
                      sorted({f'./voice/{x}.mp3' for x in book_only})
 manifest = {slug: {'v': books[slug]['h'].hexdigest()[:12], 'title': BIBLE[slug]['title'], 'files': books[slug]['files'],
                    'voice': book_voice[slug]} for slug in BIBLE}
+SHELL_EXT = ('.html', '.js', '.css', '.ttf', '.woff', '.woff2', '.otf', '.png', '.svg', '.json', '.webmanifest', '.ico')
+def is_shell(u):
+    p = u[2:]
+    return (not p.startswith('voice/')) and ('/' not in p and p.endswith(SHELL_EXT) or p.startswith('icons/') or p.startswith('fonts/')
+                                             or p.startswith('img/world/'))
+shell = ''.join('1' if is_shell(u) else '0' for u in files)
+shell_bytes = sum(os.path.getsize(os.path.join(ROOT, u[2:])) for u in files if is_shell(u))
 tpl = open(os.path.join(ROOT, 'tools', 'sw.template.js')).read()
 h.update(b'sw.template.js\0' + tpl.encode())  # a service-worker code change is a new build too
 build = h.hexdigest()[:12]
 out = (tpl.replace('__BUILD__', build)
           .replace('__ASSETS__', json.dumps(['./'] + files, separators=(',', ':')))
+          .replace('__SHELL__', json.dumps('1' + shell))
           .replace('__REVS__', json.dumps([''] + revs, separators=(',', ':')))
           .replace('__VOICE_PACKS__', json.dumps(voice_packs, separators=(',', ':')))
           .replace('__LANG_DIRS__', json.dumps(sorted(LANG_VOICE), separators=(',', ':')))
@@ -147,6 +159,7 @@ open(os.path.join(ROOT, 'sw.js'), 'w').write(out)
 json.dump({'build': build, 'books': manifest}, open(os.path.join(ROOT, 'bible-manifest.json'), 'w'), separators=(',', ':'))
 pack_n = {k: len(v) for k, v in sorted(voice_packs.items())}
 bk_n = {s: f"{len(b['files'])} img + {len(book_voice[s])} voice, {b['bytes']/1e6:.1f} MB" for s, b in books.items()}
-print(f'build {build}: core precache {len(files)} files, {core_total/1e6:.1f} MB (repo total {total/1e6:.1f} MB)')
+print(f'build {build}: core precache {len(files)} files, {core_total/1e6:.1f} MB (repo total {total/1e6:.1f} MB); '
+      f'shell at install {shell.count("1") + 1} files, {shell_bytes/1e6:.1f} MB')
 print(f'bible books (cached on open + background prefetch online): {bk_n}')
 print(f'voice packs (on demand): {pack_n}')

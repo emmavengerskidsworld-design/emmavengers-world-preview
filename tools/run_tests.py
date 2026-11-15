@@ -3,7 +3,8 @@
      else runs - broken or un-built content must never reach the app.
   2. content tests (test_content.py) and loader tests in a browser (test_library.py)
   3. the game suites (world, Cameroon pilot, languages/RTL, study, parents, voice, offline, Bible offline, voice clip
-     check, quick taps, tap-to-sound latency on cached clips, first-visit EN vs FR tap latency on slow 4G)
+     check, quick taps, tap-to-sound latency on cached clips, first-visit EN vs FR tap latency on slow 4G,
+     Number/World Land lines whole + in order and the offline worker taking charge on a slow phone)
   --quick         only 1 + 2 (about 20 s)       --scale   also the 200-country x 5-language scale test
   --install-hook  install a local git pre-commit hook that runs --quick (never pushes anything)
 Writes a summary to stdout; each suite's full log goes to /tmp/ew-tests/<name>.log."""
@@ -15,10 +16,10 @@ LOGS = '/tmp/ew-tests'
 def port():
     s = socket.socket(); s.bind(('127.0.0.1', 0)); p = s.getsockname()[1]; s.close(); return p
 
-def run(name, cmd, timeout=1800):
+def run(name, cmd, timeout=1800, env=None):
     os.makedirs(LOGS, exist_ok=True); t = time.time(); log = os.path.join(LOGS, name + '.log')
     with open(log, 'w') as f:
-        try: rc = subprocess.run(cmd, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT, timeout=timeout).returncode
+        try: rc = subprocess.run(cmd, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT, timeout=timeout, env=env).returncode
         except subprocess.TimeoutExpired: rc = 'timeout'
     dt = time.time() - t
     tail = open(log, encoding='utf-8', errors='replace').read().strip().splitlines()[-1:] or ['']
@@ -51,6 +52,9 @@ def main():
             res.append(run('test_tap_latency', [PY, 'tools/test_tap_latency.py', '--label', 'suite']))
         finally: srv.send_signal(signal.SIGTERM)
         res.append(run('test_cold_tap', [PY, 'tools/test_cold_tap.py']))
+        # Number Land / World Land lines play whole and in order, Count It! reads its question, and on a slow
+        # phone (200 KB/s, 400 ms round trips) the offline worker is in charge after the first visit
+        res.append(run('test_land_voice', [PY, 'tools/test_land_voice.py'], env=dict(os.environ, EMMA_RTT='0.4')))
     if '--scale' in a:
         res.append(run('test_scale', [PY, 'tools/test_scale.py']))
     print(f'\n{sum(res)}/{len(res)} suites passed (+ required content check)')

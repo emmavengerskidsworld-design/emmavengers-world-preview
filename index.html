@@ -1532,5 +1532,10 @@ if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWo
  // A new version finished downloading while the app is open: show a tap-to-update button.
  const offer=w=>{if(!w||!navigator.serviceWorker.controller||document.getElementById('updBtn'))return;const b=document.createElement('button');b.id='updBtn';b.textContent=(window.TT?TT('updateReady',null,'✨ New update ready! Tap to open'):'✨ New update ready! Tap to open');b.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;padding:14px 22px;border:0;border-radius:30px;background:#ffcc00;color:#3a2a00;font:800 18px var(--ew-font,system-ui,sans-serif);max-width:92vw;box-shadow:0 6px 18px rgba(0,0,0,.3)';b.onclick=()=>{let d=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!d){d=true;location.reload()}});w.postMessage('skipWaiting');setTimeout(()=>location.reload(),4000)};document.body.appendChild(b)};
  reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed')offer(w)})});
- addEventListener('online',()=>reg.update().catch(()=>{}));setInterval(()=>navigator.onLine&&reg.update().catch(()=>{}),30*60*1000)}).catch(()=>{})})
+ addEventListener('online',()=>reg.update().catch(()=>{}));setInterval(()=>navigator.onLine&&reg.update().catch(()=>{}),30*60*1000);
+ // The worker takes over once the small app shell is on the phone; the rest (pictures, voice) then downloads in the
+ // background. Keep that download going while the app is open, until the worker says everything is saved.
+ let coreDone=false;navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='coreCached')coreDone=true});
+ const ping=()=>{const c=navigator.serviceWorker.controller;if(c&&!coreDone&&navigator.onLine!==false&&!document.hidden)c.postMessage({type:'core'})};
+ navigator.serviceWorker.addEventListener('controllerchange',()=>setTimeout(ping,500));setTimeout(ping,1500);setInterval(ping,20000)}).catch(()=>{})})
 </script></body></html>

@@ -63,6 +63,18 @@ addEventListener('resize',fitMap);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{const m=$('#wmap');if(m)fitLabels(m)});
 
 /* --- World map (home) --- */
+/* What a child can hear in the first seconds after tapping a land: the world greeting, every land's intro and every
+   place's intro. The service worker fetches these few clips URGENTLY (not in the background precache, which pauses
+   on every tap), so entering a land on a fresh phone does not wait for the network (Stage 2: World Land took ~2 s,
+   Number Land ~1 s on Emmanuel's phone; tools/test_land_voice.py). */
+function homeClips(){if(!LANDS)return;const W=LANDS.world;
+ /* first visit: the service worker only takes over once its first big download is done (minutes on a slow network),
+    so until then the page itself downloads and decodes the land intros (ready in memory to play instantly), two at a time */
+ if(!(navigator.serviceWorker&&navigator.serviceWorker.controller)&&!homeClips.done){homeClips.done=1;
+  const q=[...new Set(LANDS.lands.map(L=>L.intro).filter(Boolean).map(voiceUrl).filter(Boolean))];
+  const pump=()=>{const u=q.shift();if(!u)return;decodeClip(u).catch(()=>{}).finally(pump)};pump();pump()}
+ cacheClips([W.intro,...LANDS.lands.map(L=>L.intro),...LANDS.lands.flatMap(L=>L.places.map(p=>p.intro)),
+  ...LANDS.lands.flatMap(L=>L.places.flatMap(p=>p.type==='count'?wDeck(p.objects).items.map(o=>o.ask):[]))])}
 function home(){curLand=null;state={};if(!LANDS){go('house');return}const W=LANDS.world;$('#title').textContent=W.title;
  if(W.layout==='six')return home6(W);
  main.innerHTML=`<div class="wmap world" id="wmap" style="background-image:url('${W.img}')">${LANDS.lands.map(L=>
@@ -72,7 +84,7 @@ function home(){curLand=null;state={};if(!LANDS){go('house');return}const W=LAND
  main.querySelector('.wsay').onclick=()=>say(W.intro);
  main.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{sfx.tap();go('land',{id:b.dataset.l})});
  if(!worldGreeted){worldGreeted=true;say(W.intro)}
- warmVoice(LANDS.lands.map(L=>L.intro),1)}
+ warmVoice(LANDS.lands.map(L=>L.intro),1);homeClips()}
 
 /* --- A land's inner map: places are tappable; "Back to Map" returns to the world map --- */
 function land(a){const L=landById((a&&a.id)||curLand);if(!L){go('home');return}if(L.type==='library'){go('study');return}curLand=L.id;state={land:L.id};$('#title').textContent=L.name;
@@ -189,7 +201,7 @@ function home6(W){const bg=m2(W.bg2,'');const S=LANDS.lands.find(l=>l.type==='li
  main.querySelector('.wsay').onclick=()=>say(W.intro);
  main.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{sfx.tap();const L=landById(b.dataset.l);if(L&&L.type==='library')go('study');else go('land',{id:b.dataset.l})});
  if(!worldGreeted){worldGreeted=true;say(W.intro)}
- warmVoice(LANDS.lands.map(L=>L.intro),1)}
+ warmVoice(LANDS.lands.map(L=>L.intro),1);homeClips()}
 
 /* ===== Study Land: a library to look and listen (no games). Shelves come from the content library (LANDS.study.sections);
    source = deck:<id> | house | bible, or inline items [{name,img,text,say}]. Adding a subject = one data entry. */

@@ -5,6 +5,7 @@ const BUILD='__BUILD__';
 const SCOPE=new URL(self.registration.scope).pathname;const PFX='emma-house-'+SCOPE+'-';const CACHE=PFX+BUILD;
 const mine=k=>k.startsWith(PFX)||/^emma-house-[0-9a-f]{12}$/.test(k); /* + unscoped caches from before Stage 2 */const BOOKS_CACHE='emma-books';
 const ASSETS=__ASSETS__;
+const SHELL=__SHELL__; /* '1' = ASSETS[i] is part of the app shell, downloaded at install; the rest downloads in the background after */
 const REVS=__REVS__; /* SHA-256 prefix (16 hex) of ASSETS[i]; '' = never reuse */
 const VOICE_PACKS=__VOICE_PACKS__;
 const LANG_DIRS=__LANG_DIRS__; /* voice/<tag>/ folders of languages (never replaced by another language's clip) */
@@ -22,18 +23,29 @@ async function getOne(c,u,urgent){for(let t=0;t<RETRIES;){if(!urgent)await gate(
  try{const r=await fetch(u,{cache:'reload',signal:ac.signal});if(r.ok){const b=await r.blob();await c.put(u,new Response(b,{status:200,headers:r.headers}));return true}}
  catch(e){if(ac.signal.aborted){continue}}finally{inflight.delete(ac)}
  t++;await sleep(500*t)}return false}
-async function precache(){const c=await caches.open(CACHE);const todo=[];for(const u of ASSETS){if(!(await c.match(u)))todo.push(u)}
- // reuse unchanged files from the previous cache to save data
- const old=(await caches.keys()).filter(k=>mine(k)&&k!==CACHE);
+/* Install: reuse unchanged files from the previous version (local copy, fast), then download only the app SHELL.
+   The service worker can then take over within seconds of a first visit, even on a slow phone. */
+async function reuseOld(c,todo){const old=(await caches.keys()).filter(k=>mine(k)&&k!==CACHE);
  /* only a file whose bytes are unchanged (same SHA-256 as this build) is reused; a changed file with the same name
     (e.g. world.js) must come from the network, otherwise the new version would run with old code */
  const REV=new Map(ASSETS.map((u,i)=>[u,REVS[i]]));
  const hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');
  for(const k of old){const oc=await caches.open(k);for(let i=todo.length-1;i>=0;i--){const u=todo[i];const want=REV.get(u);if(!want)continue;
   const r=await oc.match(u);if(!r)continue;let same=false;try{same=hex(await crypto.subtle.digest('SHA-256',await r.clone().arrayBuffer())).slice(0,16)===want}catch(e){}
-  if(same){await c.put(u,r);todo.splice(i,1)}}}
- const failed=[];for(let i=0;i<todo.length;i+=BATCH){const part=todo.slice(i,i+BATCH);const ok=await Promise.all(part.map(u=>getOne(c,u)));part.forEach((u,j)=>ok[j]||failed.push(u))}
- if(failed.length)throw new Error('precache failed: '+failed.length+' files, e.g. '+failed[0])}
+  if(same){await c.put(u,r);todo.splice(i,1)}}}}
+async function missing(c,list){const todo=[];for(const u of list){if(!(await c.match(u)))todo.push(u)}return todo}
+async function precache(){const c=await caches.open(CACHE);const todo=await missing(c,ASSETS);await reuseOld(c,todo);
+ const shell=todo.filter(u=>SHELL[ASSETS.indexOf(u)]==='1');
+ const failed=[];for(let i=0;i<shell.length;i+=BATCH){const part=shell.slice(i,i+BATCH);const ok=await Promise.all(part.map(u=>getOne(c,u,true)));part.forEach((u,j)=>ok[j]||failed.push(u))}
+ if(failed.length)throw new Error('shell precache failed: '+failed.length+' files, e.g. '+failed[0])}
+/* After activation: the rest of the core (pictures, voice) downloads in the background, yielding to the child's taps.
+   The page pings {type:'core'} while it is open so a long download survives the worker being stopped; when all is
+   on the phone every page hears {type:'coreCached'}. */
+let coreRun=null;
+function core(){return coreRun=coreRun||(async()=>{try{const c=await caches.open(CACHE);let todo=await missing(c,ASSETS);
+  for(let i=0;i<todo.length;i+=BATCH){if(updating())return {done:false};const part=todo.slice(i,i+BATCH);await Promise.all(part.map(u=>getOne(c,u)))}
+  todo=await missing(c,ASSETS);const done=!todo.length;if(done)tell({type:'coreCached',build:BUILD});return {done,left:todo.length}}
+ finally{coreRun=null}})()}
 async function cacheVoicePack(id){
   const list=VOICE_PACKS[id]; if(!list||!list.length)return {ok:false,id,n:0};
   const c=await caches.open(CACHE); let n=0;
@@ -70,11 +82,12 @@ async function cacheBook(slug,id){const b=BOOKS[slug];if(!b)return {slug,ok:fals
 async function cacheAllBooks(id){await refreshManifest();const res=[];for(const s of Object.keys(BOOKS)){if(updating())break;res.push(await cacheBook(s,id))}return res}
 async function tell(msg,src){const cl=await self.clients.matchAll({type:'window'});cl.forEach(c=>c.postMessage(msg));}
 self.addEventListener('install',e=>e.waitUntil(precache()));
-self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(mine(k)&&k!==CACHE)await caches.delete(k);await self.clients.claim()})()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(mine(k)&&k!==CACHE)await caches.delete(k);await self.clients.claim();core()})()));
 self.addEventListener('message',e=>{
   const d=e.data;
   if(d==='skipWaiting')self.skipWaiting();
   if(d&&d.type==='busy')markBusy();
+  if(d&&d.type==='core')e.waitUntil(core().catch(()=>{}));
   if(d==='build')e.source&&e.source.postMessage({build:BUILD});
   if(d&&d.type==='cacheVoice'){
     e.waitUntil((async()=>{const r=await cacheVoicePack(d.id);tell({type:'voiceCached',...r})})());

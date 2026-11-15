@@ -123,6 +123,121 @@
          },
          "note": {
           "type": "string"
+         },
+         "model": {
+          "enum": [
+           "int8",
+           "fp32",
+           "fp16"
+          ],
+          "description": "Kokoro model precision (fp32 = cleanest; tools/gen_voice.py)"
+         },
+         "bitrate": {
+          "type": "string",
+          "pattern": "^[0-9]{2,3}k$",
+          "description": "MP3 bitrate; 32k cuts the voice above ~6 kHz (muffled)"
+         },
+         "blend": {
+          "type": "array",
+          "items": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "number",
+             "minimum": 0,
+             "maximum": 0.9
+            }
+           ],
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "description": "Other Kokoro voices mixed into the main voice's style: [[voice, weight], ...]"
+         },
+         "post": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+           "highpass": {
+            "type": "number",
+            "minimum": 20,
+            "maximum": 400
+           },
+           "presence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+             "f",
+             "g"
+            ],
+            "properties": {
+             "f": {
+              "type": "number"
+             },
+             "g": {
+              "type": "number",
+              "minimum": -12,
+              "maximum": 12
+             },
+             "w": {
+              "type": "number"
+             }
+            }
+           },
+           "air": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+             "f",
+             "g"
+            ],
+            "properties": {
+             "f": {
+              "type": "number"
+             },
+             "g": {
+              "type": "number",
+              "minimum": -12,
+              "maximum": 12
+             }
+            }
+           },
+           "deess": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+           },
+           "denoise": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 30
+           },
+           "gate": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+             "threshold": {
+              "type": "number"
+             },
+             "ratio": {
+              "type": "number"
+             }
+            }
+           }
+          },
+          "description": "Clean-up after synthesis (tools/voice_post.py)."
+         },
+         "verifyShort": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6,
+          "description": "Lines of up to this many words are listened to (Whisper) and re-taken if garbled"
+         },
+         "next": {
+          "type": "object",
+          "description": "A voice set-up chosen but not yet recorded (gen_voice.py --next renders with it); becomes the voice once all clips are regenerated."
          }
         }
        }
