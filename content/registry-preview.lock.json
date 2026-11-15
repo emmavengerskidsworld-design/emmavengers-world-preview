@@ -703,26 +703,6 @@
  },
  "releases": [
   {
-   "sequence": 8,
-   "issued": "2026-11-10T20:42:36Z",
-   "channel": "preview",
-   "contentHash": "4d7f3ebfda34883505187d73d0b5bfd4cc8460813e644ee9b19f6ec8c7eb08eb",
-   "catalogSha256": "67121070f685bd72fbdf4c7d26395c4f1f381a64974e27266d77f2322a6438d4",
-   "files": [
-    "catalog.json",
-    "indexes/core.b914844663c39046.json",
-    "indexes/countries.africa.45e8fea084a844c8.json",
-    "packs/core.775a52398e919f08.json",
-    "packs/core.assets.07dc04213ad40bf7.json",
-    "packs/core@en.54abbe8246419917.json",
-    "packs/core@fr.75836c242eca5448.json",
-    "packs/country.cameroon.531bcaa945e83704.json",
-    "packs/country.cameroon.assets.77acf372b47fa00a.json",
-    "packs/country.cameroon@en.334e0a59f758de6d.json",
-    "packs/country.cameroon@fr.2e92937f8fee430e.json"
-   ]
-  },
-  {
    "sequence": 9,
    "issued": "2026-11-15T13:21:20Z",
    "channel": "preview",
@@ -746,7 +726,32 @@
     "packs/life@en.62bf8a3ff77c29b9.json",
     "packs/life@fr.af634c1edfe0d27a.json"
    ]
+  },
+  {
+   "sequence": 10,
+   "issued": "2026-11-15T14:04:49Z",
+   "channel": "preview",
+   "contentHash": "e1b87dfead17170d5bee012bb498b9ad83d40b6d88f235b90ae42fccb4603b8d",
+   "catalogSha256": "5306084b3f5ffbafc3e56fa330bcfe07535ccb1b353f9b1bd4c8f3b5bc9c855c",
+   "files": [
+    "catalog.json",
+    "indexes/core.d17f8a25dcddd4e4.json",
+    "indexes/countries.africa.852530a8ccfa299b.json",
+    "indexes/life.d315a88a004476bd.json",
+    "packs/core.assets.8059016788595957.json",
+    "packs/core.c41c550e4018133e.json",
+    "packs/core@en.f16c459c7149acad.json",
+    "packs/core@fr.e322bad562c779fe.json",
+    "packs/country.cameroon.531bcaa945e83704.json",
+    "packs/country.cameroon.assets.bf2ccb21a25c5a79.json",
+    "packs/country.cameroon@en.334e0a59f758de6d.json",
+    "packs/country.cameroon@fr.2e92937f8fee430e.json",
+    "packs/life.3ec743214fab8c24.json",
+    "packs/life.assets.3a1a45d5de980648.json",
+    "packs/life@en.62bf8a3ff77c29b9.json",
+    "packs/life@fr.af634c1edfe0d27a.json"
+   ]
   }
  ],
- "sequence": 9
+ "sequence": 10
 }
