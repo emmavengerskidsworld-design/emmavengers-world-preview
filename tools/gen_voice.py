@@ -63,6 +63,12 @@ def main():
     ap.add_argument("--speed", type=float, default=None)
     ap.add_argument("--sh", type=float, default=None, help="pitch shift (asetrate factor)")
     ap.add_argument("--force", action="store_true", help="regenerate even if file exists")
+    ap.add_argument("--model", default=None, choices=["int8", "fp32", "fp16"],
+                    help="Kokoro model precision (locales.json voice.model; default int8 = the original clips). fp32 is cleaner "
+                         "and ~5x faster on this CPU (docs/voice-fix.md)")
+    ap.add_argument("--bitrate", default=None, help="MP3 bitrate, e.g. 48k (locales.json voice.bitrate; default 32k). "
+                    "32k makes the encoder cut everything above ~6 kHz = muffled 'heavy' sound")
+    ap.add_argument("--no-lexicon", action="store_true", help="do not apply content/voice-lexicon/<lang>.json fixes")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--lang", default="en-us", help="Kokoro/espeak language, e.g. fr-fr with --kokoro ff_siwis (French pilot lines)")
     ap.add_argument("--locale", default=None, help="language tag from content/src/locales.json: its voice record gives the "
@@ -77,6 +83,8 @@ def main():
         args.speed = args.speed if args.speed is not None else v.get("speed", 1.0)
         args.sh = args.sh if args.sh is not None else v.get("pitch", 1.0)
         args.outdir = args.outdir or v["pack"]
+        args.model = args.model or v.get("model")
+        args.bitrate = args.bitrate or v.get("bitrate")
         args.voice = "locale:" + args.locale
 
     vid = args.voice
@@ -102,7 +110,10 @@ def main():
         jobs = jobs[: args.limit]
 
     # Prefer local kokoro copy under /workspace/kok; fall back to cwd
-    model = KOK / "kokoro-v1.0.int8.onnx"
+    prec = args.model or os.environ.get("KOKORO_MODEL", "int8")
+    bitrate = args.bitrate or os.environ.get("BITRATE", "32k")
+    model = {"int8": KOK / "kokoro-v1.0.int8.onnx", "fp32": KOK / "models" / "kokoro-v1.0.onnx",
+             "fp16": KOK / "models" / "kokoro-v1.0.fp16.onnx"}[prec]
     voices = KOK / "voices-v1.0.bin"
     if not model.exists():
         model = Path("kokoro-v1.0.int8.onnx")
@@ -112,19 +123,28 @@ def main():
     k = Kokoro(str(model), str(voices))
     tmp = f"/tmp/k{os.getpid()}.wav"
     done = skip = 0
+    # pitch 1.0 = no pitch processing at all (asetrate+atempo re-stretches the sound and adds a phasey colour)
+    pitch = "" if abs(sh - 1.0) < 1e-6 else f"asetrate={{sr}}*{sh},aresample=24000,{atempo_chain(1/sh)},"
     af_tail = (
-        f"asetrate={{sr}}*{sh},"
-        f"aresample=24000,{atempo_chain(1/sh)},"
+        pitch +
         "silenceremove=start_periods=1:start_threshold=-50dB,"
         "areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
         "apad=pad_dur=0.15"
     )
-    print(f"[gen_voice] voice={vid} kokoro={kv} speed={sp} sh={sh} out={outdir} jobs={len(jobs)}", flush=True)
+    lex = {}
+    if not args.no_lexicon:
+        sys.path.insert(0, str(ROOT / "tools"))
+        import voice_lexicon
+        lex = voice_lexicon.load(args.lang)
+    print(f"[gen_voice] voice={vid} kokoro={kv} model={prec} speed={sp} sh={sh} bitrate={bitrate} lexicon={len(lex)} "
+          f"out={outdir} jobs={len(jobs)}", flush=True)
     for text, out, ph in jobs:
         out.parent.mkdir(parents=True, exist_ok=True)
         if out.exists() and not args.force and out.stat().st_size > 200:
             skip += 1
             continue
+        if not ph and lex:
+            ph, _fixed = voice_lexicon.phonemize(text, args.lang, k.tokenizer.phonemize, lex)
         if ph:
             a, sr = k.create(ph, voice=kv, speed=sp, lang=args.lang, is_phonemes=True)
         else:
@@ -132,7 +152,7 @@ def main():
         sf.write(tmp, a, sr)
         subprocess.run(
             ["ffmpeg", "-loglevel", "error", "-y", "-i", tmp, "-af", af_tail.format(sr=sr),
-             "-ac", "1", "-b:a", "32k", str(out)],
+             "-ac", "1", "-b:a", bitrate, str(out)],
             check=True,
         )
         done += 1
