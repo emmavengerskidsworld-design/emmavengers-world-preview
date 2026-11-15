@@ -28,6 +28,7 @@ VARIANTS = {
  'C6-alice-british-crisp':  ('bf_alice (British, light, little breath noise), natural, clean, 48k', 'bf_alice', 'en-gb', 0.95, 1.0, 'fp32', '48k', False),
  'C7-kore-firm':            ('af_kore (clearest/firmest by CPPS, a bit lower pitch), natural, clean, 48k', 'af_kore', 'en-us', 0.95, 1.0, 'fp32', '48k', False),
  'D1-heart-fixed-words':    ('af_heart + pronunciation dictionary',                       'af_heart', 'en-us', 0.95, 1.0, 'fp32', '48k', True),
+ 'D3-aoede-fixed-words':    ('af_aoede natural + pronunciation dictionary (recommended)',  'af_aoede', 'en-us', 0.95, 1.0, 'fp32', '48k', True),
  'D2-isabella-fixed-words': ('bf_isabella natural + pronunciation dictionary',             'bf_isabella', 'en-gb', 0.95, 1.0, 'fp32', '48k', True),
 }
 MODELS = {'int8': 'kokoro-v1.0.int8.onnx', 'fp32': 'models/kokoro-v1.0.onnx', 'fp16': 'models/kokoro-v1.0.fp16.onnx'}
