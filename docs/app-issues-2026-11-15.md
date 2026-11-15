@@ -57,5 +57,5 @@ land intros, 94-99 ms with it. A tap in the very first second of the very first 
   - voice-start time
 - The old code fails it ("service worker in charge after 120.0 s"). The new code passes.
 - The short-line listening check runs every time clips are generated; `tools/test_voice_check.py` (in `run_tests --quick`) guards its re-take plan.
-- Full suite after all fixes: 16/16 suites passed (15 Nov 2026, 23:5x Dubai).
+- Full suite after all fixes: 16/16 suites passed (15 Nov 2026, about 23:50 Dubai time).
 - **Please ask Emmanuel to retest issues 1, 4 and 5 on his phone after this is deployed.** They did not show up in Chrome, and my best explanation is the worker problem, but only his phone can confirm it.
