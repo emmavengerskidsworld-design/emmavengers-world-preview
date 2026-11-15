@@ -35,7 +35,7 @@ def main():
     print('== required: content validator ==')
     if not run('content_check', [PY, 'tools/content_build.py', '--check']):
         print('STOP: content is invalid or content/library is out of date. See /tmp/ew-tests/content_check.log'); return 1
-    res = [run('test_content', [PY, 'tools/test_content.py']), run('test_library', [PY, 'tools/test_library.py'])]
+    res = [run('test_content', [PY, 'tools/test_content.py']), run('test_library', [PY, 'tools/test_library.py']), run('test_voice_check', [PY, 'tools/test_voice_check.py'])]
     if '--quick' not in a:
         print('== game suites ==')
         for name, cmd in [('test_world', ['tools/test_world.py']), ('test_cameroon', ['tools/test_cameroon.py', os.path.join(LOGS, 'cameroon-shots')]),
