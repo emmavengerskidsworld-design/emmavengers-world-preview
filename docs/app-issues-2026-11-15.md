@@ -19,6 +19,14 @@ A video model described the recording, so I checked each issue myself.
 - `index.html`: the page reminds the worker to keep downloading, so a phone that was closed early picks up where it stopped.
 - `world.js`: the home screen now saves the land intros, place intros and Count It! questions first. Before the worker is in charge, it also decodes the land intros into memory.
 
+- Found while testing (second fix, same issue): the new shell-first install re-downloaded the pictures and fonts the
+  page had *just* loaded, so on a first visit it used up the phone's bandwidth and the first card taps streamed
+  (test_quick_tap failed at 170-190 ms). The worker now takes the browser's own copy of a shell file when its bytes are
+  exactly this build's (SHA-256 checked, else it downloads fresh), steps aside for 6 s after every tap, and starts the
+  big background download only after a quiet moment once it takes over. Saves ~4 MB of data on a first visit too.
+- The home screen's own download of the land intros (first visit only) now counts as a warm-up: a tapped line that is
+  not on the phone yet cancels it, and it re-queues.
+
 **Results, slow phone, second visit, quick child (taps World Land 1 s after the title):**
 
 | | Before | After |
@@ -28,7 +36,9 @@ A video model described the recording, so I checked each issue myself.
 | Number Land voice starts | 713 ms | 96 ms |
 | Number card taps | – | 51–66 ms |
 
-The very first visit, 1 s after opening on a slow network, is still limited by the network (about 2–3.6 s), because nothing is on the phone yet.
+First visit on a slow phone, child taps Number Land 3 s after the title: 811 ms without the home-screen download of the
+land intros, 94-99 ms with it. A tap in the very first second of the very first visit is still limited by the network
+(about 2–3.6 s) because nothing is on the phone yet.
 
 ## Fix for 2 and 3: the voice listens to its own short lines
 - `tools/voice_check.py` and `tools/gen_voice.py` (`verifyShort: 3` in locales.json): every line of 3 words or fewer is checked by Whisper while it is generated.
