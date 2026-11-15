@@ -76,38 +76,31 @@
    "voice": {
     "pack": "voice/",
     "engine": "kokoro",
-    "voice": "bf_isabella",
-    "lang": "en-gb",
-    "speed": 0.85,
-    "pitch": 1.05,
-    "note": "Main English voice (still called Mia in Voice Settings). Chosen in Stage 2: the French voice ff_siwis read English with 15.7%/12.4% word errors (ASR, 40 real app lines), bf_isabella had the fewest of all clear female voices (5.4%/3.3%) and the closest pitch to ff_siwis. See docs/voice-choice.md.",
-    "next": {
-     "voice": "af_aoede",
-     "lang": "en-us",
-     "speed": 0.95,
-     "pitch": 1.0,
-     "model": "fp32",
-     "bitrate": "48k",
-     "verifyShort": 3,
-     "blend": [
-      [
-       "af_nova",
-       0.2
-      ]
-     ],
-     "post": {
-      "highpass": 90,
-      "presence": {
-       "f": 3200,
-       "g": 2.0,
-       "w": 1.2
-      },
-      "air": {
-       "f": 7500,
-       "g": -3.0
-      }
+    "voice": "af_aoede",
+    "lang": "en-us",
+    "speed": 0.95,
+    "pitch": 1.0,
+    "note": "Main English voice (still called Mia in Voice Settings). Stage 2 voice fix, 16 Nov 2026: Emmanuel picked E3 (15 Nov 2026, about 23:55 Dubai time): 80% af_aoede + 20% af_nova style, mild EQ (high-pass 90 Hz, +2 dB presence at 3.2 kHz, -3 dB air shelf above 7.5 kHz), pronunciation dictionary, fp32, 48k. See docs/voice-fix-aoede-clean.md. Every line of up to 3 words is listened to (Whisper) when generated and re-taken if garbled (verifyShort). History: bf_isabella (Stage 2 first choice, docs/voice-choice.md) sounded heavy and breathy on Emmanuel's phone - docs/voice-fix.md.",
+    "model": "fp32",
+    "bitrate": "48k",
+    "verifyShort": 3,
+    "blend": [
+     [
+      "af_nova",
+      0.2
+     ]
+    ],
+    "post": {
+     "highpass": 90,
+     "presence": {
+      "f": 3200,
+      "g": 2.0,
+      "w": 1.2
      },
-     "note": "Emmanuel picked E3 (15 Nov 2026, about 23:55 Dubai time): 80% af_aoede + 20% af_nova style, mild EQ (high-pass 90 Hz, +2 dB presence at 3.2 kHz, -3 dB air shelf above 7.5 kHz), pronunciation dictionary, fp32, 48k. See docs/voice-fix-aoede-clean.md."
+     "air": {
+      "f": 7500,
+      "g": -3.0
+     }
     }
    }
   },
