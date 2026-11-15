@@ -1,0 +1,213 @@
+{
+ "$schema": "../../schema/v1/source-file.schema.json",
+ "note": "Together Time (draft samples): parent-and-child activities, and weekly parent tips (audience parent, shown only in the Parents' Corner; tips must cite sources).",
+ "records": [
+  {
+   "id": "ew.together.family-thank-you-time",
+   "type": "together",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [],
+    "subjects": [
+     "faith",
+     "life-skills"
+    ],
+    "sensitivity": [
+     "christian-teaching"
+    ]
+   },
+   "payload": {
+    "key": "family-thank-you-time",
+    "kind": "family-devotion",
+    "audience": "parent-and-child",
+    "title": {
+     "en": "Family thank-you time",
+     "fr": "Moment merci en famille"
+    },
+    "intro": {
+     "en": "Put the screens away and sit together for ten minutes.",
+     "fr": "Rangez les écrans et asseyez-vous ensemble pendant dix minutes."
+    },
+    "steps": [
+     {
+      "en": "A grown-up reads Psalm 136:1 from the family Bible.",
+      "fr": "Un adulte lit le Psaume 136:1 dans la Bible de la famille."
+     },
+     {
+      "en": "Each person says one thing they want to thank God for today.",
+      "fr": "Chacun dit une chose pour laquelle il veut remercier Dieu aujourd'hui."
+     },
+     {
+      "en": "Finish with a short prayer together.",
+      "fr": "Terminez par une courte prière ensemble."
+     }
+    ],
+    "talkAbout": [
+     {
+      "en": "What was the best part of your day?",
+      "fr": "Quel a été le meilleur moment de ta journée ?"
+     },
+     {
+      "en": "Who could we thank tomorrow?",
+      "fr": "Qui pourrions-nous remercier demain ?"
+     }
+    ],
+    "minutes": 10,
+    "cadence": "daily",
+    "timeOfDay": [
+     "evening",
+     "bedtime"
+    ],
+    "screen": "off",
+    "scripture": [
+     "Psalm 136:1"
+    ]
+   }
+  },
+  {
+   "id": "ew.together.talk-after-a-story",
+   "type": "together",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "stories"
+    ],
+    "subjects": [
+     "reading",
+     "life-skills"
+    ]
+   },
+   "payload": {
+    "key": "talk-after-a-story",
+    "kind": "talk",
+    "audience": "parent-and-child",
+    "title": {
+     "en": "Talk after a story",
+     "fr": "Parler après une histoire"
+    },
+    "intro": {
+     "en": "After your child finishes a story in the app, talk about it together.",
+     "fr": "Quand votre enfant a fini une histoire dans l'application, parlez-en ensemble."
+    },
+    "steps": [
+     {
+      "en": "Ask your child to tell you the story in their own words.",
+      "fr": "Demandez à votre enfant de vous raconter l'histoire avec ses mots."
+     },
+     {
+      "en": "Ask one of the questions below, then share your own answer too.",
+      "fr": "Posez une des questions ci-dessous, puis donnez aussi votre réponse."
+     }
+    ],
+    "talkAbout": [
+     {
+      "en": "Who was kind in the story?",
+      "fr": "Qui a été gentil dans l'histoire ?"
+     },
+     {
+      "en": "What would you have done?",
+      "fr": "Qu'est-ce que tu aurais fait ?"
+     }
+    ],
+    "minutes": 5,
+    "cadence": "any",
+    "screen": "either"
+   }
+  },
+  {
+   "id": "ew.together.tip-play-together",
+   "type": "together",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [],
+    "subjects": [
+     "life-skills"
+    ]
+   },
+   "evidence": {
+    "sources": [
+     "ew.source.aap-media-young-minds"
+    ],
+    "factual": true
+   },
+   "payload": {
+    "key": "tip-play-together",
+    "kind": "parent-tip",
+    "audience": "parent",
+    "title": {
+     "en": "Play together sometimes",
+     "fr": "Jouez ensemble de temps en temps"
+    },
+    "steps": [
+     {
+      "en": "Children learn more from a screen when a grown-up joins in, talks about what they see and helps them use it in real life.",
+      "fr": "Les enfants apprennent davantage devant un écran quand un adulte participe, parle de ce qu'ils voient et les aide à l'appliquer dans la vraie vie."
+     },
+     {
+      "en": "This week, sit with your child for one game or story and ask what they learned.",
+      "fr": "Cette semaine, asseyez-vous avec votre enfant pour un jeu ou une histoire et demandez-lui ce qu'il a appris."
+     }
+    ],
+    "cadence": "weekly"
+   }
+  },
+  {
+   "id": "ew.together.tip-screens-off-before-bed",
+   "type": "together",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [],
+    "subjects": [
+     "life-skills"
+    ]
+   },
+   "evidence": {
+    "sources": [
+     "ew.source.aap-media-young-minds",
+     "ew.source.aap-family-media-plan"
+    ],
+    "factual": true
+   },
+   "payload": {
+    "key": "tip-screens-off-before-bed",
+    "kind": "parent-tip",
+    "audience": "parent",
+    "title": {
+     "en": "Screens off before bed",
+     "fr": "Écrans éteints avant le coucher"
+    },
+    "steps": [
+     {
+      "en": "Paediatricians advise no screens in the hour before bedtime and keeping devices out of the bedroom at night.",
+      "fr": "Les pédiatres conseillent de ne pas utiliser d'écran dans l'heure avant le coucher et de laisser les appareils hors de la chambre la nuit."
+     },
+     {
+      "en": "Try a family thank-you time or a bedtime story read aloud instead.",
+      "fr": "Essayez plutôt un moment merci en famille ou une histoire lue à voix haute."
+     }
+    ],
+    "timeOfDay": [
+     "evening",
+     "bedtime"
+    ],
+    "cadence": "weekly"
+   }
+  }
+ ]
+}

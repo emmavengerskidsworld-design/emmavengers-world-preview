@@ -80,6 +80,22 @@ Full guide: `docs/languages.md`. In short:
   `country.js`, and bump `player` in `build.json` if old apps must not receive it. Old app versions skip packs that need
   types they don't know (they never crash on them).
 
+## Add a Daily Ari Mission or a Together Time activity
+
+1. Copy a record in `content/src/life/missions.json` (or `together.json`), give it a new id `ew.mission.<name>` /
+   `ew.together.<name>` (never reuse an old id) and a matching `key`.
+2. Pick `kind` from `taxonomy.missionKinds` / `taxonomy.togetherKinds`, the age bands, `where` and `timeOfDay`.
+3. Keep `task` short enough for a 5-year-old. If a grown-up must be close by, set `adultNearby: true`, `parentConfirm: true`
+   and write a `parentNote`. No web addresses, no photos of the child, nothing that sends the child to strangers.
+4. A parent tip (`kind: parent-tip`, `audience: parent`) must cite a `source` record (add one to `life/sources.json`).
+5. Leave `status: draft` until Emmanuel approves it; then run the routine above.
+
+## Change an app rule (missions on/off, gentle/firm, parent gate, screen limit, bedtime)
+
+Edit `content/src/core/settings.json` (record `ew.settings.app`), run the routine, publish. No app rebuild. The validator
+refuses impossible combinations (a default mode that is not offered, firm missions without a grown-up check, a default
+outside min/max, a parent-changeable setting that does not exist, a second settings record).
+
 ## Statuses and reviews
 
 `draft` (being written) → `checking` (sent to reviewers) → `changes-requested` → `reviewed` → `approved` (Emmanuel) →

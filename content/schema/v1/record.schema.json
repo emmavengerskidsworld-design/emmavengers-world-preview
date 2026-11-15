@@ -9,7 +9,8 @@
  "properties": {
   "id": {"$ref": "common.schema.json#/$defs/id"},
   "type": {"enum": ["world", "land", "deck", "library", "lexicon", "character", "strings", "country", "topic", "source",
-                    "lesson", "learn-card", "activity", "quiz-bank", "quiz-item", "story", "line", "media"]},
+                    "lesson", "learn-card", "activity", "quiz-bank", "quiz-item", "story", "line", "media",
+                    "mission", "together", "settings"]},
   "revision": {"type": "integer", "minimum": 1},
   "status": {"$ref": "common.schema.json#/$defs/status"},
   "sourceLanguage": {"$ref": "common.schema.json#/$defs/locale"},
@@ -37,6 +38,9 @@
   {"if": {"properties": {"type": {"const": "quiz-item"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/quizItem"}}}},
   {"if": {"properties": {"type": {"const": "story"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/story"}}}},
   {"if": {"properties": {"type": {"const": "line"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/line"}}}},
-  {"if": {"properties": {"type": {"const": "media"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/media"}}}}
+  {"if": {"properties": {"type": {"const": "media"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/media"}}}},
+  {"if": {"properties": {"type": {"const": "mission"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/mission"}}}},
+  {"if": {"properties": {"type": {"const": "together"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/together"}}}},
+  {"if": {"properties": {"type": {"const": "settings"}}}, "then": {"properties": {"payload": {"$ref": "payloads.schema.json#/$defs/settings"}}}}
  ]
 }

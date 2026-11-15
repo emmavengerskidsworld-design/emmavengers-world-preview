@@ -619,6 +619,71 @@
    "rev": 1,
    "hash": "049a2017a2e53a89271654f6fbe8f088f99449a764f17226cf44d50dfb10f4b4",
    "type": "strings"
+  },
+  "ew.settings.app": {
+   "rev": 1,
+   "hash": "b291e1617307e6c0b8a4284251e17cfd118500117cfcb44012695e834fb9b217",
+   "type": "settings"
+  },
+  "ew.mission.set-the-table": {
+   "rev": 1,
+   "hash": "48c2b195da38ee6361cdfbc262e64d23737699c972f5a4f2a471e8d1c0803822",
+   "type": "mission"
+  },
+  "ew.mission.say-thank-you": {
+   "rev": 1,
+   "hash": "d0954461cc92809b8ec915cd60215e3a151844abf941392899fd8f90c733b80d",
+   "type": "mission"
+  },
+  "ew.mission.pray-for-a-friend": {
+   "rev": 1,
+   "hash": "6e661ea1878d2cf3fd3eade194cee4e21ae70310c16b0d638793fdf19bfe5aac",
+   "type": "mission"
+  },
+  "ew.mission.secret-kindness": {
+   "rev": 1,
+   "hash": "0ef6058cfca595251a6199af6f8e38f6daf09ff54e7bb88886125358bb49d378",
+   "type": "mission"
+  },
+  "ew.mission.draw-thankful": {
+   "rev": 1,
+   "hash": "3d7a9be2f022089890afdc6980deec7d09cdf47d9d5fa57fc4b29daaf415058b",
+   "type": "mission"
+  },
+  "ew.mission.water-a-plant": {
+   "rev": 1,
+   "hash": "fc0357e13cd39a67bdd9314fe601307efd3dde99ed8a164ba0e53b7d9bb11070",
+   "type": "mission"
+  },
+  "ew.source.aap-media-young-minds": {
+   "rev": 1,
+   "hash": "c3e1c81d1355a487b114efc89a494891144b97ab71fb02394ea9392597153fb1",
+   "type": "source"
+  },
+  "ew.source.aap-family-media-plan": {
+   "rev": 1,
+   "hash": "0c38c18708ff251ea7904ccc3e5744bab87e6269d54882d681dd8ebbef4250c6",
+   "type": "source"
+  },
+  "ew.together.family-thank-you-time": {
+   "rev": 1,
+   "hash": "6c70e30413e864f61fed52401963a0a5b0c85dea2b5967a8d8fa6909dd47f58e",
+   "type": "together"
+  },
+  "ew.together.talk-after-a-story": {
+   "rev": 1,
+   "hash": "2b18bb8b0703e69f73ce58d53045566b5273329aa89a27714fc59180c844f55d",
+   "type": "together"
+  },
+  "ew.together.tip-play-together": {
+   "rev": 1,
+   "hash": "51d3ef6c5055ecbe71ad0b8fe9d3749d397639a192c4965aaa86e0fd7b249c19",
+   "type": "together"
+  },
+  "ew.together.tip-screens-off-before-bed": {
+   "rev": 1,
+   "hash": "89c1164a17105805d7bcf8d61f51072feb0cd156352ab94a55be29bedb1c50ae",
+   "type": "together"
   }
  },
  "retired": {},

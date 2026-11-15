@@ -7,7 +7,9 @@
  4. channels: 'live' ships published content only and drops links to unpublished countries
  5. registry: a changed record gets a new revision, a new release sequence, new file names only for changed packs;
     a removed id is retired and can never be reused; --check notices a stale library
- 6. a tampered file is refused by the loader (hash check)"""
+ 6. a tampered file is refused by the loader (hash check)
+ 7. Daily Ari Missions, Together Time and the app settings record: samples are valid, drafts never reach live,
+    and the safety rules (grown-up check, sources for parent tips, no web links, consistent settings) are enforced"""
 import os, sys, json, shutil, tempfile, copy, io, contextlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from content.source import Source
@@ -223,6 +225,51 @@ pf = os.path.join(t, 'lib', ix['packs'][0]['file']['path']); b = open(pf, 'rb').
 try: hydrate.load(os.path.join(t, 'lib')); ok(False, 'tampered pack refused')
 except hydrate.LibraryError as e: ok('hash' in str(e).lower(), f'tampered pack refused ({str(e)[:70]})')
 shutil.rmtree(t)
+
+print('7. missions, together time, app settings')
+MI, TG, ST = 'life/missions.json', 'life/together.json', 'core/settings.json'
+S, V, iss = validate(SRC, 'preview')
+types = {}
+for r in S.records.values(): types[r['type']] = types.get(r['type'], 0) + 1
+ok(types.get('mission', 0) >= 1 and types.get('together', 0) >= 1 and types.get('settings') == 1, f'sample records load (mission {types.get("mission")}, together {types.get("together")}, settings {types.get("settings")})')
+ok(not [i for i in errors(iss) if i.where.startswith(('life/', 'core/settings'))], 'the samples and the settings record are valid')
+S0 = load_json(os.path.join(SRC, ST))['records'][0]['payload']
+ok(not any(S0[k].get('enabled') for k in ('missions', 'screenTime', 'bedtime', 'together')), 'every rule in ew.settings.app is switched off until the Parents\' Corner screens are built and approved')
+t = tmp_src(); s = os.path.join(t, 'src')
+S, V, iss = validate(s, 'live'); B = Build(S, V, None, channel='live').run(); B.write(os.path.join(t, 'lib'), os.path.join(t, 'lock.json'))
+cat, recs = hydrate.load(os.path.join(t, 'lib'))
+ok(not any(r['type'] in ('mission', 'together', 'settings') for r in recs.values()) and not any(c['id'] == 'life' for c in cat['collections']),
+   'live channel strips the draft missions, together time and settings (no life collection on live)')
+shutil.rmtree(t)
+t = tmp_src(); s = os.path.join(t, 'src')
+S, V, iss = validate(s, 'preview'); B = Build(S, V, None, channel='preview').run(); B.write(os.path.join(t, 'lib'), os.path.join(t, 'lock.json'))
+cat, recs = hydrate.load(os.path.join(t, 'lib'))
+ok(recs.get('ew.settings.app', {}).get('payload', {}).get('missions', {}).get('defaultMode') == 'gentle' and any(r['type'] == 'mission' for r in recs.values()),
+   'preview channel ships them (hash-verified load)')
+shutil.rmtree(t)
+M1 = 'ew.mission.water-a-plant'; M2 = 'ew.mission.say-thank-you'; T1 = 'ew.together.tip-play-together'
+CASES7 = [
+    ('mission-safety', 'grown-up-nearby mission without a grown-up check', MI, lambda d: rec(d, M1)['payload'].update({'parentConfirm': False, 'proof': 'draw'})),
+    ('tag', 'unknown mission kind', MI, lambda d: rec(d, M2)['payload'].update({'kind': 'homework'})),
+    ('tag', 'unknown time of day', MI, lambda d: rec(d, M2)['payload'].update({'timeOfDay': ['midnight']})),
+    ('web-link', 'web address in a mission', MI, lambda d: rec(d, M2)['payload']['task'].update({'en': 'Go to www.example.com and say thanks!'})),
+    ('mission', 'proof none with a grown-up check', MI, lambda d: rec(d, M2)['payload'].update({'proof': 'none'})),
+    ('schema', 'mission without parentConfirm', MI, lambda d: rec(d, M2)['payload'].pop('parentConfirm')),
+    ('no-source', 'parent tip without a source', TG, lambda d: rec(d, T1).pop('evidence')),
+    ('together', 'parent tip shown to the child', TG, lambda d: rec(d, T1)['payload'].update({'audience': 'parent-and-child'})),
+    ('settings', 'default mission mode not offered', ST, lambda d: d['records'][0]['payload']['missions'].update({'modes': ['gentle', 'off'], 'defaultMode': 'firm'})),
+    ('settings', 'firm missions with no grown-up check', ST, lambda d: d['records'][0]['payload']['missions'].update({'confirm': 'none', 'defaultMode': 'firm'})),
+    ('settings', 'range default outside min/max', ST, lambda d: d['records'][0]['payload']['missions'].update({'breakAfterMinutes': {'default': 90, 'min': 10, 'max': 60}})),
+    ('settings', 'parent may change an unknown setting', ST, lambda d: d['records'][0]['payload']['parentsMayChange'].append('missions.colour')),
+    ('settings', 'a second settings record', ST, lambda d: d['records'].append(dict(copy.deepcopy(d['records'][0]), id='ew.settings.other'))),
+    ('schema', 'bad bedtime clock time', ST, lambda d: d['records'][0]['payload']['bedtime'].update({'start': '25:00'})),
+    ('schema', 'unknown rule (closed schema)', ST, lambda d: d['records'][0]['payload'].update({'adverts': {'enabled': True}})),
+]
+for code, what, rel, fn in CASES7:
+    t = tmp_src(); s = os.path.join(t, 'src'); edit(s, rel, fn)
+    _, _, iss = validate(s, 'preview', files=False); codes = {i.code for i in errors(iss)}
+    ok(code in codes, f'{what} -> error "{code}"' + ('' if code in codes else f' (got {sorted(codes) or "no errors"})'))
+    shutil.rmtree(t)
 
 print(f'\n{n[0] - len(fails)}/{n[0]} checks passed')
 if fails:

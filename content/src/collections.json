@@ -3,6 +3,7 @@
  "note": "Collections group packs in the catalog. Each collection has its own small index file, so 200 countries in many languages never become one huge download. Countries are grouped by region.",
  "collections": [
   {"id": "core", "kind": "core", "title": {"en": "Home map, lands and shared parts"}},
+  {"id": "life", "kind": "life", "title": {"en": "Daily Ari Missions and Together Time", "fr": "Missions d'Ari et Moments ensemble"}},
   {"id": "countries.africa", "kind": "topics", "land": "world", "region": "africa", "title": {"en": "Countries of Africa", "fr": "Pays d'Afrique"}},
   {"id": "countries.americas", "kind": "topics", "land": "world", "region": "americas", "title": {"en": "Countries of the Americas", "fr": "Pays des Amériques"}},
   {"id": "countries.asia", "kind": "topics", "land": "world", "region": "asia", "title": {"en": "Countries of Asia", "fr": "Pays d'Asie"}},

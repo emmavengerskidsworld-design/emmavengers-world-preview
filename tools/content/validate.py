@@ -56,7 +56,8 @@ BAD = re.compile(r'javascript:|\bon[a-z]+\s*=|<\s*script|<\s*iframe|data:text/ht
 TYPE_PREFIX = {'world': ['world'], 'land': ['land'], 'deck': ['deck'], 'library': ['library'], 'lexicon': ['lexicon'],
                'character': ['character'], 'strings': ['ui', 'strings'], 'country': ['country'], 'topic': ['topic', 'region'],
                'source': ['source'], 'lesson': ['lesson'], 'learn-card': ['card'], 'activity': ['activity'],
-               'quiz-bank': ['quizbank'], 'quiz-item': ['quiz'], 'story': ['story'], 'line': ['line'], 'media': ['media']}
+               'quiz-bank': ['quizbank'], 'quiz-item': ['quiz'], 'story': ['story'], 'line': ['line'], 'media': ['media'],
+               'mission': ['mission'], 'together': ['together'], 'settings': ['settings']}
 # (record type, path regex) -> required target type(s). Paths use the walk() notation below.
 REF_TYPES = [
     ('*', r'^tags\.topics\[\d+\]$', {'country', 'topic'}),
@@ -80,7 +81,10 @@ REF_TYPES = [
     ('quiz-bank', r'^payload\.sources\[\d+\]$', {'source'}),
     ('activity', r'^payload\.claimFromQuiz$', {'quiz-item'}),
     ('media', r'^payload\.assetId$', {'media'}),
+    ('mission', r'^payload\.speaker$', {'character'}),
+    ('together', r'^payload\.links\[\d+\]$', {'story', 'lesson', 'activity', 'quiz-bank', 'country', 'topic', 'deck', 'mission'}),
 ]
+WEB = re.compile(r'https?://|www\.|\.com\b', re.I)
 
 
 class Issue:
@@ -376,6 +380,68 @@ class Validator:
     def type_line(self, rid, r, w):
         for lg, s in r['payload']['text'].items():
             if len(s) > 160: self.add('warn', 'long-line', w, f'{lg}: guide line is {len(s)} characters (keep lines short for children)')
+
+    # ---- Daily Ari Missions, Together Time, app settings (schema room added in Stage 2; screens come in Stage 5) ----
+    def _no_web(self, r, w):
+        """Missions and Together Time send the child into real life: never to a web address."""
+        for path, v in walk(r['payload'], 'payload'):
+            if isinstance(v, str) and WEB.search(v): self.add('error', 'web-link', w, f'{path}: no web addresses in {r["type"]} content: {v[:60]!r}')
+
+    def type_mission(self, rid, r, w):
+        p, X, T = r['payload'], self.tax, r['tags']
+        if p['kind'] not in X.get('missionKinds', []): self.add('error', 'tag', w, f'mission kind {p["kind"]!r} not in taxonomy.missionKinds')
+        for v in p.get('timeOfDay', []):
+            if v not in X.get('timesOfDay', []): self.add('error', 'tag', w, f'timeOfDay {v!r} not in taxonomy.timesOfDay')
+        needs_adult = p.get('adultNearby') or 'adult-accompaniment' in T.get('sensitivity', []) or p.get('where') == 'outdoors'
+        if needs_adult and not p['parentConfirm']:
+            self.add('error', 'mission-safety', w, 'a mission that needs a grown-up nearby (adultNearby / outdoors / adult-accompaniment) must have parentConfirm: true')
+        if p.get('adultNearby') and not p.get('parentNote'):
+            self.add('warn', 'mission-safety', w, 'adultNearby mission has no parentNote telling the parent what to watch')
+        if p.get('proof') == 'none' and p['parentConfirm']:
+            self.add('error', 'mission', w, 'proof "none" contradicts parentConfirm: true')
+        if p['kind'] == 'prayer' and 'faith' not in T.get('subjects', []):
+            self.add('warn', 'tag', w, 'prayer mission is not tagged with subject faith')
+        self._no_web(r, w)
+
+    def type_together(self, rid, r, w):
+        p, X = r['payload'], self.tax
+        if p['kind'] not in X.get('togetherKinds', []): self.add('error', 'tag', w, f'together kind {p["kind"]!r} not in taxonomy.togetherKinds')
+        for v in p.get('timeOfDay', []):
+            if v not in X.get('timesOfDay', []): self.add('error', 'tag', w, f'timeOfDay {v!r} not in taxonomy.timesOfDay')
+        if (p['kind'] == 'parent-tip') != (p['audience'] == 'parent'):
+            self.add('error', 'together', w, 'kind parent-tip and audience parent go together (tips are for the parent only)')
+        if p['kind'] == 'parent-tip' and not r.get('evidence', {}).get('sources'):
+            self.add('error', 'no-source', w, 'a parent tip gives advice, so it must cite at least one source')
+        self._no_web(r, w)
+
+    def type_settings(self, rid, r, w):
+        p, X = r['payload'], self.tax
+        if rid != 'ew.settings.app': self.add('error', 'settings', w, 'there is one settings record and its id is ew.settings.app')
+        m = p.get('missions', {})
+        if m.get('defaultMode') and m.get('modes') and m['defaultMode'] not in m['modes']:
+            self.add('error', 'settings', w, f'missions.defaultMode {m["defaultMode"]!r} is not one of missions.modes')
+        for k in m.get('kinds', []):
+            if k not in X.get('missionKinds', []): self.add('error', 'settings', w, f'missions.kinds {k!r} not in taxonomy.missionKinds')
+        g = p.get('parentGate', {})
+        for k in ('primary', 'fallback'):
+            if g.get(k) and g.get('methods') and g[k] not in g['methods']: self.add('error', 'settings', w, f'parentGate.{k} {g[k]!r} is not one of parentGate.methods')
+        if m.get('confirm') == 'none' and m.get('defaultMode') == 'firm':
+            self.add('error', 'settings', w, 'firm missions need a grown-up check (missions.confirm parent-gate)')
+        for sec, key in (('missions', 'breakAfterMinutes'), ('screenTime', 'dailyMinutes')):
+            v = p.get(sec, {}).get(key)
+            if v and not (v['min'] <= v['max'] and (v['default'] is None or v['min'] <= v['default'] <= v['max'])):
+                self.add('error', 'settings', w, f'{sec}.{key}: need min <= default <= max, got {v}')
+        b = p.get('bedtime', {})
+        for v in b.get('allowTimeOfDay', []):
+            if v not in X.get('timesOfDay', []): self.add('error', 'settings', w, f'bedtime.allowTimeOfDay {v!r} not in taxonomy.timesOfDay')
+        types = self.schemas['record']['properties']['type']['enum']
+        for v in b.get('allowTypes', []):
+            if v not in types: self.add('error', 'settings', w, f'bedtime.allowTypes {v!r} is not a record type')
+        if b.get('enabled') and not (b.get('start') and b.get('end')): self.add('error', 'settings', w, 'bedtime is enabled but has no start/end time')
+        for path in p.get('parentsMayChange', []):
+            sec, key = path.split('.')
+            if key not in self.schemas['payloads']['$defs']['settings']['properties'].get(sec, {}).get('properties', {}):
+                self.add('error', 'settings', w, f'parentsMayChange {path!r} is not a setting')
 
     def type_lexicon(self, rid, r, w):
         pass  # checked against spoken lines in check_assets_and_voice

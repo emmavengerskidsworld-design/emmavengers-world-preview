@@ -1577,6 +1577,474 @@
      }
     }
    ]
+  },
+  "mission": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "Daily Ari Mission: one small real-life task done AWAY from the screen (a chore, kindness, gratitude, prayer...). The screen only gives the task; a grown-up confirms it really happened. Data only: when missions show and how strict they are is decided by the settings record (ew.settings.app) and the parent's choices on the device, never by the mission.",
+   "required": [
+    "key",
+    "kind",
+    "title",
+    "task",
+    "parentConfirm"
+   ],
+   "properties": {
+    "key": {
+     "$ref": "#/$defs/key"
+    },
+    "kind": {
+     "type": "string",
+     "description": "taxonomy.missionKinds"
+    },
+    "speaker": {
+     "$ref": "#/$defs/ref",
+     "description": "character who gives the mission (default Ari)"
+    },
+    "title": {
+     "$ref": "#/$defs/lt"
+    },
+    "task": {
+     "$ref": "#/$defs/lt",
+     "description": "what the guide says, one or two short sentences a 5-year-old understands"
+    },
+    "steps": {
+     "type": "array",
+     "maxItems": 5,
+     "items": {
+      "$ref": "#/$defs/lt"
+     }
+    },
+    "doneText": {
+     "$ref": "#/$defs/lt",
+     "description": "praise line after the grown-up confirms"
+    },
+    "where": {
+     "enum": [
+      "home",
+      "outdoors",
+      "anywhere",
+      "travel"
+     ]
+    },
+    "timeOfDay": {
+     "type": "array",
+     "uniqueItems": true,
+     "items": {
+      "type": "string"
+     },
+     "description": "taxonomy.timesOfDay; bedtime missions are the only ones bedtime mode may show"
+    },
+    "minutes": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 60
+    },
+    "parentConfirm": {
+     "type": "boolean",
+     "description": "true = a grown-up must confirm through the parent gate before the star is given"
+    },
+    "proof": {
+     "enum": [
+      "parent-check",
+      "draw",
+      "tell",
+      "none"
+     ],
+     "description": "how the child shows it was done (draw = a drawing on the device for trips or when no grown-up is near)"
+    },
+    "adultNearby": {
+     "type": "boolean",
+     "description": "true = only with a grown-up close by (kitchen, water, tools, outdoors)"
+    },
+    "parentNote": {
+     "$ref": "#/$defs/lt",
+     "description": "shown only in the Parents' Corner"
+    },
+    "stars": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 3
+    },
+    "scripture": {
+     "type": "array",
+     "maxItems": 5,
+     "items": {
+      "type": "string"
+     },
+     "description": "Bible references only (e.g. 'Ephesians 6:1'), no quoted text"
+    }
+   }
+  },
+  "together": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "Together Time: something a parent and child do side by side (audience parent-and-child), or a short tip for the parent shown in the Parents' Corner (audience parent, kind parent-tip). Tips state facts, so they must cite sources.",
+   "required": [
+    "key",
+    "kind",
+    "audience",
+    "title",
+    "steps"
+   ],
+   "properties": {
+    "key": {
+     "$ref": "#/$defs/key"
+    },
+    "kind": {
+     "type": "string",
+     "description": "taxonomy.togetherKinds"
+    },
+    "audience": {
+     "enum": [
+      "parent-and-child",
+      "parent"
+     ]
+    },
+    "title": {
+     "$ref": "#/$defs/lt"
+    },
+    "intro": {
+     "$ref": "#/$defs/lt"
+    },
+    "steps": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 10,
+     "items": {
+      "$ref": "#/$defs/lt"
+     }
+    },
+    "talkAbout": {
+     "type": "array",
+     "maxItems": 6,
+     "items": {
+      "$ref": "#/$defs/lt"
+     },
+     "description": "questions for the parent to ask the child"
+    },
+    "materials": {
+     "type": "array",
+     "maxItems": 10,
+     "items": {
+      "$ref": "#/$defs/lt"
+     }
+    },
+    "minutes": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 120
+    },
+    "cadence": {
+     "enum": [
+      "any",
+      "daily",
+      "weekly"
+     ]
+    },
+    "timeOfDay": {
+     "type": "array",
+     "uniqueItems": true,
+     "items": {
+      "type": "string"
+     }
+    },
+    "screen": {
+     "enum": [
+      "off",
+      "on",
+      "either"
+     ],
+     "description": "off = the device is put away for the activity"
+    },
+    "links": {
+     "$ref": "#/$defs/refs",
+     "description": "related records in the library (a story, a lesson) - never web links"
+    },
+    "scripture": {
+     "type": "array",
+     "maxItems": 5,
+     "items": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "settings": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "App rules as data (ew.settings.app). Every rule has an on/off switch and its numbers here, so a rule can be switched on, changed or switched off by publishing a new content release - no app rebuild. These are the app-wide defaults and limits; a parent's own choices on the device (Parents' Corner) override them inside the min/max given here. A rule the running app does not know yet is ignored by it (library.js settings()).",
+   "required": [
+    "key"
+   ],
+   "properties": {
+    "key": {
+     "$ref": "#/$defs/key"
+    },
+    "missions": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "enabled": {
+       "type": "boolean"
+      },
+      "defaultMode": {
+       "enum": [
+        "gentle",
+        "firm",
+        "off"
+       ],
+       "description": "gentle = mission shows, play continues; firm = the rest of the app waits for the grown-up check; off = no missions"
+      },
+      "modes": {
+       "type": "array",
+       "uniqueItems": true,
+       "minItems": 1,
+       "items": {
+        "enum": [
+         "gentle",
+         "firm",
+         "off"
+        ]
+       },
+       "description": "modes a parent may choose"
+      },
+      "showOnOpen": {
+       "type": "boolean"
+      },
+      "laterAllowed": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 5,
+       "description": "how many times the child may say 'Later' before the reminder"
+      },
+      "breakAfterMinutes": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "default",
+        "min",
+        "max"
+       ],
+       "properties": {
+        "default": {
+         "type": [
+          "integer",
+          "null"
+         ],
+         "minimum": 5,
+         "maximum": 180
+        },
+        "min": {
+         "type": "integer",
+         "minimum": 5,
+         "maximum": 180
+        },
+        "max": {
+         "type": "integer",
+         "minimum": 5,
+         "maximum": 180
+        }
+       }
+      },
+      "perDay": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 5
+      },
+      "confirm": {
+       "enum": [
+        "parent-gate",
+        "none"
+       ]
+      },
+      "starsUnlock": {
+       "type": "boolean",
+       "description": "stars from missions unlock extras (games, stories, Ari outfits)"
+      },
+      "kinds": {
+       "type": "array",
+       "uniqueItems": true,
+       "items": {
+        "type": "string"
+       },
+       "description": "mission kinds in rotation (taxonomy.missionKinds)"
+      }
+     }
+    },
+    "parentGate": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "methods": {
+       "type": "array",
+       "uniqueItems": true,
+       "minItems": 1,
+       "items": {
+        "enum": [
+         "math",
+         "pin",
+         "hold"
+        ]
+       }
+      },
+      "primary": {
+       "enum": [
+        "math",
+        "pin",
+        "hold"
+       ]
+      },
+      "fallback": {
+       "enum": [
+        "math",
+        "pin",
+        "hold"
+       ]
+      },
+      "pinLength": {
+       "type": "integer",
+       "minimum": 4,
+       "maximum": 8
+      },
+      "maxTries": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 20
+      },
+      "lockSeconds": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 3600
+      },
+      "logConfirmations": {
+       "type": "boolean",
+       "description": "keep a list of grown-up checks for the Parents' Corner (on the device only)"
+      }
+     }
+    },
+    "screenTime": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "enabled": {
+       "type": "boolean"
+      },
+      "dailyMinutes": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "default",
+        "min",
+        "max"
+       ],
+       "properties": {
+        "default": {
+         "type": [
+          "integer",
+          "null"
+         ],
+         "minimum": 5,
+         "maximum": 600
+        },
+        "min": {
+         "type": "integer",
+         "minimum": 5,
+         "maximum": 600
+        },
+        "max": {
+         "type": "integer",
+         "minimum": 5,
+         "maximum": 600
+        }
+       }
+      },
+      "warnBeforeMinutes": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 30
+      },
+      "end": {
+       "enum": [
+        "gentle-goodbye"
+       ],
+       "description": "how time-up looks: the guide says goodbye and suggests something to do offline (no sudden cut-off)"
+      },
+      "offlineIdeas": {
+       "type": "boolean"
+      }
+     }
+    },
+    "bedtime": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "enabled": {
+       "type": "boolean"
+      },
+      "start": {
+       "type": "string",
+       "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+      },
+      "end": {
+       "type": "string",
+       "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+      },
+      "dim": {
+       "type": "boolean"
+      },
+      "allowTimeOfDay": {
+       "type": "array",
+       "uniqueItems": true,
+       "items": {
+        "type": "string"
+       },
+       "description": "only content tagged with these times (taxonomy.timesOfDay) stays open"
+      },
+      "allowTypes": {
+       "type": "array",
+       "uniqueItems": true,
+       "items": {
+        "type": "string"
+       },
+       "description": "record types that stay open (e.g. story, together)"
+      },
+      "musicOff": {
+       "type": "boolean"
+      }
+     }
+    },
+    "together": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "enabled": {
+       "type": "boolean"
+      },
+      "tipCadence": {
+       "enum": [
+        "daily",
+        "weekly"
+       ]
+      },
+      "tipWeekday": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 6,
+       "description": "0 = Sunday"
+      }
+     }
+    },
+    "parentsMayChange": {
+     "type": "array",
+     "uniqueItems": true,
+     "items": {
+      "type": "string",
+      "pattern": "^[a-zA-Z]+\\.[a-zA-Z]+$"
+     },
+     "description": "settings a parent may change on the device, e.g. 'missions.defaultMode'"
+    }
+   }
   }
  }
 }

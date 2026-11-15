@@ -6,7 +6,9 @@ Builds small test releases in a temp folder from content/src and serves them, th
   - a file whose SHA-256 does not match is refused and the last good release stays in use
   - a damaged device copy falls back to the previous release (offline) or repairs itself (online)
   - an older catalog (replay) is refused; a missing pack fails cleanly; an incompatible pack is skipped
-  - with no IndexedDB (private mode) it still works for the visit (memory)"""
+  - with no IndexedDB (private mode) it still works for the visit (memory)
+  - settings(): every rule off on live (no settings record), the record's values on preview, a parent's choice only
+    where parentsMayChange allows it and inside min/max; missions/together records are queryable on preview"""
 import os, sys, json, shutil, tempfile, threading, functools, http.server, asyncio, io, contextlib
 from playwright.async_api import async_playwright
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -181,6 +183,25 @@ async def main():
         r = await pg2.evaluate(MK, ['t12', None, None]); ok(r['ok'] and r['st']['storage'] == 'memory', 'no IndexedDB (private mode): works for the visit from memory')
         sha_ok = await pg.evaluate("(async()=>{const b=new TextEncoder().encode('Emmavengers ✓ é');const a=await EWLibrary.sha256(b);return a===EWLibrary.sha256js(b)})()")
         ok(sha_ok, 'built-in SHA-256 fallback (old browsers / http) matches WebCrypto')
+        print('7. app settings as data, missions and together time')
+        r = await mk('ew-set-live', '/content/library/'); st = await pg.evaluate('__L.settings()')
+        ok(r['ok'] and not st['missions']['enabled'] and st['missions']['defaultMode'] == 'off' and not st['bedtime']['enabled'] and not st['screenTime']['enabled'],
+           'live (no settings record): built-in defaults, every rule off')
+        ok(await pg.evaluate("__L.setParentSetting('missions.enabled', true)") is False, 'live: a parent cannot switch on a rule the release does not offer')
+        r = await mk('ew-set-prev', '/content/preview/'); await pg.evaluate("localStorage.removeItem('emmaSettings')")
+        st = await pg.evaluate('__L.settings()')
+        ok(r['ok'] and st['missions']['defaultMode'] == 'gentle' and st['missions']['breakAfterMinutes']['default'] == 25 and st['parentGate']['primary'] == 'math',
+           'preview: the values come from the ew.settings.app record')
+        n_m = await pg.evaluate("__L.find({type:'mission'}).length"); n_t = await pg.evaluate("__L.find({type:'together', ageBand:'5-7'}).length")
+        ok(n_m >= 1 and n_t >= 1, f'missions ({n_m}) and together time ({n_t}) are queryable with find()')
+        a = await pg.evaluate("[__L.setParentSetting('missions.defaultMode','firm'), __L.setParentSetting('missions.breakAfterMinutes', 500), __L.setParentSetting('missions.defaultMode','strictest'), __L.setParentSetting('missions.kinds',['chore']), __L.setParentSetting('bedtime.start','20:15'), __L.setParentSetting('bedtime.start','8pm')]")
+        st = await pg.evaluate('__L.settings()')
+        ok(a == [True, True, False, False, True, False] and st['missions']['defaultMode'] == 'firm' and st['missions']['breakAfterMinutes']['default'] == 60 and st['bedtime']['start'] == '20:15',
+           f'parent choices: allowed ones kept (firm, 500 min clamped to 60, 20:15), others refused ({a})')
+        r = await mk('ew-set-prev', '/content/preview/'); st = await pg.evaluate('__L.settings()')
+        ok(st['missions']['defaultMode'] == 'firm', 'parent choices survive a restart (on this device only)')
+        await pg.evaluate('__L.clearParentSettings()'); st = await pg.evaluate('__L.settings()')
+        ok(st['missions']['defaultMode'] == 'gentle', 'clearParentSettings() returns to the published defaults')
         ok(not errs, f'no page errors {errs[:2]}')
         await br.close()
 asyncio.run(main())

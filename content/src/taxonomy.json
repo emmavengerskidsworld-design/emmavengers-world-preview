@@ -11,5 +11,9 @@
  "difficulty": ["starter", "core", "stretch"],
  "sensitivity": ["christian-teaching", "bible-retelling", "safety-topic", "adult-accompaniment", "sensitive-history"],
  "statuses": ["draft", "checking", "changes-requested", "reviewed", "approved", "published", "withdrawn", "archived"],
- "statusNote": "draft -> checking -> (changes-requested -> draft) -> reviewed -> approved (Emmanuel) -> published. withdrawn = removed for a safety/rights/correction reason; archived = retired. A record's status alone never publishes it: the build channel decides which statuses ship (content/src/build.json)."
+ "statusNote": "draft -> checking -> (changes-requested -> draft) -> reviewed -> approved (Emmanuel) -> published. withdrawn = removed for a safety/rights/correction reason; archived = retired. A record's status alone never publishes it: the build channel decides which statuses ship (content/src/build.json).",
+ "missionKinds": ["chore", "kindness", "gratitude", "prayer", "family", "creative", "outdoor", "care"],
+ "togetherKinds": ["activity", "talk", "family-devotion", "story-time", "game", "cooking", "parent-tip"],
+ "timesOfDay": ["morning", "day", "evening", "bedtime"],
+ "missionNote": "Daily Ari Missions are real-life tasks done away from the screen. chore = help at home; kindness = do something good for someone; gratitude = notice and say thanks; prayer = talk to God; family = with the family; creative = make or draw; outdoor = outside with a grown-up near; care = care for a plant, pet or yourself. timesOfDay lets bedtime mode keep only calm content."
 }

@@ -22,7 +22,13 @@
    API (window.EWLib): ready (Promise), get(id), find({type,land,ageBand,mode,subject,region,topic,pack}),
    text(lt, lang), textOr(lt, [langs]), pick(lt) -> {text, lang}, locales(), locale(tag), chain(tag), lang(),
    setLanguage(tag), packs(), ensure(packId), packFor(recordId), status(), checkForUpdates(), applyUpdate(),
-   on(event, fn), forEachText(fn), legacy.{lands,countryIndex,uiStrings,country}.
+   on(event, fn), forEachText(fn), legacy.{lands,countryIndex,uiStrings,country},
+   settings(), setParentSetting(path, value), clearParentSettings().
+
+   Settings (app rules as data): settings() = built-in defaults (every rule OFF) <- the release's ew.settings.app
+   record <- the parent's own choices on this device (localStorage 'emmaSettings', only for the paths the record lists
+   in parentsMayChange, numbers kept inside its min/max). So mission timing, gentle/firm/off, the parent gate, screen
+   limits and bedtime mode are switched on or changed by publishing content, without an app rebuild.
 
    Languages: the catalog lists the languages of this channel (tag, own name, direction, script fonts, fallback
    chain, voice folder). The device keeps ONE chosen language (localStorage 'emmaLang'; first visit: the phone's
@@ -365,9 +371,43 @@ function create(opts) {
     applyUpdate() { if (!S.pending) return false; M = S.pending; S.pending = null; S.sequence = M.cat.sequence; emit('applied', { sequence: S.sequence }); return true },
     on(ev, fn) { (listeners[ev] = listeners[ev] || []).push(fn); return api },
     forEachText(fn) { for (const id of M.order) { const r = M.recs.get(id); if (visible(r)) walkLt(r.payload, 'payload', (p, lt) => fn(r, p, lt)) } },
+    settings() {
+      const out = baseSettings(), may = new Set(out.parentsMayChange || []), mine = parentSettings(), eff = JSON.parse(JSON.stringify(out));
+      for (const path of Object.keys(mine)) { const v = checkParent(out, may, path, mine[path]); if (v !== undefined) { const [a, b] = path.split('.'); eff[a][b] = v } }
+      return eff },
+    setParentSetting(path, value) {
+      const base = baseSettings(), v = checkParent(base, new Set(base.parentsMayChange || []), path, value); if (v === undefined) return false;
+      const mine = parentSettings(); mine[path] = (v && typeof v === 'object') ? v.default : v; lsSet(SKEY, JSON.stringify(mine)); emit('settings', { path, value: v }); return true },
+    clearParentSettings() { try { G.localStorage && G.localStorage.removeItem(SKEY) } catch (e) {} emit('settings', {}) },
     _debug: () => ({ st, store, M }),
     close() { try { store && store.close() } catch (e) {} }
   };
+  /* ---------- settings (app rules as data) ---------- */
+  const SKEY = 'emmaSettings';
+  const DEFAULT_SETTINGS = { key: 'app',
+    missions: { enabled: false, defaultMode: 'off', modes: ['off'], showOnOpen: false, laterAllowed: 1, perDay: 1, confirm: 'parent-gate', starsUnlock: false, kinds: [] },
+    parentGate: { methods: ['math', 'pin'], primary: 'math', fallback: 'math', pinLength: 4, maxTries: 5, lockSeconds: 60, logConfirmations: false },
+    screenTime: { enabled: false, warnBeforeMinutes: 5, end: 'gentle-goodbye', offlineIdeas: false },
+    bedtime: { enabled: false, dim: false, allowTimeOfDay: ['bedtime'], allowTypes: [], musicOff: false },
+    together: { enabled: false, tipCadence: 'weekly', tipWeekday: 0 },
+    parentsMayChange: [] };
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  function merge(a, b) { for (const k in b) a[k] = isObj(a[k]) && isObj(b[k]) ? merge(a[k], b[k]) : JSON.parse(JSON.stringify(b[k])); return a }
+  function baseSettings() { const rec = M ? (M.recs.get('ew.settings.app') || null) : null;
+    return merge(JSON.parse(JSON.stringify(DEFAULT_SETTINGS)), rec && !M.withdrawn.has(rec.id) ? rec.payload : {}) }
+  function parentSettings() { try { const o = JSON.parse(lsGet(SKEY) || '{}'); return isObj(o) ? o : {} } catch (e) { return {} } }
+  /* a parent's value for one setting, or undefined if it is not allowed: the path must be listed in parentsMayChange,
+     the value must have the type of the published value, a range {default,min,max} only takes a number inside it, and a
+     mode must be one the record offers */
+  function checkParent(base, may, path, v) {
+    if (!may.has(path)) return undefined; const [a, b] = path.split('.'); const cur = base[a] && base[a][b];
+    if (cur === undefined) return undefined;
+    if (isObj(cur) && 'min' in cur) { if (v !== null && (typeof v !== 'number' || !isFinite(v))) return undefined;
+      return Object.assign({}, cur, { default: v === null ? null : Math.min(cur.max, Math.max(cur.min, Math.round(v))) }) }
+    if (path === 'missions.defaultMode') return (base.missions.modes || []).includes(v) ? v : undefined;
+    if (path === 'parentGate.primary') return (base.parentGate.methods || []).includes(v) ? v : undefined;
+    if (typeof cur === 'string' && /^\d\d:\d\d$/.test(cur)) return typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : undefined;
+    return typeof v === typeof cur && !isObj(v) ? v : undefined }
   const isLt = v => v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length > 0 && Object.entries(v).every(([k, x]) => /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(k) && typeof x === 'string');
   function walkLt(o, p, fn) { if (isLt(o)) return fn(p, o); if (Array.isArray(o)) o.forEach((v, i) => walkLt(v, p + '[' + i + ']', fn)); else if (o && typeof o === 'object') for (const k in o) walkLt(o[k], p + '.' + k, fn) }
   function hasLang(r, lang) { let ok = true, any = false; walkLt(r.payload, '', (p, lt) => { any = true; if (lt[lang] == null) ok = false }); return ok }

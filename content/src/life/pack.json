@@ -1,0 +1,58 @@
+{
+ "$schema": "../../schema/v1/pack-source.schema.json",
+ "id": "life",
+ "collection": "life",
+ "preload": true,
+ "title": {
+  "en": "Daily Ari Missions and Together Time",
+  "fr": "Missions d'Ari et Moments ensemble"
+ },
+ "locales": {
+  "required": [
+   "en"
+  ]
+ },
+ "defaults": {
+  "status": "draft",
+  "sourceLanguage": "en",
+  "tags": {
+   "land": null,
+   "subjects": [
+    "life-skills"
+   ]
+  },
+  "l10n": {
+   "fr": {
+    "status": "machine-draft-pending-fluent-french-review"
+   }
+  },
+  "review": {
+   "ownerRole": "product-owner",
+   "note": "Stage 2 DRAFT SAMPLES that show the shape of Daily Ari Missions and Together Time (added to the plan by Emmanuel CLETUS on 2026-11-14). Not reviewed: wording, age fit, faith and safety review pending. Status draft, so the live channel strips them; the screens that use them come with the Parents' Corner (Stage 5).",
+   "checks": [
+    {
+     "kind": "owner",
+     "result": "pending"
+    },
+    {
+     "kind": "educator",
+     "result": "pending"
+    },
+    {
+     "kind": "faith",
+     "result": "pending"
+    },
+    {
+     "kind": "safeguarding",
+     "result": "pending"
+    },
+    {
+     "kind": "language",
+     "locale": "fr",
+     "result": "pending",
+     "note": "French is a machine-quality draft"
+    }
+   ]
+  }
+ }
+}
