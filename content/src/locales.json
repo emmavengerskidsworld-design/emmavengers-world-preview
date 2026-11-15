@@ -112,7 +112,7 @@
       },
       "deess": 0.4
      },
-     "note": "Emmanuel picked af_aoede + pronunciation dictionary (sample D3, 15 Nov 2026), asked for a little less breath: clean-up candidate E2 here (see docs/voice-fix.md, step 2). Switch by moving these fields up into voice and regenerating: python3 tools/voice_jobs.py --lang en --all > jobs.json; python3 tools/gen_voice.py jobs.json --locale en --next --force"
+     "note": "Emmanuel picked af_aoede + pronunciation dictionary (sample D3, 15 Nov 2026), asked for a little less breath: clean-up candidate E2 here (see docs/voice-fix-aoede-clean.md). Switch by moving these fields up into voice and regenerating: python3 tools/voice_jobs.py --lang en --all > jobs.json; python3 tools/gen_voice.py jobs.json --locale en --next --force"
     }
    }
   },

@@ -68,11 +68,13 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{const m=$
    on every tap), so entering a land on a fresh phone does not wait for the network (Stage 2: World Land took ~2 s,
    Number Land ~1 s on Emmanuel's phone; tools/test_land_voice.py). */
 function homeClips(){if(!LANDS)return;const W=LANDS.world;
- /* first visit: the service worker only takes over once its first big download is done (minutes on a slow network),
-    so until then the page itself downloads and decodes the land intros (ready in memory to play instantly), two at a time */
+ /* first visit (no offline worker in charge yet): the warm-up queue waits while the welcome line streams, so a child
+    who taps a land during the welcome would wait ~1 s - download and decode the land intros now, two at a time */
  if(!(navigator.serviceWorker&&navigator.serviceWorker.controller)&&!homeClips.done){homeClips.done=1;
   const q=[...new Set(LANDS.lands.map(L=>L.intro).filter(Boolean).map(voiceUrl).filter(Boolean))];
-  const pump=()=>{const u=q.shift();if(!u)return;decodeClip(u).catch(()=>{}).finally(pump)};pump();pump()}
+  /* as warm-ups: a line the child taps that is not on the phone cancels them and they re-queue (index.html warmYield) */
+  const pump=()=>{const u=q.shift();if(!u)return;if(vBuf.has(u))return pump();wLive.add(u);decodeClip(u,1).catch(()=>{}).finally(()=>{wLive.delete(u);pump()})};pump();pump()}
+ /* and save the land/place intros and Count It! questions on the phone first (once the worker is in charge) */
  cacheClips([W.intro,...LANDS.lands.map(L=>L.intro),...LANDS.lands.flatMap(L=>L.places.map(p=>p.intro)),
   ...LANDS.lands.flatMap(L=>L.places.flatMap(p=>p.type==='count'?wDeck(p.objects).items.map(o=>o.ask):[]))])}
 function home(){curLand=null;state={};if(!LANDS){go('house');return}const W=LANDS.world;$('#title').textContent=W.title;

@@ -32,12 +32,15 @@ def ok(c,msg,extra=None):
 async def timeline(pg,since):
     return await pg.evaluate('s=>__ev.filter(e=>e.t>=s).map(e=>({t:Math.round(e.t-s),src:e.src.split("/").pop(),k:e.k,dur:Math.round(e.dur),end:e.end?Math.round(e.end-s):null,cut:!!e.cut}))',since)
 async def vh(pg,t): return await pg.evaluate('t=>__vh(t)',t)
-async def wait_quiet(pg,ms=15000):
-    try: await pg.wait_for_function('!vPlaying()&&__ev.length&&__ev.every(e=>e.end)',timeout=ms)
+async def wait_quiet(pg,ms=15000,since=None):
+    """until the voice is quiet again; with since: a line has started after it (a slow start is not 'nothing played')"""
+    cond='!vPlaying()&&__ev.length&&__ev.every(e=>e.end)' if since is None else \
+         '(s=>!vPlaying()&&__ev.some(e=>e.t>=s)&&__ev.every(e=>e.end))(%r)'%since
+    try: await pg.wait_for_function(cond,timeout=ms)
     except Exception: pass
 async def expect_lines(pg,since,texts,tag):
     """the lines play in this order, each started and finished, none cut"""
-    await wait_quiet(pg)
+    await wait_quiet(pg,since=since)
     tl=await timeline(pg,since);want=[await vh(pg,t)+'.mp3' for t in texts]
     got=[e['src'] for e in tl]
     ok(got[:len(want)]==want,f'{tag}: plays {texts}',tl)
@@ -80,6 +83,7 @@ async def main():
             await pg.tap('#title');await pg.wait_for_timeout(3000);await pg.evaluate('stopVoice()')
             L=await pg.evaluate("(()=>{const n=LANDS.lands.find(l=>l.id==='number'),w=LANDS.lands.find(l=>l.id==='world');return {nIntro:n.intro,wIntro:w.intro,places:n.places.map(p=>({id:p.id,type:p.type,intro:p.intro}))}})()")
             # 1. Number Land intro
+            print('      before Number Land tap:',await pg.evaluate("(async()=>{const u=voiceUrl(LANDS.lands.find(l=>l.id==='number').intro);return {inMemory:vBuf.has(u),inCache:!!(await caches.match(u,{ignoreSearch:true})),sw:!!navigator.serviceWorker.controller,warmQueue:wq.length}})()"))
             t0=await pg.evaluate('performance.now()');await pg.tap('.wsignb[data-l="number"]')
             tl=await expect_lines(pg,t0,[L['nIntro']],'Number Land intro');lat['enter number']=tl[0]['t'] if tl else None
             # 2. number cards 1, 2, 4

@@ -10,7 +10,7 @@ const REVS=__REVS__; /* SHA-256 prefix (16 hex) of ASSETS[i]; '' = never reuse *
 const VOICE_PACKS=__VOICE_PACKS__;
 const LANG_DIRS=__LANG_DIRS__; /* voice/<tag>/ folders of languages (never replaced by another language's clip) */
 let BOOKS=__BOOKS__; /* snapshot; refreshed from ./bible-manifest.json when online */
-const BATCH=4,RETRIES=3,QUIET=6000;
+const BATCH=4,RETRIES=3,QUIET=6000,SHELL_QUIET=6000;
 /* Background downloads yield to the child: any tap/voice in the page marks 'busy'; in-flight background fetches are
    aborted and nothing new starts until the page has been quiet for QUIET ms, so voice clips never wait in a queue. */
 let lastBusy=0;const inflight=new Set();const sleep=ms=>new Promise(z=>setTimeout(z,ms));
@@ -18,25 +18,32 @@ function markBusy(){lastBusy=Date.now();for(const a of inflight)try{a.abort()}ca
 try{new BroadcastChannel('emma-prio').onmessage=markBusy}catch(e){}
 /* A newer version is downloading or waiting: stop background work so it can take over right away. */
 const updating=()=>!!(self.registration&&self.registration.active&&(self.registration.waiting||self.registration.installing));
-async function gate(){while(Date.now()-lastBusy<QUIET)await sleep(400)}
-async function getOne(c,u,urgent){for(let t=0;t<RETRIES;){if(!urgent)await gate();const ac=new AbortController();if(!urgent)inflight.add(ac);
- try{const r=await fetch(u,{cache:'reload',signal:ac.signal});if(r.ok){const b=await r.blob();await c.put(u,new Response(b,{status:200,headers:r.headers}));return true}}
+async function gate(q){while(Date.now()-lastBusy<q)await sleep(q<QUIET?150:400)}
+/* urgent: never waits (a clip the child needs now); otherwise waits until the page has been quiet for yieldQ ms */
+/* httpCache: the page has usually just loaded this very file (app shell) - take the browser's copy instead of
+   downloading it twice, but only if its bytes are exactly this build's (SHA-256), else fetch it fresh */
+async function getOne(c,u,urgent,yieldQ,httpCache){for(let t=0;t<RETRIES;){if(!urgent)await gate(yieldQ||QUIET);const ac=new AbortController();if(!urgent)inflight.add(ac);
+ try{if(httpCache&&!t&&REV.get(u)){const h=await fetch(u,{cache:'force-cache',signal:ac.signal}).catch(e=>{if(ac.signal.aborted)throw e;return null});
+   if(h&&h.ok&&h.status===200){const ab=await h.arrayBuffer();if(await sameRev(u,ab)){await c.put(u,new Response(ab,{status:200,headers:h.headers}));return true}}}
+  const r=await fetch(u,{cache:'reload',signal:ac.signal});if(r.ok){const b=await r.blob();await c.put(u,new Response(b,{status:200,headers:r.headers}));return true}}
  catch(e){if(ac.signal.aborted){continue}}finally{inflight.delete(ac)}
  t++;await sleep(500*t)}return false}
-/* Install: reuse unchanged files from the previous version (local copy, fast), then download only the app SHELL.
+/* Install: reuse unchanged files from the previous version (local copy, fast), then download only the app SHELL. It steps aside for
+   6 s after each tap (and is cancelled mid-file), so a voice line the child just asked for streams first.
    The service worker can then take over within seconds of a first visit, even on a slow phone. */
+const REV=new Map(ASSETS.map((u,i)=>[u,REVS[i]]));
+const hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');
+async function sameRev(u,buf){const want=REV.get(u);if(!want)return false;try{return hex(await crypto.subtle.digest('SHA-256',buf)).slice(0,16)===want}catch(e){return false}}
 async function reuseOld(c,todo){const old=(await caches.keys()).filter(k=>mine(k)&&k!==CACHE);
  /* only a file whose bytes are unchanged (same SHA-256 as this build) is reused; a changed file with the same name
     (e.g. world.js) must come from the network, otherwise the new version would run with old code */
- const REV=new Map(ASSETS.map((u,i)=>[u,REVS[i]]));
- const hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');
  for(const k of old){const oc=await caches.open(k);for(let i=todo.length-1;i>=0;i--){const u=todo[i];const want=REV.get(u);if(!want)continue;
-  const r=await oc.match(u);if(!r)continue;let same=false;try{same=hex(await crypto.subtle.digest('SHA-256',await r.clone().arrayBuffer())).slice(0,16)===want}catch(e){}
+  const r=await oc.match(u);if(!r)continue;const same=await sameRev(u,await r.clone().arrayBuffer());
   if(same){await c.put(u,r);todo.splice(i,1)}}}}
 async function missing(c,list){const todo=[];for(const u of list){if(!(await c.match(u)))todo.push(u)}return todo}
 async function precache(){const c=await caches.open(CACHE);const todo=await missing(c,ASSETS);await reuseOld(c,todo);
  const shell=todo.filter(u=>SHELL[ASSETS.indexOf(u)]==='1');
- const failed=[];for(let i=0;i<shell.length;i+=BATCH){const part=shell.slice(i,i+BATCH);const ok=await Promise.all(part.map(u=>getOne(c,u,true)));part.forEach((u,j)=>ok[j]||failed.push(u))}
+ const failed=[];for(let i=0;i<shell.length;i+=BATCH){const part=shell.slice(i,i+BATCH);const ok=await Promise.all(part.map(u=>getOne(c,u,false,SHELL_QUIET,true)));part.forEach((u,j)=>ok[j]||failed.push(u))}
  if(failed.length)throw new Error('shell precache failed: '+failed.length+' files, e.g. '+failed[0])}
 /* After activation: the rest of the core (pictures, voice) downloads in the background, yielding to the child's taps.
    The page pings {type:'core'} while it is open so a long download survives the worker being stopped; when all is
@@ -82,7 +89,9 @@ async function cacheBook(slug,id){const b=BOOKS[slug];if(!b)return {slug,ok:fals
 async function cacheAllBooks(id){await refreshManifest();const res=[];for(const s of Object.keys(BOOKS)){if(updating())break;res.push(await cacheBook(s,id))}return res}
 async function tell(msg,src){const cl=await self.clients.matchAll({type:'window'});cl.forEach(c=>c.postMessage(msg));}
 self.addEventListener('install',e=>e.waitUntil(precache()));
-self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(mine(k)&&k!==CACHE)await caches.delete(k);await self.clients.claim();core()})()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(mine(k)&&k!==CACHE)await caches.delete(k);await self.clients.claim();
+ /* the page is open and probably in use right now: start the background download only after a quiet moment */
+ lastBusy=Date.now();core()})()));
 self.addEventListener('message',e=>{
   const d=e.data;
   if(d==='skipWaiting')self.skipWaiting();
