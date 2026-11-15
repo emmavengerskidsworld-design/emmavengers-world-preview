@@ -3,7 +3,7 @@ online + offline, Cameroon opens, data identical to the pre-Stage-1 files except
 (Stage 2 grammar fields nameDef/nameOf on deck items; French texts arrive in a language pack on the switch; Cameroon's
 go-live approval on 2026-11-10: status, editorial.approvalRef, locales.en.status), the language switch (French labels +
 full French pack, back to English), and the English voice: a tap plays a clip from voice/ whose bytes are exactly the
-repo's (Stage 2 bf_isabella) clip, with no browser text-to-speech fallback."""
+repo's (Stage 2 voice fix: af_aoede E3) clip, with no browser text-to-speech fallback."""
 import asyncio,json,sys,hashlib,copy
 from playwright.async_api import async_playwright
 U=sys.argv[1] if len(sys.argv)>1 else 'https://emmavengerskidsworld-design.github.io/emmavengers-world-preview/'
@@ -51,7 +51,7 @@ async def main():
     await pg.click('.wplace[data-p="cameroon"]');await pg.wait_for_timeout(1500)
     s=await pg.evaluate('screen');t=await pg.evaluate('document.querySelector("#main")?document.querySelector("#main").innerText.slice(0,120):document.body.innerText.slice(0,120)')
     ok(s in('ctry',) or 'Cameroon' in t,f'online: Cameroon opens (screen {s}: {t[:60]!r})');await pg.screenshot(path='/tmp/live-cameroon-online.png')
-    # ---- English voice: the tapped line plays the repo's (bf_isabella) clip from voice/, no text-to-speech
+    # ---- English voice: the tapped line plays the repo's (en.voice in locales.json) clip from voice/, no text-to-speech
     await pg.evaluate("localStorage.setItem('emmaCtryPrefs',JSON.stringify({lang:'en',age:'little',guide:true}))")
     e=await voice_tap(pg,'en')
     if e:
