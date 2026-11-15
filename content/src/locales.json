@@ -91,28 +91,23 @@
      "verifyShort": 3,
      "blend": [
       [
-       "af_kore",
-       0.15
-      ],
-      [
        "af_nova",
-       0.15
+       0.2
       ]
      ],
      "post": {
-      "highpass": 100,
+      "highpass": 90,
       "presence": {
-       "f": 3000,
-       "g": 3.0,
+       "f": 3200,
+       "g": 2.0,
        "w": 1.2
       },
       "air": {
-       "f": 6500,
-       "g": -5.0
-      },
-      "deess": 0.4
+       "f": 7500,
+       "g": -3.0
+      }
      },
-     "note": "Emmanuel picked af_aoede + pronunciation dictionary (sample D3, 15 Nov 2026), asked for a little less breath: clean-up candidate E2 here (see docs/voice-fix-aoede-clean.md). Switch by moving these fields up into voice and regenerating: python3 tools/voice_jobs.py --lang en --all > jobs.json; python3 tools/gen_voice.py jobs.json --locale en --next --force"
+     "note": "Emmanuel picked E3 (15 Nov 2026, about 23:55 Dubai time): 80% af_aoede + 20% af_nova style, mild EQ (high-pass 90 Hz, +2 dB presence at 3.2 kHz, -3 dB air shelf above 7.5 kHz), pronunciation dictionary, fp32, 48k. See docs/voice-fix-aoede-clean.md."
     }
    }
   },
