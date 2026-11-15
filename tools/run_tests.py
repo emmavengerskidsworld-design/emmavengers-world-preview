@@ -45,6 +45,10 @@ def main():
                           ('check_voice', ['tools/check_voice.py', ROOT]), ('test_offline', ['tools/test_offline.py']),
                           ('test_offline_bible', ['tools/test_offline_bible.py', '--books', 'noah'])]:
             res.append(run(name, [PY] + cmd))
+        # throttle_server reads /tmp/emma-lat-rate when it exists (test_voice_latency leaves '200000' there), which
+        # silently made the "unthrottled" quick-tap run depend on whichever suite ran last: start from a clean state
+        try: os.remove('/tmp/emma-lat-rate')
+        except OSError: pass
         p = port(); srv = subprocess.Popen([PY, 'tools/throttle_server.py', ROOT, str(p), '0'], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(2)
         try:
