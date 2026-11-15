@@ -41,7 +41,7 @@ def ok(c,m): res.append(c); print(('ok   ' if c else 'FAIL ')+m)
 async def main():
   async with async_playwright() as p:
     b=await p.chromium.launch(args=['--autoplay-policy=no-user-gesture-required']);ctx=await b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True);await ctx.add_init_script(INIT);pg=await ctx.new_page();errs=[]
-    pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and errs.append(m.text))
+    pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and errs.append(m.text+' @ '+str((m.location or {}).get('url',''))))
     await pg.goto(U,wait_until='load');await pg.wait_for_function('typeof LANDS!=="undefined"&&LANDS!==null&&screen==="home"&&window.CTRY_READY',timeout=60000)
     st=await pg.evaluate('EWLib.status()');ok(st['ready'] and st['source']=='network',f"online first visit: release {st['sequence']}, {len(st['fetched'])} files, {st['bytes']/1024:.0f} KB, storage {st['storage']}")
     L=json.loads(await pg.evaluate('JSON.stringify(LANDS)'));ok(no_grammar(L)==json.load(open(F+'lands.json')),'LANDS identical to the pre-Stage-1 lands.json (+ Stage 2 nameDef/nameOf only)')
@@ -72,7 +72,7 @@ async def main():
     except Exception: en=False
     ok(en,'switch back to English: Learn label')
     info=await pg.evaluate("""async()=>{await navigator.serviceWorker.ready;const t0=Date.now();for(;;){const sw=await fetch('sw.js').then(r=>r.text());const want=JSON.parse(sw.match(/ASSETS=(\\[.*?\\]);/)[1]);
-      let have=0;for(const k of (await caches.keys()).filter(k=>k.startsWith('emma-house-')))have+=(await (await caches.open(k)).keys()).length;
+      /* every file of THIS build's core on the phone (the worker takes charge after the shell; the rest downloads in the background) */let have=0;for(const u of want)if(await caches.match(new URL(u,location.href).href,{ignoreSearch:true}))have++;
       if(have>=want.length&&navigator.serviceWorker.controller)return {have,want:want.length,s:(Date.now()-t0)/1000};if(Date.now()-t0>600000)return {timeout:true,have,want:want.length};await new Promise(z=>setTimeout(z,2000))}}""")
     ok(not info.get('timeout'),f'service worker precache complete {info}')
     await ctx.set_offline(True);await pg.reload(wait_until='load')
@@ -80,6 +80,6 @@ async def main():
     st=await pg.evaluate('EWLib.status()');ok(st['source']=='device' and not st['fetched'],f"OFFLINE reload: content from device copy, release {st['sequence']}")
     await pg.evaluate("go('land',{id:'world'})");await pg.wait_for_timeout(800);await pg.click('.wplace[data-p="cameroon"]');await pg.wait_for_timeout(1500)
     s=await pg.evaluate('screen');ok(s=='ctry',f'OFFLINE: Cameroon opens (screen {s})');await pg.screenshot(path='/tmp/live-cameroon-offline.png')
-    ok(not errs,f'no page errors {errs[:3]}')
+    ok(not errs,f'no page errors {errs[:6]}')
     await b.close()
 asyncio.run(main());print('LIVE VERIFY','PASSED' if all(res) else 'FAILED');sys.exit(0 if all(res) else 1)
