@@ -1,0 +1,64 @@
+{
+ "$schema": "../../../schema/v1/l10n-file.schema.json",
+ "locale": "ar",
+ "note": "TEST-ONLY sample Arabic (not reviewed, never shipped). Partial on purpose: missing texts must fall back to English.",
+ "translator": "test sample",
+ "reviewStatus": "draft",
+ "strings": {
+  "ew.world.home": {
+   "payload.title": "عالم إيمافنجرز",
+   "payload.intro": "مرحبًا بك في عالم إيمافنجرز! المس أرضًا لتستكشفها!"
+  },
+  "ew.land.faith": {
+   "payload.name": "أرض الإيمان"
+  },
+  "ew.land.letter": {
+   "payload.name": "أرض الحروف"
+  },
+  "ew.land.number": {
+   "payload.name": "أرض الأرقام"
+  },
+  "ew.land.study": {
+   "payload.name": "أرض الدراسة"
+  },
+  "ew.land.nature": {
+   "payload.name": "أرض الطبيعة",
+   "payload.places.safari.name": "رحلة الحيوانات",
+   "payload.places.animalquiz.name": "مسابقة الحيوانات"
+  },
+  "ew.land.world": {
+   "payload.name": "أرض العالم",
+   "payload.places.countries.name": "بطاقات الدول",
+   "payload.places.flagquiz.name": "مسابقة الأعلام"
+  },
+  "ew.deck.animals": {
+   "payload.items.lion.name": "أسد",
+   "payload.items.elephant.name": "فيل",
+   "payload.items.giraffe.name": "زرافة",
+   "payload.items.lion.fact": "تعيش الأسود معًا في عائلات كبيرة!"
+  },
+  "ew.ui.app": {
+   "payload.strings.back": "رجوع",
+   "payload.strings.parentsCorner": "ركن الوالدين",
+   "payload.strings.voiceSettings": "إعدادات الصوت",
+   "payload.strings.music": "تشغيل/إيقاف الموسيقى",
+   "payload.strings.readAloud": "اقرأ بصوت عالٍ",
+   "payload.strings.backToMap": "العودة إلى الخريطة",
+   "payload.strings.next": "التالي ⬅",
+   "payload.strings.done": "تم ✓",
+   "payload.strings.greatJob": "أحسنت!",
+   "payload.strings.playAgain": "العب مرة أخرى",
+   "payload.strings.language": "اللغة",
+   "payload.strings.chooseLanguage": "اختر لغتك",
+   "payload.strings.tapToCount": "المس كل واحد لتعدّه!",
+   "payload.strings.totalStars": "مجموع النجوم: ⭐ {stars}",
+   "payload.strings.finished": "لقد أنهيت {name}! {n, plural, zero {لا إجابات صحيحة} one {إجابة صحيحة واحدة} two {إجابتان صحيحتان} few {# إجابات صحيحة} many {# إجابة صحيحة} other {# إجابة صحيحة}} من {total}.",
+   "payload.strings.toLearn": "{n, plural, zero {لا شيء للتعلم} one {شيء واحد للتعلم} two {شيئان للتعلم} few {# أشياء للتعلم} many {# شيئًا للتعلم} other {# شيء للتعلم}}",
+   "payload.strings.parentsTitle": "ركن الوالدين",
+   "payload.strings.close": "إغلاق",
+   "payload.strings.open": "فتح ✓",
+   "payload.strings.childLanguage": "لغة الطفل",
+   "payload.strings.gateMath": "للكبار فقط: كم يساوي {a} × {b}؟"
+  }
+ }
+}

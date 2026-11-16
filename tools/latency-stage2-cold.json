@@ -1,0 +1,5 @@
+{"what": "First visit, slow 4G (200 KB/s, 150 ms RTT), Pixel 7 emulation, Cameroon Learn 'next card' x5 tapped 0.8 s apart; ms from finger down to voice start (tools/test_cold_tap.py)",
+ "before_a63b4f8": {"en": {"median": 174, "taps": [275, 173, 173, 174, 184], "path": "network stream (HTMLAudio) every tap"}, "fr": {"median": 8, "taps": [245, 8, 8, 7, 8], "path": "on phone (Web Audio)"}},
+ "live_67656ea": {"en": {"median": 191, "taps": [264, 223, 191, 173, 173]}, "fr": {"median": 193, "taps": [284, 182, 233, 193, 175]}},
+ "after": {"en": {"median": 7, "taps": [9, 7, 8, 7, 7], "path": "on phone (Web Audio)"}, "fr": {"median": 9, "taps": [9, 7, 9, 7, 11]}},
+ "note": "Emulated network streaming is ~175 ms; on real Android phones a network-streamed media element is usually much slower (often 0.5-1 s+), which is the delay the owner heard."}

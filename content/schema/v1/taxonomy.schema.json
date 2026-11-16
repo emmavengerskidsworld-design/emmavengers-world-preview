@@ -93,6 +93,30 @@
     "type": "string"
    },
    "uniqueItems": true
+  },
+  "missionKinds": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "uniqueItems": true
+  },
+  "togetherKinds": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "uniqueItems": true
+  },
+  "timesOfDay": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "uniqueItems": true
+  },
+  "missionNote": {
+   "type": "string"
   }
  }
 }

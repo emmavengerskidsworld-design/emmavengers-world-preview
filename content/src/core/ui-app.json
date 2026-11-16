@@ -1,0 +1,222 @@
+{
+ "$schema": "../../schema/v1/source-file.schema.json",
+ "note": "Words of the app itself, translated through content/src/l10n/<language>/ui-app.json.",
+ "records": [
+  {
+   "id": "ew.ui.app",
+   "type": "strings",
+   "status": "published",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": []
+   },
+   "evidence": {
+    "note": "Words of the app itself (buttons, praise, titles, parents' corner). Keys are used by i18n.js EWi18n.t(key). Placeholders follow ICU MessageFormat: {name}, {n, number}, {n, plural, one {...} other {...}} (plural categories per language from CLDR). Lists (praise, tryAgain) have one line per entry. Texts marked as spoken in the app need a voice clip in every language that has a voice."
+   },
+   "payload": {
+    "strings": {
+     "back": {
+      "en": "Back"
+     },
+     "parentsCorner": {
+      "en": "Parents corner"
+     },
+     "voiceSettings": {
+      "en": "Voice settings"
+     },
+     "voiceOffLabel": {
+      "en": "Turn reading voice off"
+     },
+     "voiceOnLabel": {
+      "en": "Turn reading voice on"
+     },
+     "voiceOffTitle": {
+      "en": "Voice off"
+     },
+     "voiceOnTitle": {
+      "en": "Voice on"
+     },
+     "music": {
+      "en": "Music on/off"
+     },
+     "readAloud": {
+      "en": "Read aloud"
+     },
+     "backToMap": {
+      "en": "Back to Map"
+     },
+     "next": {
+      "en": "Next ➜"
+     },
+     "done": {
+      "en": "Done ✓"
+     },
+     "choice": {
+      "en": "choice"
+     },
+     "count": {
+      "en": "count"
+     },
+     "flagOf": {
+      "en": "Flag of {name}"
+     },
+     "meaningIn": {
+      "en": "\"{meaning}\" in {language}"
+     },
+     "tapToCount": {
+      "en": "Tap each one to count!"
+     },
+     "greatJob": {
+      "en": "Great Job!"
+     },
+     "levelComplete": {
+      "en": "Great job! Level complete!"
+     },
+     "finished": {
+      "en": "You finished {name}! {n} of {total} right."
+     },
+     "totalStars": {
+      "en": "Total stars: ⭐ {stars}"
+     },
+     "playAgain": {
+      "en": "Play Again"
+     },
+     "toLearn": {
+      "en": "{n, plural, one {# to learn} other {# to learn}}"
+     },
+     "progress": {
+      "en": "{n} / {total}"
+     },
+     "praise": {
+      "en": "Great job!\nWell done!\nSuper!\nYou got it!\nAwesome!\nBrilliant!"
+     },
+     "tryAgain": {
+      "en": "Oops! Try again!\nAlmost! Try again!\nGood try! Look again!"
+     },
+     "language": {
+      "en": "Language"
+     },
+     "chooseLanguage": {
+      "en": "Choose your language"
+     },
+     "languageGetting": {
+      "en": "Getting {name} ready…"
+     },
+     "languageReady": {
+      "en": "{name} is ready!"
+     },
+     "languageFailed": {
+      "en": "Could not get {name}. Check the internet and try again."
+     },
+     "draftTranslation": {
+      "en": "draft translation"
+     },
+     "languageNote": {
+      "en": "The app, the world map and its games switch language. Some parts (Emmavengers House, Bible Land, Mia's Day, Letter Land's English letter sounds) are in English for now."
+     },
+     "parentsTitle": {
+      "en": "Parents' Corner"
+     },
+     "gatePin": {
+      "en": "Enter your 4-digit parent PIN"
+     },
+     "gateMath": {
+      "en": "Grown-ups only: what is {a} × {b}?"
+     },
+     "open": {
+      "en": "Open ✓"
+     },
+     "close": {
+      "en": "Close"
+     },
+     "notQuite": {
+      "en": "Not quite — please try again."
+     },
+     "youtube": {
+      "en": "▶️ Emmavengers on YouTube"
+     },
+     "voiceSettingsBtn": {
+      "en": "🔊 Voice Settings"
+     },
+     "setPin": {
+      "en": "Set parent PIN (4 digits)"
+     },
+     "changePin": {
+      "en": "Change parent PIN (4 digits)"
+     },
+     "savePin": {
+      "en": "Save PIN"
+     },
+     "pinSaved": {
+      "en": "PIN saved!"
+     },
+     "pinRule": {
+      "en": "Please use exactly 4 numbers."
+     },
+     "childLanguage": {
+      "en": "Child's language"
+     },
+     "voiceTitle": {
+      "en": "🔊 Voice Settings"
+     },
+     "pickVoice": {
+      "en": "Pick a friend voice — tap to hear them!"
+     },
+     "girl": {
+      "en": "Girl"
+     },
+     "boy": {
+      "en": "Boy"
+     },
+     "default": {
+      "en": "Default"
+     },
+     "speed": {
+      "en": "Speed"
+     },
+     "pitch": {
+      "en": "Pitch"
+     },
+     "readingVoice": {
+      "en": "Reading voice"
+     },
+     "voiceOnBtn": {
+      "en": "🗣️ On"
+     },
+     "voiceOffBtn": {
+      "en": "🔇 Off"
+     },
+     "voiceReadyShort": {
+      "en": "Ready!"
+     },
+     "voiceDownloading": {
+      "en": "Downloading {name}'s voice for offline…"
+     },
+     "voiceReadyOffline": {
+      "en": "{name}'s voice is ready offline!"
+     },
+     "voiceRetry": {
+      "en": "Could not download — will retry online."
+     },
+     "voiceOffMsg": {
+      "en": "Voice off. You can read by yourself!"
+     },
+     "voiceOn": {
+      "en": "Voice on!"
+     },
+     "friendVoicesEnglish": {
+      "en": "Friend voices speak English. Other languages have their own voice."
+     },
+     "updateReady": {
+      "en": "✨ New update ready! Tap to open"
+     }
+    }
+   }
+  }
+ ]
+}

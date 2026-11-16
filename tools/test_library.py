@@ -6,7 +6,9 @@ Builds small test releases in a temp folder from content/src and serves them, th
   - a file whose SHA-256 does not match is refused and the last good release stays in use
   - a damaged device copy falls back to the previous release (offline) or repairs itself (online)
   - an older catalog (replay) is refused; a missing pack fails cleanly; an incompatible pack is skipped
-  - with no IndexedDB (private mode) it still works for the visit (memory)"""
+  - with no IndexedDB (private mode) it still works for the visit (memory)
+  - settings(): every rule off on live (no settings record), the record's values on preview, a parent's choice only
+    where parentsMayChange allows it and inside min/max; missions/together records are queryable on preview"""
 import os, sys, json, shutil, tempfile, threading, functools, http.server, asyncio, io, contextlib
 from playwright.async_api import async_playwright
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -90,15 +92,29 @@ async def main():
         await pg.goto(URL)
         mk = lambda db, base=None, extra=None: pg.evaluate(MK, [db, base, extra])
 
-        print('1. legacy adapter (JS) = the original files')
-        r = await mk('ew-real', '/content/library/'); ok(r['ok'], 'committed content/library loads')
+        print('1. legacy adapter (JS) = the Python adapter (which test_content.py proves equal to the original files)')
+        # both languages downloaded (a device normally fetches only the chosen language + its fallbacks)
+        r = await mk('ew-real', '/content/library/', {'locales': ['en', 'fr']}); ok(r['ok'], 'committed content/library loads')
         got = json.loads(await pg.evaluate("""async () => { const L = window.__L, c = await L.legacy.country('cameroon');
             return JSON.stringify({ lands: L.legacy.lands(), index: L.legacy.countryIndex(), ui: L.legacy.uiStrings(), cameroon: c.pack, 'cameroon-quiz': c.bank }) }"""))
+        from content import hydrate, legacy as PL
+        _, precs = hydrate.load(os.path.join(ROOT, 'content/library'))
+        pk, bank = PL.country(precs, 'ew.country.cameroon')
+        PY = {'lands': PL.lands(precs, ['en', 'fr']), 'index': PL.country_index(precs), 'ui': PL.ui_strings(precs), 'cameroon': pk, 'cameroon-quiz': bank}
         for k in ('lands', 'index', 'ui', 'cameroon', 'cameroon-quiz'):
-            want = editorial_free(load_json(os.path.join(FIX, k + '.json'))); got[k] = editorial_free(got[k])
+            want = json.loads(json.dumps(PY[k])); got[k] = got[k]
             same = got[k] == want
             strict = json.dumps(got[k]) == json.dumps(want) if k != 'lands' else json.dumps({**got[k], 'lands': None}) == json.dumps({**want, 'lands': None})
-            ok(same and strict, f'{k}: identical' + (' (values and key order)' if strict else '') + ' (review-state fields aside)')
+            if not same and os.environ.get('EW_DIFF'):
+                import difflib; print('\n'.join(list(difflib.unified_diff(json.dumps(want, indent=1, ensure_ascii=False).splitlines(), json.dumps(got[k], indent=1, ensure_ascii=False).splitlines(), lineterm='', n=1))[:40]))
+            ok(same and strict, f'{k}: identical' + (' (values and key order)' if strict else ''))
+
+        # French chain on the preview library (machine-draft French): JS and Python flatten to the same French lands
+        r = await mk('ew-prev', '/content/preview/', {'locales': ['fr', 'en']}); ok(r['ok'], 'committed content/preview loads (fr + en)')
+        jfr = json.loads(await pg.evaluate("() => JSON.stringify(window.__L.legacy.lands('fr'))"))
+        _, vrecs = hydrate.load(os.path.join(ROOT, 'content/preview'))
+        pfr = json.loads(json.dumps(PL.lands(vrecs, ['en', 'fr'], chain=('fr', 'en'))))
+        ok(jfr == pfr and jfr['lands'][0]['name'] != PY['lands']['lands'][0]['name'], f'French lands (fallback fr -> en) identical in JS and Python ("{jfr["lands"][0]["name"]}")')
 
         print('2. first visit, then offline start')
         SERVE['rel'] = 'A'; LOG.clear()
@@ -167,6 +183,25 @@ async def main():
         r = await pg2.evaluate(MK, ['t12', None, None]); ok(r['ok'] and r['st']['storage'] == 'memory', 'no IndexedDB (private mode): works for the visit from memory')
         sha_ok = await pg.evaluate("(async()=>{const b=new TextEncoder().encode('Emmavengers ✓ é');const a=await EWLibrary.sha256(b);return a===EWLibrary.sha256js(b)})()")
         ok(sha_ok, 'built-in SHA-256 fallback (old browsers / http) matches WebCrypto')
+        print('7. app settings as data, missions and together time')
+        r = await mk('ew-set-live', '/content/library/'); st = await pg.evaluate('__L.settings()')
+        ok(r['ok'] and not st['missions']['enabled'] and st['missions']['defaultMode'] == 'off' and not st['bedtime']['enabled'] and not st['screenTime']['enabled'],
+           'live (no settings record): built-in defaults, every rule off')
+        ok(await pg.evaluate("__L.setParentSetting('missions.enabled', true)") is False, 'live: a parent cannot switch on a rule the release does not offer')
+        r = await mk('ew-set-prev', '/content/preview/'); await pg.evaluate("localStorage.removeItem('emmaSettings')")
+        st = await pg.evaluate('__L.settings()')
+        ok(r['ok'] and st['missions']['defaultMode'] == 'gentle' and st['missions']['breakAfterMinutes']['default'] == 25 and st['parentGate']['primary'] == 'math',
+           'preview: the values come from the ew.settings.app record')
+        n_m = await pg.evaluate("__L.find({type:'mission'}).length"); n_t = await pg.evaluate("__L.find({type:'together', ageBand:'5-7'}).length")
+        ok(n_m >= 1 and n_t >= 1, f'missions ({n_m}) and together time ({n_t}) are queryable with find()')
+        a = await pg.evaluate("[__L.setParentSetting('missions.defaultMode','firm'), __L.setParentSetting('missions.breakAfterMinutes', 500), __L.setParentSetting('missions.defaultMode','strictest'), __L.setParentSetting('missions.kinds',['chore']), __L.setParentSetting('bedtime.start','20:15'), __L.setParentSetting('bedtime.start','8pm')]")
+        st = await pg.evaluate('__L.settings()')
+        ok(a == [True, True, False, False, True, False] and st['missions']['defaultMode'] == 'firm' and st['missions']['breakAfterMinutes']['default'] == 60 and st['bedtime']['start'] == '20:15',
+           f'parent choices: allowed ones kept (firm, 500 min clamped to 60, 20:15), others refused ({a})')
+        r = await mk('ew-set-prev', '/content/preview/'); st = await pg.evaluate('__L.settings()')
+        ok(st['missions']['defaultMode'] == 'firm', 'parent choices survive a restart (on this device only)')
+        await pg.evaluate('__L.clearParentSettings()'); st = await pg.evaluate('__L.settings()')
+        ok(st['missions']['defaultMode'] == 'gentle', 'clearParentSettings() returns to the published defaults')
         ok(not errs, f'no page errors {errs[:2]}')
         await br.close()
 asyncio.run(main())

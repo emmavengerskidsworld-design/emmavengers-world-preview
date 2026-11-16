@@ -1,0 +1,109 @@
+{
+ "note": "Pronunciation fixes for recorded English voice clips (not shown to children). One entry per whole word: 'word' as written, 'ipa' as Kokoro phonemes (espeak-ng style, stress marks before the vowel). Optional 'ipa-en-us' for the American phonemizer. Possessives (Esau's) are handled automatically. Used by tools/gen_voice.py via tools/voice_lexicon.py; check a word with: python3 tools/voice_lexicon.py --lang en-gb --show \"...\". Add a word whenever a reviewer hears it said wrong; regenerate only the clips that contain it.",
+ "language": "en",
+ "entries": [
+  {
+   "word": "Emmavengers",
+   "ipa": "ˌɛməvˈɛndʒəz",
+   "note": "brand; espeak said 'emma-VENG-uhz' (like singers), no j sound",
+   "ipa-en-us": "ˌɛməvˈɛndʒɚz"
+  },
+  {
+   "word": "Emmavenger",
+   "ipa": "ˌɛməvˈɛndʒə",
+   "ipa-en-us": "ˌɛməvˈɛndʒɚ"
+  },
+  {
+   "word": "Yaoundé",
+   "ipa": "jˌaʊndˈeɪ",
+   "note": "capital of Cameroon, 'yown-DAY'; espeak said 'yay-uh-ruhn-DAY'"
+  },
+  {
+   "word": "Yaounde",
+   "ipa": "jˌaʊndˈeɪ"
+  },
+  {
+   "word": "Douala",
+   "ipa": "duːˈɑːlə",
+   "note": "'doo-AH-luh'"
+  },
+  {
+   "word": "Tchami",
+   "ipa": "tʃˈɑːmi",
+   "note": "Cameroonian name, 'CHAH-mee'; espeak said 'tee-chah-mee'"
+  },
+  {
+   "word": "Ugali",
+   "ipa": "uːɡˈɑːli",
+   "note": "Kenyan dish, 'oo-GAH-lee'; espeak said 'you-gah-lee'"
+  },
+  {
+   "word": "Awa",
+   "ipa": "ˈɑːwɑː",
+   "note": "girl's name, 'AH-wah'"
+  },
+  {
+   "word": "Sangha",
+   "ipa": "sˈɑːŋɡɑː",
+   "note": "river/park, 'SAHNG-gah'"
+  },
+  {
+   "word": "Diy-Gid-Biy",
+   "ipa": "dˈiː ɡˈɪd bˈiː",
+   "note": "UNESCO site; espeak spelled it out as letters"
+  },
+  {
+   "word": "Esau",
+   "ipa": "ˈiːsɔː",
+   "note": "Bible, 'EE-saw'; espeak said 'ESS-ow'",
+   "ipa-en-us": "ˈiːsɑː"
+  },
+  {
+   "word": "Canaan",
+   "ipa": "kˈeɪnən",
+   "note": "Bible, 'KAY-nun'; espeak said 'KAN-ahn'"
+  },
+  {
+   "word": "Sarai",
+   "ipa": "sˈɛəɹaɪ",
+   "note": "Bible, 'SAIR-eye'",
+   "ipa-en-us": "sˈɛɹaɪ"
+  },
+  {
+   "word": "Haran",
+   "ipa": "hˈɛəɹən",
+   "note": "Bible place, 'HAIR-un'",
+   "ipa-en-us": "hˈɛɹən"
+  },
+  {
+   "word": "Shinar",
+   "ipa": "ʃˈaɪnɑː",
+   "note": "Bible place, 'SHY-nar'",
+   "ipa-en-us": "ʃˈaɪnɑːɹ"
+  },
+  {
+   "word": "UNESCO",
+   "ipa": "juːnˈɛskəʊ",
+   "ipa-en-us": "juːnˈɛskoʊ",
+   "note": "'yoo-NESS-koh'; espeak said 'un-ESS-koh'"
+  },
+  {
+   "word": "Northwest",
+   "ipa": "nˌɔːθwˈɛst",
+   "ipa-en-us": "nˌɔːɹθwˈɛst",
+   "note": "two stresses so 'north' is heard (ASR heard only 'west')"
+  },
+  {
+   "word": "Northeast",
+   "ipa": "nˌɔːθˈiːst",
+   "ipa-en-us": "nˌɔːɹθˈiːst",
+   "note": "as Northwest"
+  },
+  {
+   "word": "Ari",
+   "ipa": "ˈɑːɹi",
+   "ipa-en-us": "ˈɑːɹi",
+   "note": "lion cub, 'AH-ree'; the American phonemizer doubled the r"
+  }
+ ]
+}

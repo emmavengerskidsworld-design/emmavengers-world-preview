@@ -1,0 +1,554 @@
+{
+ "A-siwis-en-phonemizer": {
+  "base.en": {
+   "ari-hub": [
+    " We're in Cameroon. What shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find a spoon in the kitchen, tap it.",
+    0.125
+   ],
+   "learn-card": [
+    " This is the next day of the ocean.",
+    0.75
+   ],
+   "quiz": [
+    " which way is the library from start on our practice map.",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " R I",
+    1.0
+   ],
+   "bible": [
+    " In the beginning, God made the earth.",
+    0.3
+   ],
+   "house": [
+    " Find a spoon in the kitchen, tap it.",
+    0.125
+   ],
+   "learn-card": [
+    " The G  is a country in Africa.  It is next to the ocean.",
+    0.16666666666666666
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "B-siwis-fr-phonemizer": {
+  "base.en": {
+   "ari-hub": [
+    "",
+    1.0
+   ],
+   "bible": [
+    " Laint in the beginning, for God, in may the heavens, for in and the earth, for...",
+    0.7
+   ],
+   "house": [
+    " Then find the spoon in the flaky chain, tap and get fluffed.",
+    0.75
+   ],
+   "learn-card": [
+    " Rain Camarone is the first country in Frafrika, and it is for next 2 then the ocean.",
+    0.6666666666666666
+   ],
+   "quiz": [
+    " in which way is the library from start for on ooh ho preg this map",
+    0.5454545454545454
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " in Cameroon and what shall",
+    0.625
+   ],
+   "bible": [
+    " Yent in the beginning, fr' God, and made the heavens, fr' n and the earth, fr'",
+    0.6
+   ],
+   "house": [
+    " and find the spoon in the freaky chin, tap and get fray.",
+    0.75
+   ],
+   "learn-card": [
+    " The country in Africa is free from the ocean.",
+    0.5
+   ],
+   "quiz": [
+    " In which way is the library from start, floor, or practice map?",
+    0.2727272727272727
+   ]
+  }
+ },
+ "C-siwis-en-phonemizer-natural-pitch": {
+  "base.en": {
+   "ari-hub": [
+    " We're in Cameroon.",
+    0.5
+   ],
+   "bible": [
+    " God made the heavens and the earth.",
+    0.3
+   ],
+   "house": [
+    " Goon in the kitchen with that pizza.",
+    0.75
+   ],
+   "learn-card": [
+    " The Cameroon is a country in Africa, it is next to the ocean.",
+    0.08333333333333333
+   ],
+   "quiz": [
+    " which way is the library from start on our practice map.",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon, what shall we explore?  you",
+    0.125
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " I'm not going to do it.",
+    0.875
+   ],
+   "learn-card": [
+    " The Kama rule is a country in Africa. It is next to the ocean.",
+    0.25
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "D-af_heart-natural": {
+  "base.en": {
+   "ari-hub": [
+    " What shall we explore?",
+    0.5
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen.  Tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa. It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon, what shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God, God made the heavens and the earth.",
+    0.1
+   ],
+   "house": [
+    " Find the spoon in the kitchen. Tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa. It is next to the...",
+    0.08333333333333333
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "E-af_bella": {
+  "base.en": {
+   "ari-hub": [
+    " We're in Cameroon.  What shall we explore?  floor.",
+    0.125
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " the spoon in the kitchen. Tap it.",
+    0.125
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa. It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " way is, the library from start on our practice map.",
+    0.09090909090909091
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon. What shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " the spoon in the kitchen. Tap it.",
+    0.125
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa.  It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " The Library from Start on our Practice Map.",
+    0.2727272727272727
+   ]
+  }
+ },
+ "F-af_nicole": {
+  "base.en": {
+   "ari-hub": [
+    " with a Cameroon.",
+    0.875
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen.  Tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa.  It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " which way is the library from start on our practice map.",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon.  What shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens, the earth.",
+    0.1
+   ],
+   "house": [
+    " Find the spoon in the kitchen.  Tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " amaran is a country in Africa. It is next to the ocean.",
+    0.08333333333333333
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "G-af_sarah": {
+  "base.en": {
+   "ari-hub": [
+    " We're in Cameroon. What shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa.  It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " This way is the library from start on our practice map.",
+    0.09090909090909091
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon, what shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen. Tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa.  It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from? Start on our practice map.",
+    0.0
+   ]
+  }
+ },
+ "H-bf_emma": {
+  "base.en": {
+   "ari-hub": [
+    " We're in Cameroon, what shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa.  It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon, what shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa.  It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "I-af_aoede": {
+  "base.en": {
+   "ari-hub": [
+    " We're in Cameroon, which shall we explore?",
+    0.125
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa, it is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon, what shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa, it is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "J-af_kore": {
+  "base.en": {
+   "ari-hub": [
+    "\u00cd\u00cd In Cameroon, what shall we explore?",
+    0.25
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa, it is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " In Cameroon what shall we explore?",
+    0.25
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa, it is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "K-bf_isabella": {
+  "base.en": {
+   "ari-hub": [
+    " We are in Cameroon. What shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa. It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " which way is the library from start on our practice map?",
+    0.0
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon, what shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen, tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " Cameroon is a country in Africa. It is next to the ocean.",
+    0.0
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ },
+ "REF-current-mia-af_heart": {
+  "base.en": {
+   "ari-hub": [
+    " We're in Cameroon. What shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " I find the spoon in the kitchen. Tap it.",
+    0.125
+   ],
+   "learn-card": [
+    " The Cameroon is a country in Africa.  It is next to the ocean.",
+    0.08333333333333333
+   ],
+   "quiz": [
+    " which way is the library from start onixty-",
+    0.36363636363636365
+   ]
+  },
+  "small.en": {
+   "ari-hub": [
+    " We're in Cameroon. What shall we explore?",
+    0.0
+   ],
+   "bible": [
+    " In the beginning, God made the heavens and the earth.",
+    0.0
+   ],
+   "house": [
+    " Find the spoon in the kitchen. Tap it.",
+    0.0
+   ],
+   "learn-card": [
+    " The Cameroon is a country in Africa.  It is next to the ocean.",
+    0.08333333333333333
+   ],
+   "quiz": [
+    " Which way is the library from start on our practice map?",
+    0.0
+   ]
+  }
+ }
+}

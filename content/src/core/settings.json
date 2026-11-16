@@ -1,0 +1,111 @@
+{
+ "$schema": "../../schema/v1/source-file.schema.json",
+ "note": "App rules as data. Switch a rule on/off or change its numbers here and publish a content release: no app rebuild. Draft = preview only; on live the app uses its built-in defaults (every rule off). Parents' choices on the device override these defaults within min/max.",
+ "records": [
+  {
+   "id": "ew.settings.app",
+   "type": "settings",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": []
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 2 draft: the rules exist as data but every rule is switched off until the Parents' Corner screens (Stage 5) are built and tested and Emmanuel approves each rule."
+   },
+   "payload": {
+    "key": "app",
+    "missions": {
+     "enabled": false,
+     "defaultMode": "gentle",
+     "modes": [
+      "gentle",
+      "firm",
+      "off"
+     ],
+     "showOnOpen": true,
+     "laterAllowed": 1,
+     "breakAfterMinutes": {
+      "default": 25,
+      "min": 10,
+      "max": 60
+     },
+     "perDay": 1,
+     "confirm": "parent-gate",
+     "starsUnlock": true,
+     "kinds": [
+      "chore",
+      "kindness",
+      "gratitude",
+      "prayer",
+      "family",
+      "creative",
+      "outdoor",
+      "care"
+     ]
+    },
+    "parentGate": {
+     "methods": [
+      "math",
+      "pin"
+     ],
+     "primary": "math",
+     "fallback": "math",
+     "pinLength": 4,
+     "maxTries": 5,
+     "lockSeconds": 60,
+     "logConfirmations": true
+    },
+    "screenTime": {
+     "enabled": false,
+     "dailyMinutes": {
+      "default": null,
+      "min": 15,
+      "max": 240
+     },
+     "warnBeforeMinutes": 5,
+     "end": "gentle-goodbye",
+     "offlineIdeas": true
+    },
+    "bedtime": {
+     "enabled": false,
+     "start": "19:30",
+     "end": "06:30",
+     "dim": true,
+     "allowTimeOfDay": [
+      "bedtime"
+     ],
+     "allowTypes": [
+      "story",
+      "together",
+      "mission"
+     ],
+     "musicOff": true
+    },
+    "together": {
+     "enabled": false,
+     "tipCadence": "weekly",
+     "tipWeekday": 0
+    },
+    "parentsMayChange": [
+     "missions.enabled",
+     "missions.defaultMode",
+     "missions.breakAfterMinutes",
+     "parentGate.primary",
+     "screenTime.enabled",
+     "screenTime.dailyMinutes",
+     "bedtime.enabled",
+     "bedtime.start",
+     "bedtime.end",
+     "together.enabled"
+    ]
+   }
+  }
+ ]
+}

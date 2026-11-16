@@ -503,6 +503,9 @@
       ]
      }
     ]
+   },
+   "l10n": {
+    "sourceOnly": true
    }
   },
   {
@@ -864,6 +867,9 @@
       "name": {
        "en": "Lion"
       },
+      "nameDef": {
+       "en": "the lion"
+      },
       "img": "img/world/animals/lion.webp",
       "fact": {
        "en": "Lions live together in big families called prides!"
@@ -881,6 +887,9 @@
       "id": "elephant",
       "name": {
        "en": "Elephant"
+      },
+      "nameDef": {
+       "en": "the elephant"
       },
       "img": "img/world/animals/elephant.webp",
       "fact": {
@@ -900,6 +909,9 @@
       "name": {
        "en": "Giraffe"
       },
+      "nameDef": {
+       "en": "the giraffe"
+      },
       "img": "img/world/animals/giraffe.webp",
       "fact": {
        "en": "Giraffes are the tallest animals in the whole world!"
@@ -917,6 +929,9 @@
       "id": "zebra",
       "name": {
        "en": "Zebra"
+      },
+      "nameDef": {
+       "en": "the zebra"
       },
       "img": "img/world/animals/zebra.webp",
       "fact": {
@@ -936,6 +951,9 @@
       "name": {
        "en": "Gorilla"
       },
+      "nameDef": {
+       "en": "the gorilla"
+      },
       "img": "img/world/animals/gorilla.webp",
       "fact": {
        "en": "Gorillas make a cozy new bed of leaves every night!"
@@ -953,6 +971,9 @@
       "id": "hippopotamus",
       "name": {
        "en": "Hippo"
+      },
+      "nameDef": {
+       "en": "the hippo"
       },
       "img": "img/world/animals/hippopotamus.webp",
       "fact": {
@@ -972,6 +993,9 @@
       "name": {
        "en": "Leopard"
       },
+      "nameDef": {
+       "en": "the leopard"
+      },
       "img": "img/world/animals/leopard.webp",
       "fact": {
        "en": "Leopards are super climbers and love to rest up in trees!"
@@ -989,6 +1013,9 @@
       "id": "crocodile",
       "name": {
        "en": "Crocodile"
+      },
+      "nameDef": {
+       "en": "the crocodile"
       },
       "img": "img/world/animals/crocodile.webp",
       "fact": {
@@ -1008,6 +1035,9 @@
       "name": {
        "en": "Rhino"
       },
+      "nameDef": {
+       "en": "the rhino"
+      },
       "img": "img/world/animals/rhinoceros.webp",
       "fact": {
        "en": "A rhino's horn is made of the same stuff as your fingernails!"
@@ -1025,6 +1055,9 @@
       "id": "flamingo",
       "name": {
        "en": "Flamingo"
+      },
+      "nameDef": {
+       "en": "the flamingo"
       },
       "img": "img/world/animals/flamingo.webp",
       "fact": {
@@ -1073,6 +1106,9 @@
       "name": {
        "en": "Cameroon"
       },
+      "nameOf": {
+       "en": "of Cameroon"
+      },
       "flag": "img/world/countries/cameroon-flag.webp",
       "foodImg": "img/world/countries/cameroon-food.webp",
       "greeting": {
@@ -1104,6 +1140,9 @@
       "id": "nigeria",
       "name": {
        "en": "Nigeria"
+      },
+      "nameOf": {
+       "en": "of Nigeria"
       },
       "flag": "img/world/countries/nigeria-flag.webp",
       "foodImg": "img/world/countries/nigeria-food.webp",
@@ -1137,6 +1176,9 @@
       "name": {
        "en": "Ghana"
       },
+      "nameOf": {
+       "en": "of Ghana"
+      },
       "flag": "img/world/countries/ghana-flag.webp",
       "foodImg": "img/world/countries/ghana-food.webp",
       "greeting": {
@@ -1169,6 +1211,9 @@
       "name": {
        "en": "Kenya"
       },
+      "nameOf": {
+       "en": "of Kenya"
+      },
       "flag": "img/world/countries/kenya-flag.webp",
       "foodImg": "img/world/countries/kenya-food.webp",
       "greeting": {
@@ -1200,6 +1245,9 @@
       "id": "south-africa",
       "name": {
        "en": "South Africa"
+      },
+      "nameOf": {
+       "en": "of South Africa"
       },
       "flag": "img/world/countries/south-africa-flag.webp",
       "foodImg": "img/world/countries/south-africa-food.webp",

@@ -1,12 +1,85 @@
 {
  "$schema": "../schema/v1/build.schema.json",
- "note": "Build settings. channel decides which record statuses are compiled into content/library. 'preview' (test site) includes drafts so they can be tried; 'live' ships only published records. Records left out are pruned with their references (e.g. a World Land place pointing at a draft country disappears) and the report lists them.",
+ "note": "Build settings. A plain build writes every channel in \"write\": 'live' -> content/library (read by the live site): published records only; 'preview' -> content/preview (read by the preview site and localhost): drafts too. locales = language statuses a channel ships (French is 'in-review': its Cameroon texts were approved for live by Emmanuel on 2026-11-10 pending a fluent review). overlays = review states of translation files (content/src/l10n/<tag>/) a channel uses: machine drafts appear on preview only until a person reviews them. 'test' is for the test suite only (adds test-only languages such as the sample Arabic pack) and is never written into the repo. Records left out are pruned with their references and the report lists them. 'channel' is the channel used when one output folder is given with --lib.",
  "channel": "live",
  "channels": {
-  "preview": {"statuses": ["draft", "checking", "changes-requested", "reviewed", "approved", "published"]},
-  "live": {"statuses": ["published"]}
+  "live": {
+   "statuses": [
+    "published"
+   ],
+   "locales": [
+    "active",
+    "in-review"
+   ],
+   "overlays": [
+    "reviewed",
+    "approved"
+   ],
+   "out": {
+    "lib": "content/library",
+    "lock": "content/registry.lock.json"
+   }
+  },
+  "preview": {
+   "statuses": [
+    "draft",
+    "checking",
+    "changes-requested",
+    "reviewed",
+    "approved",
+    "published"
+   ],
+   "locales": [
+    "active",
+    "in-review"
+   ],
+   "overlays": [
+    "machine-draft",
+    "draft",
+    "reviewed",
+    "approved"
+   ],
+   "out": {
+    "lib": "content/preview",
+    "lock": "content/registry-preview.lock.json"
+   }
+  },
+  "test": {
+   "statuses": [
+    "draft",
+    "checking",
+    "changes-requested",
+    "reviewed",
+    "approved",
+    "published"
+   ],
+   "locales": [
+    "active",
+    "in-review",
+    "test-only"
+   ],
+   "overlays": [
+    "machine-draft",
+    "draft",
+    "reviewed",
+    "approved"
+   ]
+  }
  },
- "player": {"min": "1.0.0", "maxExclusive": "2.0.0"},
+ "write": [
+  "live",
+  "preview"
+ ],
+ "player": {
+  "min": "1.0.0",
+  "maxExclusive": "2.0.0"
+ },
  "retainReleases": 2,
- "budgets": {"recordBytes": 262144, "packBytes": 2097152, "indexBytes": 524288, "catalogBytes": 65536, "stringChars": 10000}
+ "budgets": {
+  "recordBytes": 262144,
+  "packBytes": 2097152,
+  "indexBytes": 524288,
+  "catalogBytes": 65536,
+  "stringChars": 10000
+ }
 }

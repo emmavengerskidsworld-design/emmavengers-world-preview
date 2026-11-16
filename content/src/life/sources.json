@@ -1,0 +1,43 @@
+{
+ "$schema": "../../schema/v1/source-file.schema.json",
+ "note": "Sources for the parent tips.",
+ "records": [
+  {
+   "id": "ew.source.aap-media-young-minds",
+   "type": "source",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": []
+   },
+   "payload": {
+    "key": "AAP2016",
+    "title": "American Academy of Pediatrics, Council on Communications and Media: Media and Young Minds. Pediatrics 138(5): e20162591 (2016)",
+    "url": "https://publications.aap.org/pediatrics/article/138/5/e20162591/60503/Media-and-Young-Minds",
+    "checkedOn": "2026-11-15",
+    "locator": "Recommendations for families: shared use; screen-free mealtimes and play; no screens 1 hour before bedtime, devices out of bedrooms"
+   }
+  },
+  {
+   "id": "ew.source.aap-family-media-plan",
+   "type": "source",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": []
+   },
+   "payload": {
+    "key": "AAP-FMP",
+    "title": "American Academy of Pediatrics: Family Media Plan (HealthyChildren.org)",
+    "url": "https://www.healthychildren.org/English/fmp/Pages/MediaPlan.aspx",
+    "checkedOn": "2026-11-15"
+   }
+  }
+ ]
+}

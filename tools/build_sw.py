@@ -2,7 +2,11 @@
 Run after ANY change (new room, images, voice clips, Bible book, index.html):  python3 tools/build_sw.py
 
 Caching layers
-  1. CORE (precached at install): html/css/js/icons/manifest, room pictures, morning clips, default Mia voice,
+  0. SHELL (downloaded at install, ~5 MB): html/css/js/fonts/icons/manifest + Emmavengers World map art (img/world/).
+     The service worker takes over as soon as the shell is on the phone; the rest of CORE then downloads in the
+     background (pausing while the child taps). Before Stage 2's fix the whole 55 MB core had to finish first, so on
+     a slow phone the app could stay uncontrolled for a long time: no offline, every voice clip from the network.
+  1. CORE (all of it on the phone after the first visit): html/css/js/icons/manifest, room pictures, morning clips, default Mia voice,
      and every Bible book COVER (so the library shelf shows offline).
   2. BIBLE BOOKS (cache 'emma-books', survives app updates): each book's pages (img/bible/<slug>/*.jpg) and its
      narration clips. Cached in full the first time a book is opened online, and every book listed in
@@ -19,28 +23,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKIP_DIRS = {'.git', 'tools', 'node_modules', 'voice-samples'}
 SKIP_FILES = {'sw.js', 'README.md', '.nojekyll', 'bible-manifest.json'}
 SKIP_EXT = ('.bak', '.py', '.log', '.md', '.DS_Store')
-# content library: the app reads only content/library (built by tools/content_build.py). Sources, schemas, docs and
-# the registry lock are never downloaded by the app. Inside content/library only the CURRENT release's catalog,
-# indexes and starter ("preload") packs are precached; other packs are fetched when first opened and then kept in
-# the device copy (IndexedDB) by library.js. Older-release files kept on the server for rollback are not precached.
-SKIP_PATHS = ('content/src/', 'content/schema/', 'docs/')
-SKIP_FILES |= {'content/registry.lock.json'}
-
-def library_precache():
-    lib = os.path.join(ROOT, 'content', 'library')
-    cat_p = os.path.join(lib, 'catalog.json')
-    if not os.path.exists(cat_p): return None
-    cat = json.load(open(cat_p, encoding='utf-8'))
-    keep = {'content/library/catalog.json'}
-    for c in cat.get('collections', []):
-        keep.add('content/library/' + c['index']['path'])
-        ix = json.load(open(os.path.join(lib, c['index']['path']), encoding='utf-8'))
-        for p in ix.get('packs', []):
-            if not p.get('preload'): continue
-            keep.add('content/library/' + p['file']['path'])
-            for l in p.get('locales', {}).values(): keep.add('content/library/' + l['path'])
-    return keep
-LIB_KEEP = library_precache()
+# content libraries (content/library = live, content/preview = preview; built by tools/content_build.py): library.js
+# downloads and verifies them itself and keeps them in IndexedDB, only in the languages the child uses. So the
+# service worker never precaches or stores them (no second copy, no other languages downloaded behind the child's
+# back). Sources, schemas, docs and registry locks are never downloaded by the app.
+SKIP_PATHS = ('content/', 'docs/')
+LOCALES = json.load(open(os.path.join(ROOT, 'content', 'src', 'locales.json'), encoding='utf-8'))
+TAGS = {l['tag'] for l in LOCALES['locales']}
+SRC = LOCALES.get('sourceLocale', 'en')
+# voice/<tag>/ = the voice of one language (locales.json "voice.pack"); downloaded when that language is chosen
+LANG_VOICE = {l['voice']['pack'].strip('/').split('/')[-1]: l['tag'] for l in LOCALES['locales']
+              if l.get('voice') and l['voice']['pack'].rstrip('/') != 'voice'}
+# localized picture variants (<name>.<tag>.<ext>, e.g. img/world/nature-land.fr.webp): fetched when used, not precached
+VARIANT = re.compile(r'\.(' + '|'.join(sorted((re.escape(t) for t in TAGS if t != SRC), key=len, reverse=True) or ['$^']) + r')\.(webp|jpe?g|png|svg)$')
 
 def make_thumbs():
     """Small shelf thumbnails for Bible covers (fast Library screen on slow networks)."""
@@ -116,7 +111,7 @@ for d, ds, fs in os.walk(ROOT):
         rel = os.path.relpath(os.path.join(d, f), ROOT).replace(os.sep, '/')
         if f in SKIP_FILES or rel in SKIP_FILES or f.endswith(SKIP_EXT) or f.startswith('.') or rel.startswith(SKIP_PATHS):
             continue
-        if rel.startswith('content/library/') and (LIB_KEEP is None or rel not in LIB_KEEP):
+        if VARIANT.search(f):
             continue
         data = open(os.path.join(ROOT, rel), 'rb').read()
         total += len(data)
@@ -124,7 +119,9 @@ for d, ds, fs in os.walk(ROOT):
         h.update(rel.encode() + b'\0' + dig)
         url = './' + rel
         if under_voice_pack:
-            voice_packs.setdefault(rel.split('/')[1], []).append(url)
+            vd = rel.split('/')[1]
+            # a language's voice folder is pack 'lang:<folder>' (fr and fr-CM share voice/fr/ -> one pack 'lang:fr')
+            voice_packs.setdefault('lang:' + vd if vd in LANG_VOICE else vd, []).append(url)
             continue
         slug = next((s for s, bd in book_dirs.items() if rel.startswith(bd)), None)
         if slug and f not in ('cover.jpg', 'thumb.jpg'):
@@ -141,17 +138,28 @@ voice_packs['mia'] = [u for u in files if u.startswith('./voice/') and u.endswit
                      sorted({f'./voice/{x}.mp3' for x in book_only})
 manifest = {slug: {'v': books[slug]['h'].hexdigest()[:12], 'title': BIBLE[slug]['title'], 'files': books[slug]['files'],
                    'voice': book_voice[slug]} for slug in BIBLE}
-build = h.hexdigest()[:12]
+SHELL_EXT = ('.html', '.js', '.css', '.ttf', '.woff', '.woff2', '.otf', '.png', '.svg', '.json', '.webmanifest', '.ico')
+def is_shell(u):
+    p = u[2:]
+    return (not p.startswith('voice/')) and ('/' not in p and p.endswith(SHELL_EXT) or p.startswith('icons/') or p.startswith('fonts/')
+                                             or p.startswith('img/world/'))
+shell = ''.join('1' if is_shell(u) else '0' for u in files)
+shell_bytes = sum(os.path.getsize(os.path.join(ROOT, u[2:])) for u in files if is_shell(u))
 tpl = open(os.path.join(ROOT, 'tools', 'sw.template.js')).read()
+h.update(b'sw.template.js\0' + tpl.encode())  # a service-worker code change is a new build too
+build = h.hexdigest()[:12]
 out = (tpl.replace('__BUILD__', build)
           .replace('__ASSETS__', json.dumps(['./'] + files, separators=(',', ':')))
+          .replace('__SHELL__', json.dumps('1' + shell))
           .replace('__REVS__', json.dumps([''] + revs, separators=(',', ':')))
           .replace('__VOICE_PACKS__', json.dumps(voice_packs, separators=(',', ':')))
+          .replace('__LANG_DIRS__', json.dumps(sorted(LANG_VOICE), separators=(',', ':')))
           .replace('__BOOKS__', json.dumps(manifest, separators=(',', ':'))))
 open(os.path.join(ROOT, 'sw.js'), 'w').write(out)
 json.dump({'build': build, 'books': manifest}, open(os.path.join(ROOT, 'bible-manifest.json'), 'w'), separators=(',', ':'))
 pack_n = {k: len(v) for k, v in sorted(voice_packs.items())}
 bk_n = {s: f"{len(b['files'])} img + {len(book_voice[s])} voice, {b['bytes']/1e6:.1f} MB" for s, b in books.items()}
-print(f'build {build}: core precache {len(files)} files, {core_total/1e6:.1f} MB (repo total {total/1e6:.1f} MB)')
+print(f'build {build}: core precache {len(files)} files, {core_total/1e6:.1f} MB (repo total {total/1e6:.1f} MB); '
+      f'shell at install {shell.count("1") + 1} files, {shell_bytes/1e6:.1f} MB')
 print(f'bible books (cached on open + background prefetch online): {bk_n}')
 print(f'voice packs (on demand): {pack_n}')

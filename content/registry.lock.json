@@ -26,13 +26,13 @@
    "type": "deck"
   },
   "ew.deck.animals": {
-   "rev": 1,
-   "hash": "a9f85425d7a7ce8593c20e08c95dd363279eb997304424d470dc0f28f5f9d508",
+   "rev": 2,
+   "hash": "c9a38240b5fe077bf5f7c2e8bfd5309e60f05ebeae703021808de1106d94099f",
    "type": "deck"
   },
   "ew.deck.countries": {
-   "rev": 1,
-   "hash": "cc53c16a60ee97d43ec86fb02cd3ac806a51bf0c90d9d97d797e0d8a1139e921",
+   "rev": 2,
+   "hash": "97670f004247a0eb5f04d945cd2cbc9e43ab130f1dfef368dce0c9bc81c349a6",
    "type": "deck"
   },
   "ew.deck.prayers": {
@@ -614,13 +614,83 @@
    "rev": 1,
    "hash": "b7f2c689edb54418969d9da6521b3646516277af1ccfb296397f38aac74ba209",
    "type": "story"
+  },
+  "ew.ui.app": {
+   "rev": 1,
+   "hash": "049a2017a2e53a89271654f6fbe8f088f99449a764f17226cf44d50dfb10f4b4",
+   "type": "strings"
+  },
+  "ew.settings.app": {
+   "rev": 1,
+   "hash": "b291e1617307e6c0b8a4284251e17cfd118500117cfcb44012695e834fb9b217",
+   "type": "settings"
+  },
+  "ew.mission.set-the-table": {
+   "rev": 1,
+   "hash": "48c2b195da38ee6361cdfbc262e64d23737699c972f5a4f2a471e8d1c0803822",
+   "type": "mission"
+  },
+  "ew.mission.say-thank-you": {
+   "rev": 1,
+   "hash": "d0954461cc92809b8ec915cd60215e3a151844abf941392899fd8f90c733b80d",
+   "type": "mission"
+  },
+  "ew.mission.pray-for-a-friend": {
+   "rev": 1,
+   "hash": "6e661ea1878d2cf3fd3eade194cee4e21ae70310c16b0d638793fdf19bfe5aac",
+   "type": "mission"
+  },
+  "ew.mission.secret-kindness": {
+   "rev": 1,
+   "hash": "0ef6058cfca595251a6199af6f8e38f6daf09ff54e7bb88886125358bb49d378",
+   "type": "mission"
+  },
+  "ew.mission.draw-thankful": {
+   "rev": 1,
+   "hash": "3d7a9be2f022089890afdc6980deec7d09cdf47d9d5fa57fc4b29daaf415058b",
+   "type": "mission"
+  },
+  "ew.mission.water-a-plant": {
+   "rev": 1,
+   "hash": "fc0357e13cd39a67bdd9314fe601307efd3dde99ed8a164ba0e53b7d9bb11070",
+   "type": "mission"
+  },
+  "ew.source.aap-media-young-minds": {
+   "rev": 1,
+   "hash": "c3e1c81d1355a487b114efc89a494891144b97ab71fb02394ea9392597153fb1",
+   "type": "source"
+  },
+  "ew.source.aap-family-media-plan": {
+   "rev": 1,
+   "hash": "0c38c18708ff251ea7904ccc3e5744bab87e6269d54882d681dd8ebbef4250c6",
+   "type": "source"
+  },
+  "ew.together.family-thank-you-time": {
+   "rev": 1,
+   "hash": "6c70e30413e864f61fed52401963a0a5b0c85dea2b5967a8d8fa6909dd47f58e",
+   "type": "together"
+  },
+  "ew.together.talk-after-a-story": {
+   "rev": 1,
+   "hash": "2b18bb8b0703e69f73ce58d53045566b5273329aa89a27714fc59180c844f55d",
+   "type": "together"
+  },
+  "ew.together.tip-play-together": {
+   "rev": 1,
+   "hash": "51d3ef6c5055ecbe71ad0b8fe9d3749d397639a192c4965aaa86e0fd7b249c19",
+   "type": "together"
+  },
+  "ew.together.tip-screens-off-before-bed": {
+   "rev": 1,
+   "hash": "89c1164a17105805d7bcf8d61f51072feb0cd156352ab94a55be29bedb1c50ae",
+   "type": "together"
   }
  },
  "retired": {},
  "packs": {
   "core": {
-   "rev": 2,
-   "hash": "44c2113f679d78a243b2c3d1240c6362b29226e84830adc67c7a3a448ed1d2f6"
+   "rev": 3,
+   "hash": "8ffd5834fda3ddf488365789a14042f10cd963c98aceab422661e8cc81ce275c"
   },
   "country.cameroon": {
    "rev": 2,
@@ -629,45 +699,45 @@
  },
  "releases": [
   {
-   "sequence": 1,
-   "issued": "2026-11-10T18:44:16Z",
-   "channel": "preview",
-   "contentHash": "f4fcccbe037443edbe0d05b3e18c44046abf50febf67d3922ea0a8615d4505de",
-   "catalogSha256": "28bdb7ffa375f9ca2d9e1cb0d1638d2311d8b036e81bf3e91d35fe9c65ce0f63",
+   "sequence": 5,
+   "issued": "2026-11-15T14:04:48Z",
+   "channel": "live",
+   "contentHash": "b0fb34fbe2f7578c86238b56443b86b584b77f92329d91d8228860ec18e9dc6e",
+   "catalogSha256": "54de43ba308177b84e8603cea922cdb8a0868a31199a1a3e382f229dc67985db",
    "files": [
     "catalog.json",
-    "indexes/core.2a8c5bbe361bb837.json",
-    "indexes/countries.africa.2e6d8033a2f31064.json",
-    "packs/core.1f085c0c3e632be2.json",
-    "packs/core.assets.c10260af1c872991.json",
-    "packs/core@en.f99f506bcd695a50.json",
-    "packs/core@fr.3e2d1f6deb3ed011.json",
-    "packs/country.cameroon.9ced879719b7615f.json",
-    "packs/country.cameroon.assets.e93acf05b8b468f4.json",
-    "packs/country.cameroon@en.2667d2954e8ebbfc.json",
-    "packs/country.cameroon@fr.91525bb18cf18d5f.json"
+    "indexes/core.dcc8eac7b91c8467.json",
+    "indexes/countries.africa.852530a8ccfa299b.json",
+    "packs/core.assets.3955ec47d659b283.json",
+    "packs/core.cca5ef4f3a524934.json",
+    "packs/core@en.be3b59e8ece9b5fe.json",
+    "packs/core@fr.3477ebacb6dbca1a.json",
+    "packs/country.cameroon.531bcaa945e83704.json",
+    "packs/country.cameroon.assets.bf2ccb21a25c5a79.json",
+    "packs/country.cameroon@en.334e0a59f758de6d.json",
+    "packs/country.cameroon@fr.2e92937f8fee430e.json"
    ]
   },
   {
-   "sequence": 2,
-   "issued": "2026-11-10T19:47:01Z",
+   "sequence": 6,
+   "issued": "2026-11-15T21:36:55Z",
    "channel": "live",
-   "contentHash": "0533b14c23e8aba8afc53072f94fb16a41c2dc99dc8b717d9ba6ad5ebcfa8ee9",
-   "catalogSha256": "4c962a1078ce5a0819c5b81faca55e6700fe1052b0bfa9fb335c5b544431f677",
+   "contentHash": "47415c94774cf62e63012a9ea0ba2bb90641b71e5e74c8dc35e28bd5bbc545a3",
+   "catalogSha256": "aeb43b0e75d824f66795a151fb4d25bd70fab94cc49859b3b7fccc765542c74f",
    "files": [
     "catalog.json",
-    "indexes/core.1e9c23d2c9b5bcf6.json",
-    "indexes/countries.africa.804ee1b76bc9362e.json",
-    "packs/core.694b3f263fc02681.json",
-    "packs/core.assets.c10260af1c872991.json",
-    "packs/core@en.adf8532af0979541.json",
-    "packs/core@fr.c765eddcd563c3df.json",
+    "indexes/core.f0b560334c80e575.json",
+    "indexes/countries.africa.b8e99f8fce21dea6.json",
+    "packs/core.assets.41064936d1f7f917.json",
+    "packs/core.cca5ef4f3a524934.json",
+    "packs/core@en.be3b59e8ece9b5fe.json",
+    "packs/core@fr.3477ebacb6dbca1a.json",
     "packs/country.cameroon.531bcaa945e83704.json",
-    "packs/country.cameroon.assets.e93acf05b8b468f4.json",
+    "packs/country.cameroon.assets.208c77330cec4695.json",
     "packs/country.cameroon@en.334e0a59f758de6d.json",
     "packs/country.cameroon@fr.2e92937f8fee430e.json"
    ]
   }
  ],
- "sequence": 2
+ "sequence": 6
 }

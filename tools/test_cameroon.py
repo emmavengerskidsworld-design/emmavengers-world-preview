@@ -12,7 +12,7 @@ from playwright.async_api import async_playwright
 ROOT=Path(__file__).resolve().parents[1];OUT=Path(sys.argv[1] if len(sys.argv)>1 else '/workspace/cameroon-pilot-shots');OUT.mkdir(parents=True,exist_ok=True)
 sys.path.insert(0,str(ROOT/'tools'))
 from content import hydrate,legacy  # the expected text comes from the content library (hash-verified), in the legacy pack shape
-_cat,_recs=hydrate.load(str(ROOT/'content/library'));PK,BANK=legacy.country(_recs,'ew.country.cameroon')
+_cat,_recs=hydrate.load(str(ROOT/'content/preview'));PK,BANK=legacy.country(_recs,'ew.country.cameroon')
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a):pass
     def handle(self):
@@ -196,7 +196,11 @@ async def online(b,url,vw,vh):
             ok((await pg.text_content('#ctext')).strip()==refl['en'],f'{tag}: story {si+1} ends with the ungraded reflection')
             await pg.click('#cskip');await scr(pg,'cdone');await pg.evaluate("go('cstory',{c:'cameroon'})");await scr(pg,'cstory')
     # ---- language switch (hub + learn + quiz + story), French screenshots
-    await set_age(pg,'little');await pg.click('.clang[data-lang="fr"]');await scr(pg,'ctry');await pg.wait_for_timeout(150)
+    await set_age(pg,'little');await pg.click('.clang[data-lang="fr"]');await scr(pg,'ctry')
+    # Stage 2: this is the app language now (French texts are downloaded on the switch, then the hub redraws)
+    try: await pg.wait_for_function("EWi18n.lang==='fr'&&!document.querySelector('.clang[disabled]')&&(document.querySelector('.cmodes .cmode b')||{}).textContent==='Apprendre'",timeout=10000)
+    except Exception: print('  DIAG',await pg.evaluate("({lang:EWi18n.lang,dis:document.querySelectorAll('.clang[disabled]').length,lab:[...document.querySelectorAll('.cmodes .cmode b')].map(b=>b.textContent),scr:screen})"))
+    await pg.wait_for_timeout(150)
     lab=await pg.evaluate("[...document.querySelectorAll('.cmodes .cmode b')].map(b=>b.textContent)");ok(lab==['Apprendre','Jouer','Quiz','Histoires'],f'{vw}: French mode labels {lab}')
     ok((await pg.text_content('#title')).strip()=='Cameroun' and await pg.evaluate("main.getAttribute('lang')")=='fr','French title + lang=fr')
     await shot(pg,'12-french-hub.png',vw)
@@ -211,7 +215,7 @@ async def online(b,url,vw,vh):
     await shot(pg,'14-french-quiz.png',vw)
     await pg.evaluate("go('cread',{c:'cameroon',s:0,i:0})");await scr(pg,'cread');ok((await pg.text_content('#ctext')).strip()==PK['payload']['stories'][0]['pages']['all'][0]['text']['fr'],f'{vw}: French story page')
     await shot(pg,'15-french-story.png',vw)
-    await hub(pg);await pg.click('.clang[data-lang="en"]');await scr(pg,'ctry');ok((await pg.text_content('.cmode[data-mode="learn"] b')).strip()=='Learn',f'{vw}: back to English')
+    await hub(pg);await pg.click('.clang[data-lang="en"]');await scr(pg,'ctry');await pg.wait_for_function("EWi18n.lang==='en'&&(document.querySelector('.cmode[data-mode=\"learn\"] b')||{}).textContent==='Learn'",timeout=10000);ok((await pg.text_content('.cmode[data-mode="learn"] b')).strip()=='Learn',f'{vw}: back to English')
     # ---- guide off, back navigation, quiz engine properties
     await pg.click('#cguideTog');await scr(pg,'ctry');await pg.click('.cmode[data-mode="learn"]');await scr(pg,'clearn')
     ok(await pg.evaluate("document.querySelector('#cguide').classList.contains('hide')"),f'{vw}: Ari talks off hides guide lines');await hub(pg);await pg.click('#cguideTog')
@@ -236,7 +240,7 @@ async def online(b,url,vw,vh):
         # every spoken Cameroon line (EN + FR) has a recorded clip
         miss=await pg.evaluate("async()=>{const m=[];for(const t of __ctryVoice()){const r=await fetch(voiceUrl(t),{method:'HEAD'});if(!r.ok)m.push(t)}return m}")
         ok(not miss,f'every Cameroon line has a voice clip ({len(miss)} missing {miss[:2]})')
-        priv=await pg.evaluate("Object.keys(localStorage)");ok(set(priv)<= {'emmaCtry','emmaCtryPrefs','emmaWorld','emmaStars','emmaLevels','emmaVoice','emmaVoiceOff','emmaParentPin','emmaMuted','emmaMute'} ,f'only app keys in local storage {priv}')
+        priv=await pg.evaluate("Object.keys(localStorage)");ok(set(priv)<= {'emmaCtry','emmaCtryPrefs','emmaWorld','emmaStars','emmaLevels','emmaVoice','emmaVoiceOff','emmaParentPin','emmaMuted','emmaMute','emmaLang','ewOldDbGone'} ,f'only app keys in local storage {priv}')
         ev=await pg.evaluate("JSON.parse(localStorage.emmaCtry).events.slice(0,3)");ok(all(set(e)<= {'item','first','supported','repeat','skipped','activity','moves'} for e in ev),f'practice events hold no personal data {ev}')
     ok(not errs,f'{vw}: no JS/console errors {errs[:4]}')
     await ctx.close()
@@ -249,7 +253,9 @@ async def offline(b,url):
     info=await pg.evaluate("""async()=>{await navigator.serviceWorker.ready;const t0=Date.now();for(;;){const sw=await fetch('sw.js').then(r=>r.text());const want=JSON.parse(sw.match(/ASSETS=(\\[.*?\\]);/)[1]);
       let have=0;for(const k of (await caches.keys()).filter(k=>k.startsWith('emma-house-')))have+=(await (await caches.open(k)).keys()).length;
       if(have>=want.length&&navigator.serviceWorker.controller)return {have,want:want.length,ctry:want.filter(u=>/content\\/countries|country\\.|guides\\//.test(u)).length,ms:Date.now()-t0};if(Date.now()-t0>300000)return {timeout:true};await new Promise(z=>setTimeout(z,1000))}}""")
-    print('  precache',info);ok(not info.get('timeout') and info.get('ctry',0)>=12,f'precache finished incl. Cameroon files ({info.get("ctry")})')
+    print('  precache',info);# Cameroon code, styles and guide pictures are precached; its texts live in the content library (library.js keeps
+    # them in IndexedDB since Stage 2, not the service worker) and the offline checks below prove they load.
+    ok(not info.get('timeout') and info.get('ctry',0)>=9,f'precache finished incl. Cameroon code + guide pictures ({info.get("ctry")})')
     await ctx.set_offline(True);on['x']=True;await pg.reload(wait_until='load');await pg.wait_for_function('LANDS!==null&&screen==="home"&&window.CTRY_READY',timeout=15000)
     await pg.evaluate("localStorage.setItem('emmaCtryPrefs',JSON.stringify({lang:'en',age:'big',guide:true}))")
     res=await pg.evaluate("""async()=>{const bad=[];const w=()=>new Promise(z=>setTimeout(z,250));

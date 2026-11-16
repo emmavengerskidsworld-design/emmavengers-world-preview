@@ -1,0 +1,300 @@
+{
+ "$schema": "../../schema/v1/source-file.schema.json",
+ "note": "Daily Ari Missions (draft samples). Real-life tasks done away from the screen; a grown-up confirms. When they show and how strict is decided by ew.settings.app and the parent's choices, not here.",
+ "records": [
+  {
+   "id": "ew.mission.set-the-table",
+   "type": "mission",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10"
+    ],
+    "modes": [],
+    "subjects": [
+     "life-skills",
+     "numeracy"
+    ]
+   },
+   "payload": {
+    "key": "set-the-table",
+    "kind": "chore",
+    "speaker": "ew.character.ari",
+    "title": {
+     "en": "Table helper",
+     "fr": "Aide à table"
+    },
+    "task": {
+     "en": "Mission time! Help set the table for the next meal: plates, cups and spoons.",
+     "fr": "C'est l'heure de la mission ! Aide à mettre la table pour le prochain repas : assiettes, verres et cuillères."
+    },
+    "doneText": {
+     "en": "Great helping! A family table is a happy table.",
+     "fr": "Bravo pour ton aide ! Une table en famille est une table joyeuse."
+    },
+    "steps": [
+     {
+      "en": "Count how many people will eat.",
+      "fr": "Compte combien de personnes vont manger."
+     },
+     {
+      "en": "Put one plate, one cup and one spoon for each person.",
+      "fr": "Mets une assiette, un verre et une cuillère pour chaque personne."
+     }
+    ],
+    "where": "home",
+    "timeOfDay": [
+     "day",
+     "evening"
+    ],
+    "minutes": 5,
+    "parentConfirm": true,
+    "proof": "parent-check",
+    "stars": 1,
+    "parentNote": {
+     "en": "Let your child carry only unbreakable things if they are small. Counting places is good number practice.",
+     "fr": "Laissez votre enfant porter seulement des objets incassables s'il est petit. Compter les places est un bon exercice de calcul."
+    }
+   }
+  },
+  {
+   "id": "ew.mission.say-thank-you",
+   "type": "mission",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [],
+    "subjects": [
+     "life-skills",
+     "faith"
+    ],
+    "sensitivity": [
+     "christian-teaching"
+    ]
+   },
+   "payload": {
+    "key": "say-thank-you",
+    "kind": "gratitude",
+    "speaker": "ew.character.ari",
+    "title": {
+     "en": "Thank-you mission",
+     "fr": "Mission merci"
+    },
+    "task": {
+     "en": "Find someone who helped you today and say: thank you!",
+     "fr": "Trouve quelqu'un qui t'a aidé aujourd'hui et dis-lui : merci !"
+    },
+    "doneText": {
+     "en": "A thankful heart makes others smile.",
+     "fr": "Un cœur reconnaissant fait sourire les autres."
+    },
+    "where": "anywhere",
+    "timeOfDay": [
+     "morning",
+     "day",
+     "evening"
+    ],
+    "minutes": 2,
+    "parentConfirm": true,
+    "proof": "parent-check",
+    "stars": 1,
+    "scripture": [
+     "1 Thessalonians 5:18"
+    ]
+   }
+  },
+  {
+   "id": "ew.mission.pray-for-a-friend",
+   "type": "mission",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [],
+    "subjects": [
+     "faith"
+    ],
+    "sensitivity": [
+     "christian-teaching"
+    ]
+   },
+   "payload": {
+    "key": "pray-for-a-friend",
+    "kind": "prayer",
+    "speaker": "ew.character.ari",
+    "title": {
+     "en": "Prayer for a friend",
+     "fr": "Prière pour un ami"
+    },
+    "task": {
+     "en": "Think of a friend. Close your eyes and ask God to bless them today.",
+     "fr": "Pense à un ami. Ferme les yeux et demande à Dieu de le bénir aujourd'hui."
+    },
+    "doneText": {
+     "en": "Praying for others is a gift you can give every day.",
+     "fr": "Prier pour les autres est un cadeau que tu peux faire chaque jour."
+    },
+    "where": "anywhere",
+    "timeOfDay": [
+     "evening",
+     "bedtime"
+    ],
+    "minutes": 2,
+    "parentConfirm": true,
+    "proof": "tell",
+    "stars": 1,
+    "parentNote": {
+     "en": "Your child may want to tell you who they prayed for. Listening is enough; no need to check the words.",
+     "fr": "Votre enfant voudra peut-être vous dire pour qui il a prié. Écouter suffit ; inutile de vérifier les mots."
+    },
+    "scripture": [
+     "James 5:16"
+    ]
+   }
+  },
+  {
+   "id": "ew.mission.secret-kindness",
+   "type": "mission",
+   "tags": {
+    "ageBands": [
+     "8-10",
+     "11-13"
+    ],
+    "modes": [],
+    "subjects": [
+     "life-skills",
+     "faith"
+    ],
+    "sensitivity": [
+     "christian-teaching"
+    ]
+   },
+   "payload": {
+    "key": "secret-kindness",
+    "kind": "kindness",
+    "speaker": "ew.character.ari",
+    "title": {
+     "en": "Secret kindness",
+     "fr": "Gentillesse secrète"
+    },
+    "task": {
+     "en": "Do one kind thing for someone in your family, without being asked.",
+     "fr": "Fais une chose gentille pour quelqu'un de ta famille, sans qu'on te le demande."
+    },
+    "doneText": {
+     "en": "Kindness is a superpower. Well done, Emmavenger!",
+     "fr": "La gentillesse est un super-pouvoir. Bravo, Emmavenger !"
+    },
+    "where": "home",
+    "timeOfDay": [
+     "morning",
+     "day",
+     "evening"
+    ],
+    "minutes": 10,
+    "parentConfirm": true,
+    "proof": "parent-check",
+    "stars": 2,
+    "scripture": [
+     "Ephesians 4:32"
+    ]
+   }
+  },
+  {
+   "id": "ew.mission.draw-thankful",
+   "type": "mission",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [],
+    "subjects": [
+     "life-skills",
+     "arts"
+    ]
+   },
+   "payload": {
+    "key": "draw-thankful",
+    "kind": "creative",
+    "speaker": "ew.character.ari",
+    "title": {
+     "en": "Draw a thank-you",
+     "fr": "Dessine un merci"
+    },
+    "task": {
+     "en": "Draw one thing you are thankful for today. Show it to a grown-up.",
+     "fr": "Dessine une chose pour laquelle tu dis merci aujourd'hui. Montre-la à un adulte."
+    },
+    "doneText": {
+     "en": "What a lovely picture of thanks!",
+     "fr": "Quel joli dessin de merci !"
+    },
+    "where": "travel",
+    "timeOfDay": [
+     "day",
+     "evening"
+    ],
+    "minutes": 10,
+    "parentConfirm": true,
+    "proof": "draw",
+    "stars": 1
+   }
+  },
+  {
+   "id": "ew.mission.water-a-plant",
+   "type": "mission",
+   "tags": {
+    "ageBands": [
+     "5-7",
+     "8-10"
+    ],
+    "modes": [],
+    "subjects": [
+     "life-skills",
+     "science"
+    ],
+    "sensitivity": [
+     "adult-accompaniment"
+    ]
+   },
+   "payload": {
+    "key": "water-a-plant",
+    "kind": "care",
+    "speaker": "ew.character.ari",
+    "title": {
+     "en": "Plant friend",
+     "fr": "Ami des plantes"
+    },
+    "task": {
+     "en": "With a grown-up, give a plant a little water. Plants need care, just like us.",
+     "fr": "Avec un adulte, donne un peu d'eau à une plante. Les plantes ont besoin de soins, comme nous."
+    },
+    "doneText": {
+     "en": "You helped something grow today!",
+     "fr": "Tu as aidé quelque chose à grandir aujourd'hui !"
+    },
+    "where": "outdoors",
+    "timeOfDay": [
+     "morning",
+     "day"
+    ],
+    "minutes": 5,
+    "parentConfirm": true,
+    "proof": "parent-check",
+    "adultNearby": true,
+    "stars": 1,
+    "parentNote": {
+     "en": "Stay close if the plant is outside or near water. Show how much water is enough.",
+     "fr": "Restez près de lui si la plante est dehors ou près de l'eau. Montrez quelle quantité d'eau suffit."
+    }
+   }
+  }
+ ]
+}

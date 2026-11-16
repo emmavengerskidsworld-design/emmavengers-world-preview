@@ -18,7 +18,7 @@ KOK = Path(os.environ.get("KOKORO_DIR", "/workspace/kok"))
 
 # Friendly voice pack: id -> (kokoro_voice, speed, pitch_shift, gender, label)
 VOICES = {
-    "mia":  ("af_heart",   0.72, 1.18, "girl", "Mia"),   # default — same pitch as before, ~10%+ faster
+    "mia":  ("bf_isabella", 0.85, 1.05, "girl", "Mia"),  # default English voice (Stage 2 clarity test, docs/voice-choice.md); keep in step with locales.json "en"
     "lily": ("af_jessica", 0.72, 1.28, "girl", "Lily"),
     "zara": ("af_bella",   0.78, 1.38, "girl", "Zara"),
     "sam":  ("am_puck",    0.70, 2.30, "boy",  "Sam"),
@@ -63,12 +63,39 @@ def main():
     ap.add_argument("--speed", type=float, default=None)
     ap.add_argument("--sh", type=float, default=None, help="pitch shift (asetrate factor)")
     ap.add_argument("--force", action="store_true", help="regenerate even if file exists")
+    ap.add_argument("--model", default=None, choices=["int8", "fp32", "fp16"],
+                    help="Kokoro model precision (locales.json voice.model; default int8 = the original clips). fp32 is cleaner "
+                         "and ~5x faster on this CPU (docs/voice-fix.md)")
+    ap.add_argument("--bitrate", default=None, help="MP3 bitrate, e.g. 48k (locales.json voice.bitrate; default 32k). "
+                    "32k makes the encoder cut everything above ~6 kHz = muffled 'heavy' sound")
+    ap.add_argument("--next", action="store_true", help="with --locale: use the language's voice.next set-up (chosen, not yet recorded)")
+    ap.add_argument("--no-verify", action="store_true", help="skip the listening check of short lines (voice.verifyShort)")
+    ap.add_argument("--no-lexicon", action="store_true", help="do not apply content/voice-lexicon/<lang>.json fixes")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--lang", default="en-us", help="Kokoro/espeak language, e.g. fr-fr with --kokoro ff_siwis (French pilot lines)")
+    ap.add_argument("--locale", default=None, help="language tag from content/src/locales.json: its voice record gives the "
+                    "Kokoro voice, phonemizer language, speed, pitch and folder (a new language needs no code here)")
     args = ap.parse_args()
+    if args.locale:
+        L = {l["tag"]: l for l in json.load(open(ROOT / "content" / "src" / "locales.json"))["locales"]}
+        v = (L.get(args.locale) or {}).get("voice")
+        if v and args.next:
+            if not v.get("next"):
+                raise SystemExit(f"locale {args.locale!r} has no voice.next set-up")
+            v = dict(v, **{k: x for k, x in v["next"].items() if k != "note"}, engine=v.get("engine", "kokoro"))
+        if not v or v.get("engine") != "kokoro":
+            raise SystemExit(f"locale {args.locale!r} has no kokoro voice in locales.json")
+        args.kokoro, args.lang = v["voice"], v.get("lang", args.lang)
+        args.speed = args.speed if args.speed is not None else v.get("speed", 1.0)
+        args.sh = args.sh if args.sh is not None else v.get("pitch", 1.0)
+        args.outdir = args.outdir or v["pack"]
+        args.model = args.model or v.get("model")
+        args.bitrate = args.bitrate or v.get("bitrate")
+        args.vrec = v   # blend + post clean-up (tools/voice_post.py)
+        args.voice = "locale:" + args.locale
 
     vid = args.voice
-    if vid not in VOICES and not (args.kokoro and args.speed and args.sh):
+    if vid not in VOICES and not (args.kokoro and args.speed is not None and args.sh is not None):
         raise SystemExit(f"unknown voice {vid!r}; known: {list(VOICES)}")
     kv, sp, sh, gender, label = VOICES.get(vid, (None, None, None, None, vid))
     kv = args.kokoro or os.environ.get("VOICE") or kv
@@ -90,7 +117,10 @@ def main():
         jobs = jobs[: args.limit]
 
     # Prefer local kokoro copy under /workspace/kok; fall back to cwd
-    model = KOK / "kokoro-v1.0.int8.onnx"
+    prec = args.model or os.environ.get("KOKORO_MODEL", "int8")
+    bitrate = args.bitrate or os.environ.get("BITRATE", "32k")
+    model = {"int8": KOK / "kokoro-v1.0.int8.onnx", "fp32": KOK / "models" / "kokoro-v1.0.onnx",
+             "fp16": KOK / "models" / "kokoro-v1.0.fp16.onnx"}[prec]
     voices = KOK / "voices-v1.0.bin"
     if not model.exists():
         model = Path("kokoro-v1.0.int8.onnx")
@@ -100,32 +130,73 @@ def main():
     k = Kokoro(str(model), str(voices))
     tmp = f"/tmp/k{os.getpid()}.wav"
     done = skip = 0
+    # pitch 1.0 = no pitch processing at all (asetrate+atempo re-stretches the sound and adds a phasey colour)
+    sys.path.insert(0, str(ROOT / "tools"))
+    import voice_post
+    vrec = getattr(args, "vrec", None) or {}
+    kstyle = voice_post.style(k, dict(vrec, voice=kv)) if vrec.get("blend") else kv
+    post = ",".join(voice_post.filters(vrec.get("post")))
+    pitch = "" if abs(sh - 1.0) < 1e-6 else f"asetrate={{sr}}*{sh},aresample=24000,{atempo_chain(1/sh)},"
     af_tail = (
-        f"asetrate={{sr}}*{sh},"
-        f"aresample=24000,{atempo_chain(1/sh)},"
+        pitch +
         "silenceremove=start_periods=1:start_threshold=-50dB,"
         "areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
         "apad=pad_dur=0.15"
     )
-    print(f"[gen_voice] voice={vid} kokoro={kv} speed={sp} sh={sh} out={outdir} jobs={len(jobs)}", flush=True)
+    if post:   # clean-up before trimming silence, so the trim sees the cleaned signal
+        af_tail = post + "," + af_tail
+    lex = {}
+    if not args.no_lexicon:
+        sys.path.insert(0, str(ROOT / "tools"))
+        import voice_lexicon
+        lex = voice_lexicon.load(args.lang)
+    print(f"[gen_voice] voice={vid} kokoro={kv} blend={vrec.get('blend')} post={post or '-'} model={prec} speed={sp} sh={sh} bitrate={bitrate} lexicon={len(lex)} "
+          f"out={outdir} jobs={len(jobs)}", flush=True)
+    verify = int(vrec.get("verifyShort") or 0) if not args.no_verify else 0
+    if verify:
+        import voice_check
+    review = []
     for text, out, ph in jobs:
         out.parent.mkdir(parents=True, exist_ok=True)
         if out.exists() and not args.force and out.stat().st_size > 200:
             skip += 1
             continue
-        if ph:
-            a, sr = k.create(ph, voice=kv, speed=sp, lang=args.lang, is_phonemes=True)
+        given_ph = ph
+        short = verify and not given_ph and len(text.split()) <= verify
+        for n_take, (t_say, s_take) in enumerate(voice_check.takes(text, sp) if short else [(text, sp)]):
+            ph = given_ph
+            if not ph and lex:
+                ph, _fixed = voice_lexicon.phonemize(t_say, args.lang, k.tokenizer.phonemize, lex)
+            if ph:
+                a, sr = k.create(ph, voice=kstyle, speed=s_take, lang=args.lang, is_phonemes=True)
+            else:
+                a, sr = k.create(t_say, voice=kstyle, speed=s_take, lang=args.lang)
+            sf.write(tmp, a, sr)
+            dst = out if not short or n_take == 0 else Path(str(out) + ".take.mp3")
+            subprocess.run(
+                ["ffmpeg", "-loglevel", "error", "-y", "-i", tmp, "-af", af_tail.format(sr=sr),
+                 "-ac", "1", "-b:a", bitrate, str(dst)],
+                check=True,
+            )
+            if not short:
+                break
+            good, heard = voice_check.passes(text, str(dst))
+            if good:
+                if dst != out:
+                    os.replace(dst, out)
+                break
+            if dst != out and dst.exists():
+                dst.unlink()
         else:
-            a, sr = k.create(text, voice=kv, speed=sp, lang=args.lang)
-        sf.write(tmp, a, sr)
-        subprocess.run(
-            ["ffmpeg", "-loglevel", "error", "-y", "-i", tmp, "-af", af_tail.format(sr=sr),
-             "-ac", "1", "-b:a", "32k", str(out)],
-            check=True,
-        )
+            if short:
+                review.append([text, str(out.relative_to(ROOT)) if str(out).startswith(str(ROOT)) else str(out), heard])
         done += 1
         if done % 25 == 0:
             print(f"  … {done} written, {skip} skipped", flush=True)
+    if review:
+        rp = Path(f"/tmp/gen_voice_review_{os.getpid()}.json")
+        json.dump(review, open(rp, "w"), ensure_ascii=False, indent=0)
+        print(f"[gen_voice] {len(review)} short lines no take passed the listening check - listen to them: {rp}", flush=True)
     print(f"[gen_voice] done voice={vid}: wrote={done} skipped={skip}", flush=True)
 
 if __name__ == "__main__":

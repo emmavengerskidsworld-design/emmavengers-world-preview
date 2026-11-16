@@ -86,3 +86,37 @@ def write_json(path, obj, pretty=True):
             f.write('\n')
         else:
             f.write(dumps(obj).decode('utf-8'))
+
+
+def chain_for(locales_cfg, tag, offered=None):
+    """Fallback chain of a language, same rules as library.js chainFor(): the tag, its shorter forms (fr-CM -> fr),
+    its fallback list (each expanded the same way), then the source language; only languages offered are kept."""
+    L = {l['tag']: l for l in locales_cfg.get('locales', [])}
+    have = set(offered if offered is not None else L)
+    out, seen = [], set()
+    def add(t):
+        if not t or t in seen: return
+        seen.add(t)
+        parts = t.split('-')
+        for i in range(len(parts), 0, -1):
+            s = '-'.join(parts[:i])
+            if s in have and s not in out: out.append(s)
+        for f in L.get(t, {}).get('fallback', []): add(f)
+    src = locales_cfg.get('sourceLocale', 'en')
+    add(tag); add(src)
+    return out or [src]
+
+
+IMG_RE = re.compile(r'^img/.+\.(webp|jpg|jpeg|png)$')
+
+
+def variant_path(path, tag):
+    """Localized picture: img/world/nature-land.jpg -> img/world/nature-land.fr.jpg (text drawn in the picture)."""
+    stem, dot, ext = path.rpartition('.')
+    return f'{stem}.{tag}.{ext}'
+
+
+def picture_variants(root, path, tags):
+    """{tag: variant path} for the localized copies of one picture that exist on disk."""
+    import os
+    return {t: variant_path(path, t) for t in tags if os.path.isfile(os.path.join(root, variant_path(path, t)))}

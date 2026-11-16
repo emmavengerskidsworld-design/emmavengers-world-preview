@@ -10,7 +10,21 @@
 <title>Emmavengers World</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-html,body{margin:0;height:100%;font-family:"Arial Rounded MT Bold","Trebuchet MS","Segoe UI",system-ui,sans-serif;font-weight:900;color:#123a7a}
+html,body{margin:0;height:100%;font-family:var(--ew-font,"Arial Rounded MT Bold","Trebuchet MS","Segoe UI",system-ui,sans-serif);font-weight:900;color:#123a7a}
+/* languages (i18n.js sets <html lang dir data-script> and --ew-font from the language's script). Scripts other than
+   Latin use their own font stack everywhere (the display font LG is Latin-only). Joined scripts (Arabic) must never
+   be letter-spaced. Right-to-left: layout uses logical properties; the back arrow points the reading way. */
+html[data-script]:not([data-script="Latn"]) body *{font-family:var(--ew-font)!important}
+html[data-script="Arab"] body *{letter-spacing:0!important}
+html[dir="rtl"] #backBtn{transform:scaleX(-1)}
+.langbtn{display:none}.langbtn.on{display:inline-flex}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:10px 0}
+.lcard{font:inherit;border:4px solid #2f86e8;border-radius:18px;background:#fff;color:#123a7a;padding:10px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 4px 0 #1a56b8}
+.lcard.on{border-color:#2ecc40;box-shadow:0 4px 0 #1f8a2b;background:#effff0}
+.lcard .ln{font-size:22px;line-height:1.15}
+.lcard .le{font-size:13px;color:#555;font-weight:700}
+.lcard .lb{font-size:11px;color:#a05a00;font-weight:700}
+.lnote{font-size:13px;color:#33507a;font-weight:700;line-height:1.3;margin:4px 0 0;text-align:start}
 body{background:radial-gradient(circle at 50% 0%,#7cc8ff 0%,#2f86e8 55%,#1a56b8 100%);overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column}
 header{display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top))}
@@ -358,7 +372,7 @@ body.voiceoff main .say,body.voiceoff .pop .say,body.voiceoff .rctl .say{display
 .vsliders label{display:flex;align-items:center;gap:10px;font-size:clamp(16px,2.8vw,22px)}
 .vsliders label span{min-width:4.5em}
 .vsliders input[type=range]{flex:1;height:28px;accent-color:#2f86e8}
-.vsliders .val{min-width:3.2em;text-align:right;color:#2f86e8}
+.vsliders .val{min-width:3.2em;text-align:end;color:#2f86e8}
 .vpanel .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .vdl{font-size:clamp(13px,2.2vw,17px);color:#1a56b8;text-align:center;min-height:1.2em}
 
@@ -370,7 +384,7 @@ body.voiceoff main .say,body.voiceoff .pop .say,body.voiceoff .rctl .say{display
 @media (orientation:portrait) and (max-width:700px){
  header{flex-wrap:wrap;gap:8px;justify-content:flex-end}
  header .title{order:-1;flex:1 0 100%;font-size:clamp(17px,5vw,28px);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15;padding:2px 0}
- header #backBtn{margin-right:auto}
+ header #backBtn{margin-inline-end:auto}
  header .btn,header .pill{min-height:44px}
  .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
  .grid>*{min-width:0}
@@ -426,11 +440,11 @@ body.wmapmode main.enter>*{animation:none}
 .k-letter .wtile img,.k-number .wtile img{width:48%}
 .wtile span{font-size:clamp(13px,3.4vw,18px);line-height:1.1}
 .wtile.seen{border-color:#2ecc40;box-shadow:0 5px 0 #1f8a2b}
-.wtile.seen::after{content:'⭐';position:absolute;top:-9px;right:-7px;font-size:18px}
+.wtile.seen::after{content:'⭐';position:absolute;top:-9px;inset-inline-end:-7px;font-size:18px}
 .pop .wcard{width:min(520px,94vw);max-height:calc(100dvh - 40px);overflow:auto;background:linear-gradient(#fffdf3,#ffe9a8);border:6px solid #ffc400;border-radius:28px;box-shadow:0 10px 0 #c98a00,0 18px 30px rgba(0,0,0,.35);padding:14px 14px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:#123a7a;animation:rise .45s cubic-bezier(.2,1.4,.4,1)}
 .pop .wcard img{width:auto;border:none;border-radius:0;box-shadow:none;animation:none;pointer-events:none}
 .wcard .big{font-family:LG,inherit;font-weight:400;font-size:min(96px,24vw);line-height:.95;color:#e8261c;text-shadow:0 5px 0 #a3150c,0 10px 14px rgba(0,0,0,.2)}
-.wcard .big small{font-size:.6em;margin-left:.08em;color:#2f86e8;text-shadow:0 4px 0 #1a56b8}
+.wcard .big small{font-size:.6em;margin-inline-start:.08em;color:#2f86e8;text-shadow:0 4px 0 #1a56b8}
 .pop .wcard img.hero{width:min(230px,52vw);height:auto;filter:drop-shadow(0 10px 8px rgba(0,0,0,.25));animation:bounce .6s}
 .pop .wcard img.flag{width:min(300px,70vw)}
 .pop .wcard img.food{width:min(120px,30vw)}
@@ -446,7 +460,7 @@ body.wmapmode main.enter>*{animation:none}
 .wqpic{display:flex;flex-direction:column;align-items:center;background:#fff;border:5px solid #ffc400;border-radius:26px;padding:8px 22px;box-shadow:0 6px 0 #c98a00;margin-bottom:12px}
 .wqpic img{width:min(170px,40vw);aspect-ratio:1;object-fit:contain}
 .wblank{font-size:clamp(30px,8vw,46px);letter-spacing:1px}
-.wblank b{display:inline-block;min-width:1em;border-bottom:5px solid #e8261c;color:#e8261c;margin-right:2px}
+.wblank b{display:inline-block;min-width:1em;border-bottom:5px solid #e8261c;color:#e8261c;margin-inline-end:2px}
 .choices.wlet,.choices.wnums{grid-template-columns:repeat(3,1fr);max-width:480px;width:100%}
 .opt.wl,.opt.wn{font-family:LG,inherit;font-weight:400;font-size:clamp(40px,11vw,64px);min-height:92px;padding:8px;line-height:1;color:#e8261c}
 .choices.wpics{grid-template-columns:repeat(3,1fr);max-width:640px;width:100%;gap:10px}
@@ -457,7 +471,7 @@ body.wmapmode main.enter>*{animation:none}
 .wobj{position:relative;width:clamp(54px,16vw,90px);aspect-ratio:1;border:none;background:none;padding:0;cursor:pointer;animation:mpop .4s cubic-bezier(.2,1.5,.4,1) both}
 .wobj img{width:100%;height:100%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25))}
 .wobj.counted img{filter:drop-shadow(0 0 7px #2ecc40)}
-.wobj.counted::after{content:attr(data-c);position:absolute;top:-4px;right:-4px;background:#2ecc40;color:#fff;border-radius:50%;width:28px;height:28px;font-size:16px;display:flex;align-items:center;justify-content:center;border:3px solid #fff}
+.wobj.counted::after{content:attr(data-c);position:absolute;top:-4px;inset-inline-end:-4px;background:#2ecc40;color:#fff;border-radius:50%;width:28px;height:28px;font-size:16px;display:flex;align-items:center;justify-content:center;border:3px solid #fff}
 @media (orientation:portrait) and (max-width:600px){.wcount{gap:4px;padding:8px}.opt.wl,.opt.wn{min-height:76px}}
 
 /* ===== 6-land world home + Study Land ===== */
@@ -505,18 +519,20 @@ body.wmapmode main.enter>*{animation:none}
 </head><body>
 <div id="app">
 <header>
- <button class="btn back hidden" id="backBtn" aria-label="Back">⬅</button>
+ <button class="btn back hidden" id="backBtn" aria-label="Back" data-i18n-label="back">⬅</button>
  <div class="title" id="title">Emmavengers World</div>
- <button class="btn vsetbtn" id="parentBtn" aria-label="Parents corner">🔒</button>
- <button class="btn vsetbtn" id="voiceBtn" aria-label="Voice settings">🔊</button>
+ <button class="btn vsetbtn langbtn" id="langBtn" aria-label="Language" data-i18n-label="language">🌐</button>
+ <button class="btn vsetbtn" id="parentBtn" aria-label="Parents corner" data-i18n-label="parentsCorner">🔒</button>
+ <button class="btn vsetbtn" id="voiceBtn" aria-label="Voice settings" data-i18n-label="voiceSettings">🔊</button>
  <button class="btn vsetbtn vtog" id="vtogBtn" aria-label="Turn reading voice off" aria-pressed="true">🗣️</button>
- <button class="btn mute" id="muteBtn" aria-label="Music on/off">🎵</button>
- <div class="pill" id="score">⭐ 0</div>
+ <button class="btn mute" id="muteBtn" aria-label="Music on/off" data-i18n-label="music">🎵</button>
+ <div class="pill" id="score" dir="ltr">⭐ 0</div>
 </header>
 <main id="main"></main>
 <div id="mascot"><div class="face">🦸🏾‍♂️</div><div class="bub" id="bub"></div></div><canvas id="confetti"></canvas>
 </div>
 <script src="library.js"></script>
+<script src="i18n.js"></script>
 <script>
 const IMG='img/';
 const ITEMS=[
@@ -657,7 +673,7 @@ let stars=+localStorage.getItem('emmaStars')||0, screen='home', state={};
 const $=s=>document.querySelector(s), main=$('#main');
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const pick=(arr,n,ex=[])=>shuffle(arr.filter(x=>!ex.includes(x))).slice(0,n);
-function setScore(){$('#score').textContent='⭐ '+stars;localStorage.setItem('emmaStars',stars)}
+function setScore(){$('#score').textContent='⭐ '+(window.EWi18n&&EWi18n.ok?EWi18n.n(stars):stars);localStorage.setItem('emmaStars',stars)}
 function pool(){return state.room==='bedroom'?BEDROOM_ITEMS:state.room==='bathroom'?BATHROOM_ITEMS:state.room==='living room'?LIVING_ITEMS:ITEMS}
 function spellPool(){return pool().filter(i=>!i.name.includes(' ')&&i.name.length<=6)}
 let ac;function actx(){if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C()}if(ac&&ac.state==='suspended')ac.resume();return ac}
@@ -694,7 +710,14 @@ let vSet=loadVoiceSet();
 function saveVoiceSet(){localStorage.setItem('emmaVoice',JSON.stringify(vSet))}
 function voiceBase(){return vSet.id==='mia'?'voice/':('voice/'+vSet.id+'/')}
 const vh=t=>{let h=0x811c9dc5;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0}return h.toString(16).padStart(8,'0')};
-function voiceUrl(t){return ((window.voiceOnlyMia&&voiceOnlyMia(t))?'voice/':voiceBase())+vh(t)+'.mp3'} // pilot country clips live once in voice/ (EN+FR)
+/* Which clip speaks a text: the voice of the language the text is in (locales.json "voice", read through i18n.js).
+   English can use the friend voices (voice/<id>/); every other language has its own voice folder. null = this
+   language has no recorded voice yet (the phone's own speech is used, in that language). */
+function voiceUrl(t){const I=window.EWi18n,lg=I&&I.langOf(t);
+ if(lg&&lg!=='en'){const b=I.voiceBase(t);return b?b+vh(t)+'.mp3':null}
+ return ((window.voiceOnlyMia&&voiceOnlyMia(t))?'voice/':voiceBase())+vh(t)+'.mp3'} // pilot country clips live once in voice/
+/* the main English voice's clip for a line: used when the chosen friend voice has no clip for it (never for a language's own voice) */
+function miaUrl(t){const I=window.EWi18n,lg=I&&I.langOf(t);if(lg&&lg!=='en')return null;const u='voice/'+vh(t)+'.mp3';return voiceUrl(t)===u?null:u}
 let vAud=null,vTok=0,vPend=null;
 /* Silent reading: the reading voice can be switched off (music + sound effects keep playing). */
 let voiceOff=localStorage.getItem('emmaVoiceOff')==='1';
@@ -708,7 +731,7 @@ addEventListener('pointerdown',busy,{capture:true,passive:true});
 const warmed=new Set(),wq=[];let wRun=0,wPri=false;
 function warmPump(){while(wRun<(wPri?3:2)&&wq.length){if((vPlaying()&&!wPri)||vNetLoad()||(vWait&&Date.now()-vWait<2500)){setTimeout(warmPump,120);return}const u=wq.shift();wRun++;
  wLive.add(u);decodeClip(u,1).catch(()=>{if(wLive.has(u))warmed.delete(u)}).finally(()=>{wLive.delete(u);wRun--;warmPump()})}}
-function warmVoice(list,prio){if(voiceOff)return;wPri=!!prio;const add=[];(list||[]).flat().filter(Boolean).forEach(t=>{const u=voiceUrl(t);if(warmed.has(u)||vBuf.has(u))return;warmed.add(u);add.push(u)});
+function warmVoice(list,prio){if(voiceOff)return;wPri=!!prio;const add=[];(list||[]).flat().filter(Boolean).forEach(t=>{const u=voiceUrl(t);if(!u||warmed.has(u)||vBuf.has(u))return;warmed.add(u);add.push(u)});
  if(prio)wq.unshift(...add);else wq.push(...add);setTimeout(warmPump,0)} // after the current tap's say() has claimed the network
 const vEl=new Audio();vEl.preload='auto';let vUnlocked=false;
 const vBuf=new Map(),vBufQ=[];const VBUF_MAX=96;
@@ -744,13 +767,16 @@ addEventListener('pointerdown',()=>warmVoice([...PRAISE,...TRY,'Great job! Level
 ['pointerdown','touchend','click','keydown'].forEach(e=>addEventListener(e,audioUnlock,{capture:true,passive:true}));
 document.addEventListener('visibilitychange',()=>{if(document.hidden){vStopNodes();try{ac&&ac.suspend()}catch(e){}}else{try{ac&&ac.resume()}catch(e){}}});
 function stopVoice(){vTok++;vEndAt=0;vEl.onended=vEl.onerror=vEl.onplaying=null;try{vEl.pause()}catch(e){}vAud=null;vStopNodes();try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}}
-function ttsFallback(t,done){vStarted();try{if(!('speechSynthesis' in window))return done();const u=new SpeechSynthesisUtterance(t);u.rate=.9*vSet.speed;u.pitch=1.15*vSet.pitch;u.lang=(window.ttsLangFor&&ttsLangFor(t))||'en-US';u.onend=u.onerror=done;speechSynthesis.speak(u)}catch(e){done()}}
+function ttsFallback(t,done){vStarted();try{if(!('speechSynthesis' in window))return done();const u=new SpeechSynthesisUtterance(t);u.rate=.9*vSet.speed;u.pitch=1.15*vSet.pitch;u.lang=(window.EWi18n&&EWi18n.langOf(t))||(window.ttsLangFor&&ttsLangFor(t))||'en-US';u.onend=u.onerror=done;speechSynthesis.speak(u)}catch(e){done()}}
 function sayHtml(txt,tok,next){const a=vEl;vAud=a;let fell=false;a.muted=false;
- const fb=()=>{if(fell||tok!==vTok)return;fell=true;ttsFallback(txt,next)};
+ let alt=miaUrl(txt);const fb=()=>{if(fell||tok!==vTok)return;
+  if(alt){const u=alt;alt=null;a.src=u;const p=a.play();if(p&&p.catch)p.catch(()=>{if(tok===vTok&&!fell){fell=true;ttsFallback(txt,next)}});return}
+  fell=true;ttsFallback(txt,next)};
  a.onended=()=>{if(tok===vTok)next()};a.onplaying=()=>{if(tok===vTok)vStarted()};a.onerror=fb;a.src=voiceUrl(txt);a.preservesPitch=Math.abs(vDetune)<1;a.playbackRate=vDetune?Math.min(2,Math.max(.5,vRate*Math.pow(2,vDetune/1200))):vRate;
  const pr=a.play();if(pr&&pr.catch)pr.catch(e=>{if(tok!==vTok)return;if(e&&e.name==='NotAllowedError'){vPend={t:[txt],h:null};return}if(e&&e.name==='AbortError')return;fb()})}
-function say(t,h,quiet){busy();const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!quiet)mascot(parts.join(' '),h);stopVoice();vPend=null;if(voiceOff)return;const tok=vTok;let i=0;vEndAt=0;vWait=parts.length?Date.now():0;vAfter=(!vDetune&&Math.abs(vRate-1)>.02)?[]:parts.slice(1).map(voiceUrl);
+function say(t,h,quiet){busy();const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!quiet)mascot(parts.join(' '),h);stopVoice();vPend=null;if(voiceOff)return;const tok=vTok;let i=0;vEndAt=0;vWait=parts.length?Date.now():0;vAfter=(!vDetune&&Math.abs(vRate-1)>.02)?[]:parts.slice(1).map(voiceUrl).filter(Boolean);
  const next=()=>{if(tok!==vTok||i>=parts.length)return;const txt=parts[i++];
+  if(!voiceUrl(txt))return ttsFallback(txt,()=>{if(tok===vTok)next()}); /* language without recorded voice */
   const playBuf=(buf)=>{if(tok!==vTok)return;const a=actx();if(!a)return sayHtml(txt,tok,next);vEl.onended=vEl.onerror=null;
    const ua=navigator.userActivation;if(a.state!=='running'){try{a.resume()}catch(e){}if(ua&&!ua.hasBeenActive){vPend={t:parts.slice(i-1),h};return}}
    const src=a.createBufferSource(),g=a.createGain();src.buffer=buf;src.__src=voiceUrl(txt);src.playbackRate.value=vRate;try{src.detune.value=vDetune}catch(e){}
@@ -763,7 +789,7 @@ function say(t,h,quiet){busy();const parts=(Array.isArray(t)?t:[t]).filter(Boole
   /* Not decoded yet. Cached on the phone: decode now (a few ms). Only on the network: stream it with HTMLAudio right away
      (it starts before the whole file arrives) and decode in the background for next time. */
   const u=voiceUrl(txt);let done=false;const go=buf=>{if(done||tok!==vTok)return;done=true;playBuf(buf)};const html=()=>{if(done||tok!==vTok)return;done=true;sayHtml(txt,tok,next)};
-  const viaBuf=wait=>{decodeClip(u).then(go).catch(()=>{const mia='voice/'+vh(txt)+'.mp3';if(u!==mia)decodeClip(mia).then(go).catch(html);else html()});setTimeout(html,wait)};
+  const viaBuf=wait=>{decodeClip(u).then(go).catch(()=>{const mia=miaUrl(txt);if(mia)decodeClip(mia).then(go).catch(html);else html()});setTimeout(html,wait)};
   if(!window.caches){viaBuf(250);return}
   caches.match(u,{ignoreSearch:true}).then(r=>{if(done||tok!==vTok)return;if(r)viaBuf(400);else{warmYield();vAfter.push(u);html()}}).catch(()=>viaBuf(250))};
  {const w=sayHold-Date.now();if(w>0)setTimeout(()=>{if(tok===vTok)next()},w);else next()}}
@@ -773,7 +799,7 @@ const TRY=["Oops! Try again!","Almost! Try again!","Good try! Look again!"];
 function correct(el,next,reward){sfx.right();stars++;setScore();state.score++;const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2);el.classList.add('ok');lockAll();
  const p=PRAISE[Math.random()*PRAISE.length|0];say(p,1);confetti(60);
  setTimeout(()=>{if(reward)showCard(reward,next);else next()},900)}
-function wrong(el,it){sfx.wrong();state.miss=(state.miss||0)+1;if(it&&state.missed&&!state.missed.some(x=>x.name===it.name&&x.room===it.room))state.missed.push(it);el.classList.add('no');say(TRY[Math.random()*TRY.length|0]);if(el.tagName==='BUTTON')el.disabled=true}
+function wrong(el,it){sfx.wrong();state.miss=(state.miss||0)+1;if(it&&state.missed&&!state.missed.some(x=>x.name===it.name&&x.room===it.room))state.missed.push(it);el.classList.add('no');say((window.worldTry&&worldTry())||TRY[Math.random()*TRY.length|0]);if(el.tagName==='BUTTON')el.disabled=true}
 function lockAll(){main.querySelectorAll('button').forEach(b=>b.disabled=true)}
 function showCard(it,next){const d=document.createElement('div');d.className='pop';d.innerHTML=`<img src="${full(it)}" alt="${it.name}"><button class="btn">Next ➜</button>`;document.body.appendChild(d);
  say(it.use);d.querySelector('button').onclick=()=>{sfx.tap();d.remove();next()}}
@@ -1372,23 +1398,28 @@ function bdone(a){const b=BIBLE[a.b];$('#title').textContent='🏆 Great Job!';s
  say(b.done,1);confetti(200);for(let i=0;i<4;i++)setTimeout(()=>burst(innerWidth*(.2+.2*i),innerHeight*.35),i*250);
  $('#again').onclick=()=>{sfx.tap();go('reader',{b:a.b,i:0})};$('#lib').onclick=()=>{sfx.tap();go('bible')}}
 
+/* app words in the chosen language (i18n.js / ew.ui.app); the English default is used if the library is unavailable */
+function TT(k,v,d){if(window.EWi18n&&EWi18n.has(k))return EWi18n.t(k,v);return d==null?k:String(d).replace(/\{(\w+)\}/g,(_,x)=>v&&v[x]!=null?v[x]:'')}
+const escH=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function openVoiceSettings(){
  audioUnlock();sfx.tap();
  const d=document.createElement('div');d.className='vpanel';d.id='vpanel';
  const cards=VOICES.map(v=>`<button type="button" class="vcard ${vSet.id===v.id?'on':''}" data-id="${v.id}">
-   <div class="em">${v.emoji}</div><div class="nm">${v.label}</div><div class="gd">${v.gender==='girl'?'Girl':'Boy'}</div>
-   ${v.def?'<div class="def">Default</div>':''}</button>`).join('');
- d.innerHTML=`<div class="box" role="dialog" aria-label="Voice Settings">
-  <h2>🔊 Voice Settings</h2>
-  <div class="subh">Pick a friend voice — tap to hear them!</div>
+   <div class="em">${v.emoji}</div><div class="nm">${v.label}</div><div class="gd">${escH(v.gender==='girl'?TT('girl',0,'Girl'):TT('boy',0,'Boy'))}</div>
+   ${v.def?`<div class="def">${escH(TT('default',0,'Default'))}</div>`:''}</button>`).join('');
+ const notEn=window.EWi18n&&EWi18n.lang&&EWi18n.lang!=='en';
+ d.innerHTML=`<div class="box" role="dialog" aria-label="${escH(TT('voiceSettings',0,'Voice settings'))}">
+  <h2>${escH(TT('voiceTitle',0,'🔊 Voice Settings'))}</h2>
+  <div class="subh">${escH(TT('pickVoice',0,'Pick a friend voice — tap to hear them!'))}</div>
+  ${notEn?`<div class="lnote">${escH(TT('friendVoicesEnglish',0,''))}</div>`:''}
   <div class="vgrid">${cards}</div>
   <div class="vsliders">
-   <label><span>Speed</span><input id="vSpeed" type="range" min="0.8" max="1.4" step="0.05" value="${vSet.speed}"><b class="val" id="vSpeedV">${vSet.speed.toFixed(2)}×</b></label>
-   <label><span>Pitch</span><input id="vPitch" type="range" min="0.85" max="1.25" step="0.05" value="${vSet.pitch}"><b class="val" id="vPitchV">${vSet.pitch.toFixed(2)}×</b></label>
+   <label><span>${escH(TT('speed',0,'Speed'))}</span><input id="vSpeed" type="range" min="0.8" max="1.4" step="0.05" value="${vSet.speed}"><b class="val" id="vSpeedV">${vSet.speed.toFixed(2)}×</b></label>
+   <label><span>${escH(TT('pitch',0,'Pitch'))}</span><input id="vPitch" type="range" min="0.85" max="1.25" step="0.05" value="${vSet.pitch}"><b class="val" id="vPitchV">${vSet.pitch.toFixed(2)}×</b></label>
   </div>
-  <div class="vrow"><span>Reading voice</span><button type="button" class="btn" id="vOffBtn"></button></div>
+  <div class="vrow"><span>${escH(TT('readingVoice',0,'Reading voice'))}</span><button type="button" class="btn" id="vOffBtn"></button></div>
   <div class="vdl" id="vDl"></div>
-  <div class="row"><button type="button" class="btn" id="vClose">Done ✓</button></div>
+  <div class="row"><button type="button" class="btn" id="vClose">${escH(TT('done',0,'Done ✓'))}</button></div>
  </div>`;
  document.body.appendChild(d);
  syncVoiceUI();$('#vOffBtn').onclick=()=>{sfx.tap();setVoiceOff(!voiceOff)};
@@ -1399,7 +1430,7 @@ function openVoiceSettings(){
   vSet.id=id; saveVoiceSet();
   d.querySelectorAll('.vcard').forEach(x=>x.classList.toggle('on',x.dataset.id===id));
   const v=VOICES.find(x=>x.id===id);
-  setDl(id==='mia'?'Ready!':'Downloading '+v.label+"'s voice for offline…");
+  setDl(id==='mia'?TT('voiceReadyShort',0,'Ready!'):TT('voiceDownloading',{name:v.label},"Downloading {name}'s voice for offline…"));
   cacheVoicePack(id);
   say(v.preview,1,1);
  });
@@ -1411,15 +1442,15 @@ function openVoiceSettings(){
  d.addEventListener('click',e=>{if(e.target===d){sfx.tap();d.remove()}});
  if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',function onM(ev){
   if(!ev.data||ev.data.type!=='voiceCached')return;
-  if(ev.data.id===vSet.id)setDl(ev.data.ok? (VOICES.find(x=>x.id===vSet.id).label+"'s voice is ready offline!"):'Could not download — will retry online.');
+  if(ev.data.id===vSet.id)setDl(ev.data.ok?TT('voiceReadyOffline',{name:VOICES.find(x=>x.id===vSet.id).label},"{name}'s voice is ready offline!"):TT('voiceRetry',0,'Could not download — will retry online.'));
  });
 }
 $('#voiceBtn').onclick=()=>openVoiceSettings();
 function setVoiceOff(off){voiceOff=!!off;localStorage.setItem('emmaVoiceOff',voiceOff?'1':'0');syncVoiceUI();
- if(voiceOff){stopVoice();wq.length=0;try{wAC.abort()}catch(e){}wAC=new AbortController();wLive.clear();warmed.clear();mascot('Voice off. You can read by yourself!')}
- else{say('Voice on!',1);if(vSet.id!=='mia')cacheVoicePack(vSet.id)}}
-function syncVoiceUI(){const b=$('#vtogBtn');if(b){b.classList.toggle('off',voiceOff);b.setAttribute('aria-pressed',voiceOff?'false':'true');b.setAttribute('aria-label',voiceOff?'Turn reading voice on':'Turn reading voice off');b.title=voiceOff?'Voice off':'Voice on'}
- document.body.classList.toggle('voiceoff',voiceOff);const v=$('#vOffBtn');if(v){v.textContent=voiceOff?'🔇 Off':'🗣️ On';v.classList.toggle('off',voiceOff)}}
+ if(voiceOff){stopVoice();wq.length=0;try{wAC.abort()}catch(e){}wAC=new AbortController();wLive.clear();warmed.clear();mascot(TT('voiceOffMsg',0,'Voice off. You can read by yourself!'))}
+ else{say(TT('voiceOn',0,'Voice on!'),1);if(vSet.id!=='mia')cacheVoicePack(vSet.id)}}
+function syncVoiceUI(){const b=$('#vtogBtn');if(b){b.classList.toggle('off',voiceOff);b.setAttribute('aria-pressed',voiceOff?'false':'true');b.setAttribute('aria-label',voiceOff?TT('voiceOnLabel',0,'Turn reading voice on'):TT('voiceOffLabel',0,'Turn reading voice off'));b.title=voiceOff?TT('voiceOffTitle',0,'Voice off'):TT('voiceOnTitle',0,'Voice on')}
+ document.body.classList.toggle('voiceoff',voiceOff);const v=$('#vOffBtn');if(v){v.textContent=voiceOff?TT('voiceOffBtn',0,'🔇 Off'):TT('voiceOnBtn',0,'🗣️ On');v.classList.toggle('off',voiceOff)}}
 $('#vtogBtn').onclick=()=>{sfx.tap();setVoiceOff(!voiceOff)};syncVoiceUI();
 /* Parents' corner: math gate (default) or a 4-digit PIN once the parent sets one. */
 const YOUTUBE_URL='https://www.youtube.com/@emmavengerskidsworld-14';
@@ -1429,30 +1460,58 @@ function openParents(){
  const a=12+Math.floor(Math.random()*8),b=6+Math.floor(Math.random()*7);
  const d=document.createElement('div');d.className='vpanel pgate';d.id='ppanel';
  const close=()=>{sfx.tap();d.remove()};
- const gate=()=>{d.innerHTML=`<div class="box" role="dialog" aria-label="Parents corner"><h2>🔒 Parents' Corner</h2>
-  <div class="subh">${pin?'Enter your 4-digit parent PIN':'Grown-ups only: what is '+a+' × '+b+'?'}</div>
-  <div class="row"><input id="pIn" type="password" inputmode="numeric" autocomplete="off" maxlength="${pin?4:4}"></div>
+ const gate=()=>{d.innerHTML=`<div class="box" role="dialog" aria-label="${escH(TT('parentsCorner',0,'Parents corner'))}"><h2>🔒 ${escH(TT('parentsTitle',0,"Parents' Corner"))}</h2>
+  <div class="subh">${escH(pin?TT('gatePin',0,'Enter your 4-digit parent PIN'):TT('gateMath',{a,b},'Grown-ups only: what is {a} × {b}?'))}</div>
+  <div class="row"><input id="pIn" type="password" inputmode="numeric" autocomplete="off" maxlength="${pin?4:4}" dir="ltr"></div>
   <div class="err" id="pErr"></div>
-  <div class="row"><button type="button" class="btn" id="pOk">Open ✓</button><button type="button" class="btn" id="pX">Close</button></div></div>`;
+  <div class="row"><button type="button" class="btn" id="pOk">${escH(TT('open',0,'Open ✓'))}</button><button type="button" class="btn" id="pX">${escH(TT('close',0,'Close'))}</button></div></div>`;
   $('#pX').onclick=close;
-  $('#pOk').onclick=()=>{const v=$('#pIn').value.trim();if(pin?v===pin:+v===a*b){inside()}else{$('#pErr').textContent='Not quite — please try again.';$('#pIn').value=''}};
+  $('#pOk').onclick=()=>{const v=$('#pIn').value.trim();if(pin?v===pin:+toLatinDigits(v)===a*b){inside()}else{$('#pErr').textContent=TT('notQuite',0,'Not quite — please try again.');$('#pIn').value=''}};
   $('#pIn').onkeydown=e=>{if(e.key==='Enter')$('#pOk').click()};setTimeout(()=>$('#pIn')&&$('#pIn').focus(),50)};
- const inside=()=>{d.innerHTML=`<div class="box" role="dialog" aria-label="Parents corner"><h2>👨‍👩‍👧 Parents' Corner</h2>
-  <div class="pbtns"><a class="btn" id="pYt" href="${YOUTUBE_URL}" target="_blank" rel="noopener">▶️ Emmavengers on YouTube</a>
-  <button type="button" class="btn" id="pVoice">🔊 Voice Settings</button></div>
-  <div class="subh">${pin?'Change':'Set'} parent PIN (4 digits)</div>
-  <div class="row"><input id="pNew" type="password" inputmode="numeric" maxlength="4"><button type="button" class="btn" id="pSave">Save PIN</button></div>
-  <div class="err" id="pErr"></div><div class="row"><button type="button" class="btn" id="pX">Done ✓</button></div></div>`;
+ const inside=()=>{const langs=langOffered();d.innerHTML=`<div class="box" role="dialog" aria-label="${escH(TT('parentsCorner',0,'Parents corner'))}"><h2>👨‍👩‍👧 ${escH(TT('parentsTitle',0,"Parents' Corner"))}</h2>
+  <div class="pbtns"><a class="btn" id="pYt" href="${YOUTUBE_URL}" target="_blank" rel="noopener">${escH(TT('youtube',0,'▶️ Emmavengers on YouTube'))}</a>
+  <button type="button" class="btn" id="pVoice">${escH(TT('voiceSettingsBtn',0,'🔊 Voice Settings'))}</button></div>
+  ${langs.length>1?`<div class="subh">🌐 ${escH(TT('childLanguage',0,"Child's language"))}</div><div class="lgrid" id="pLangs">${langCards(langs,true)}</div><div class="vdl" id="pLangMsg"></div><div class="lnote">${escH(TT('languageNote',0,''))}</div>`:''}
+  <div class="subh">${escH(pin?TT('changePin',0,'Change parent PIN (4 digits)'):TT('setPin',0,'Set parent PIN (4 digits)'))}</div>
+  <div class="row"><input id="pNew" type="password" inputmode="numeric" maxlength="4" dir="ltr"><button type="button" class="btn" id="pSave">${escH(TT('savePin',0,'Save PIN'))}</button></div>
+  <div class="err" id="pErr"></div><div class="row"><button type="button" class="btn" id="pX">${escH(TT('done',0,'Done ✓'))}</button></div></div>`;
   $('#pX').onclick=close;$('#pVoice').onclick=()=>{d.remove();openVoiceSettings()};
-  $('#pSave').onclick=()=>{const v=$('#pNew').value.trim();if(/^\d{4}$/.test(v)){localStorage.setItem('emmaParentPin',v);$('#pErr').style.color='#1a8a3a';$('#pErr').textContent='PIN saved!'}else{$('#pErr').textContent='Please use exactly 4 numbers.'}}};
+  bindLangCards(d,'#pLangMsg',()=>inside());
+  $('#pSave').onclick=()=>{const v=toLatinDigits($('#pNew').value.trim());if(/^\d{4}$/.test(v)){localStorage.setItem('emmaParentPin',v);$('#pErr').style.color='#1a8a3a';$('#pErr').textContent=TT('pinSaved',0,'PIN saved!')}else{$('#pErr').textContent=TT('pinRule',0,'Please use exactly 4 numbers.')}}};
  d.addEventListener('click',e=>{if(e.target===d)close()});
  document.body.appendChild(d);gate();
 }
 $('#parentBtn').onclick=()=>openParents();
+/* digits typed on an Arabic/Persian/Devanagari keyboard count as the same numbers */
+function toLatinDigits(v){return String(v).replace(/[\u0660-\u0669\u06F0-\u06F9\u0966-\u096F]/g,c=>{const k=c.charCodeAt(0);return String(k>=0x966?k-0x966:k>=0x6F0?k-0x6F0:k-0x660)})}
+/* ---- language picker: for the child (🌐 in the header) and in the parents' corner. The choice is remembered on
+   this device; only the chosen language's texts and voice are downloaded (library.js + service worker). ---- */
+function langOffered(){return window.EWi18n&&EWi18n.ok?EWi18n.offered():[]}
+function langCards(langs,parents){const cur=window.EWi18n&&EWi18n.lang;return langs.map(l=>`<button type="button" class="lcard${l.tag===cur?' on':''}" data-lang="${escH(l.tag)}" lang="${escH(l.tag)}" dir="${escH(l.dir||'ltr')}" aria-pressed="${l.tag===cur}">
+  <span class="ln">${escH(l.name)}</span>${l.englishName&&l.englishName!==l.name?`<span class="le" lang="en" dir="ltr">${escH(l.englishName)}</span>`:''}${parents&&l.status==='in-review'?`<span class="lb">${escH(TT('draftTranslation',0,'draft translation'))}</span>`:''}</button>`).join('')}
+function bindLangCards(root,msgSel,after){root.querySelectorAll('.lcard').forEach(b=>b.onclick=async()=>{sfx.tap();const tag=b.dataset.lang;if(tag===EWi18n.lang){after&&after();return}
+  const nm=(EWi18n.offered().find(x=>x.tag===tag)||{}).name||tag;const m=root.querySelector(msgSel);if(m)m.textContent=TT('languageGetting',{name:nm},'Getting {name} ready…');
+  root.querySelectorAll('.lcard').forEach(x=>x.disabled=true);
+  try{await EWi18n.set(tag);setLangVoice();syncVoiceUI();setScore();if(m)m.textContent=TT('languageReady',{name:nm},'{name} is ready!');after&&after()}
+  catch(e){console.warn(e);if(m)m.textContent=TT('languageFailed',{name:nm},'Could not get {name}. Check the internet and try again.');root.querySelectorAll('.lcard').forEach(x=>x.disabled=false)}})}
+function openLanguage(){audioUnlock();sfx.tap();const langs=langOffered();if(langs.length<2)return;
+ const d=document.createElement('div');d.className='vpanel';d.id='lpanel';
+ const draw=()=>{d.innerHTML=`<div class="box" role="dialog" aria-label="${escH(TT('chooseLanguage',0,'Choose your language'))}"><h2>🌐 ${escH(TT('chooseLanguage',0,'Choose your language'))}</h2>
+  <div class="lgrid">${langCards(langs,false)}</div><div class="vdl" id="lMsg"></div>
+  <div class="row"><button type="button" class="btn" id="lClose">${escH(TT('done',0,'Done ✓'))}</button></div></div>`;
+  d.querySelector('#lClose').onclick=()=>{sfx.tap();d.remove()};bindLangCards(d,'#lMsg',()=>{draw();setTimeout(()=>d.isConnected&&d.remove(),600)})};
+ d.addEventListener('click',e=>{if(e.target===d){sfx.tap();d.remove()}});document.body.appendChild(d);draw()}
+$('#langBtn').onclick=()=>openLanguage();
+/* the chosen language's own voice clips (not English) are downloaded for offline use by the service worker */
+function setLangVoice(){const I=window.EWi18n;if(!I||!I.ok||voiceOff)return;const L=I.offered().find(x=>x.tag===I.lang),dir=L&&L.voicePack&&L.voicePack.replace(/\/$/,'').split('/').pop();
+ if(dir&&dir!=='voice')swPost({type:'cacheVoice',id:'lang:'+dir})} /* pack 'lang:<folder>' (tools/build_sw.py) */
+if(window.EWi18n)EWi18n.ready.then(()=>{$('#langBtn').classList.toggle('on',langOffered().length>1);syncVoiceUI();setScore();setTimeout(setLangVoice,3000)}).catch(()=>{});
 /* Android app back button hook: returns true if handled inside the game. */
-window.emmaBack=function(){const pn=document.querySelector('#ppanel,#vpanel,.pop');if(pn){pn.remove();return true}if(screen!=='home'){$('#backBtn').click();return true}return false};
+window.emmaBack=function(){const pn=document.querySelector('#ppanel,#vpanel,#lpanel,.pop');if(pn){pn.remove();return true}if(screen!=='home'){$('#backBtn').click();return true}return false};
 
 /* Offline Bible books: cache the whole book when it is opened, and prefetch every book (incl. newly added ones) whenever online. */
+/* the voice clips of the screen the child is on: the service worker downloads them first (sw.template.js cacheClips) */
+function cacheClips(texts){if(voiceOff)return;const u=[...new Set((texts||[]).flat().filter(Boolean).map(voiceUrl).filter(Boolean))].map(x=>'./'+x);if(u.length)swPost({type:'cacheClips',urls:u})}
 function swPost(m){if(!('serviceWorker' in navigator))return false;const c=navigator.serviceWorker.controller;if(c){c.postMessage(m);return true}navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage(m)).catch(()=>{});return true}
 function cacheBook(slug){if(navigator.onLine!==false)swPost({type:'cacheBook',slug,voice:vSet.id})}
 function prefetchBooks(){if(navigator.onLine===false)return;if(Date.now()-lastTap<20000){clearTimeout(prefetchBooks.t);prefetchBooks.t=setTimeout(prefetchBooks,8000);return}swPost({type:'cacheBooks',voice:vSet.id})}
@@ -1471,7 +1530,12 @@ if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWo
  // A new version downloaded in the background last time: switch to it now, as the game opens.
  if(reg.waiting&&navigator.serviceWorker.controller){let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!done){done=true;location.reload()}});reg.waiting.postMessage('skipWaiting')}
  // A new version finished downloading while the app is open: show a tap-to-update button.
- const offer=w=>{if(!w||!navigator.serviceWorker.controller||document.getElementById('updBtn'))return;const b=document.createElement('button');b.id='updBtn';b.textContent='✨ New update ready! Tap to open';b.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;padding:14px 22px;border:0;border-radius:30px;background:#ffcc00;color:#3a2a00;font:800 18px system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.3)';b.onclick=()=>{let d=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!d){d=true;location.reload()}});w.postMessage('skipWaiting');setTimeout(()=>location.reload(),4000)};document.body.appendChild(b)};
+ const offer=w=>{if(!w||!navigator.serviceWorker.controller||document.getElementById('updBtn'))return;const b=document.createElement('button');b.id='updBtn';b.textContent=(window.TT?TT('updateReady',null,'✨ New update ready! Tap to open'):'✨ New update ready! Tap to open');b.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;padding:14px 22px;border:0;border-radius:30px;background:#ffcc00;color:#3a2a00;font:800 18px var(--ew-font,system-ui,sans-serif);max-width:92vw;box-shadow:0 6px 18px rgba(0,0,0,.3)';b.onclick=()=>{let d=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!d){d=true;location.reload()}});w.postMessage('skipWaiting');setTimeout(()=>location.reload(),4000)};document.body.appendChild(b)};
  reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed')offer(w)})});
- addEventListener('online',()=>reg.update().catch(()=>{}));setInterval(()=>navigator.onLine&&reg.update().catch(()=>{}),30*60*1000)}).catch(()=>{})})
+ addEventListener('online',()=>reg.update().catch(()=>{}));setInterval(()=>navigator.onLine&&reg.update().catch(()=>{}),30*60*1000);
+ // The worker takes over once the small app shell is on the phone; the rest (pictures, voice) then downloads in the
+ // background. Keep that download going while the app is open, until the worker says everything is saved.
+ let coreDone=false;navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='coreCached')coreDone=true});
+ const ping=()=>{const c=navigator.serviceWorker.controller;if(c&&!coreDone&&navigator.onLine!==false&&!document.hidden)c.postMessage({type:'core'})};
+ navigator.serviceWorker.addEventListener('controllerchange',()=>setTimeout(ping,500));setTimeout(ping,1500);setInterval(ping,20000)}).catch(()=>{})})
 </script></body></html>

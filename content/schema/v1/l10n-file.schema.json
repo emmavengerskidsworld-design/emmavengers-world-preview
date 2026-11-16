@@ -1,0 +1,52 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://emmavengerskidsworld-design.github.io/emmavengers-house-game/content/schema/v1/l10n-file.schema.json",
+ "title": "content/src/l10n/<tag>/<name>.json - texts of one language for records defined elsewhere",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "locale",
+  "strings"
+ ],
+ "properties": {
+  "$schema": {
+   "type": "string"
+  },
+  "note": {
+   "type": "string"
+  },
+  "locale": {
+   "$ref": "common.schema.json#/$defs/locale"
+  },
+  "translator": {
+   "type": "string",
+   "description": "Who wrote these texts (person or 'machine draft')."
+  },
+  "reviewStatus": {
+   "enum": [
+    "draft",
+    "machine-draft",
+    "reviewed",
+    "approved"
+   ],
+   "description": "draft/machine-draft texts must be checked by a fluent speaker before the language goes active."
+  },
+  "strings": {
+   "type": "object",
+   "propertyNames": {
+    "pattern": "^ew\\.[a-z]+\\.[a-z0-9]+(?:[.-][a-z0-9]+)*$"
+   },
+   "additionalProperties": {
+    "type": "object",
+    "minProperties": 1,
+    "propertyNames": {
+     "pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$"
+    },
+    "additionalProperties": {
+     "type": "string",
+     "minLength": 1
+    }
+   }
+  }
+ }
+}

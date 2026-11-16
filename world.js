@@ -5,7 +5,9 @@
    letters, animals or countries can be added there without touching code. Activity types: link (existing game screens:
    house / bible / morning), cards (tap-to-learn deck), quiz (letter | pic | flag), count (count objects 1-10).
    After editing content/src: python3 tools/content_build.py, generate voice clips for new lines (tools/check_voice.py + tools/gen_voice.py) and run
-   python3 tools/build_sw.py so phones get the update offline. */
+   python3 tools/build_sw.py so phones get the update offline.
+   Languages: every word on these screens comes from the content (in the chosen language, with fallback) or from the
+   app words record ew.ui.app via T(key) (i18n.js). Switching language redraws the current screen. */
 let LANDS=null,curLand=null,worldGreeted=false;
 const WORLD_SCREENS=['land','wcards','wquiz','wcount','wreward','study','ssec'];
 const landById=id=>LANDS&&LANDS.lands.find(l=>l.id===id);
@@ -13,8 +15,16 @@ const placeById=(L,id)=>L&&L.places.find(p=>p.id===id);
 const wDeck=id=>LANDS.decks[id];
 function wSave(){try{return JSON.parse(localStorage.getItem('emmaWorld')||'{}')}catch(e){return{}}}
 function wPut(s){try{localStorage.setItem('emmaWorld',JSON.stringify(s))}catch(e){}}
-const wFill=(t,it)=>t.replace(/\{(\w+)\}/g,(_,k)=>k==='lname'?String(it.name).toLowerCase():k==='word'?String(it.word).toLowerCase():(it[k]!=null?it[k]:''));
+const wFill=(t,it)=>{const tl=window.EWi18n&&EWi18n.langOf(t),raw=it._lt||{};
+ const fv=k=>{const lt=raw[k];if(tl&&lt&&typeof lt==='object'&&lt[tl]!=null)return lt[tl];return it[k]}; /* item words in the template's language */
+ const o=t.replace(/\{(\w+)\}/g,(_,k)=>k==='lname'?String(fv('name')).toLowerCase():k==='word'?String(fv('word')).toLowerCase():(fv(k)!=null?fv(k):''));
+ if(window.EWi18n&&EWi18n.langOf(t))EWi18n.markLang(o,EWi18n.langOf(t));return o}; /* the question is spoken in the template's language */
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* app words in the chosen language (i18n.js); N = number in the language's digits */
+const T=(k,v)=>window.EWi18n?EWi18n.t(k,v):k;
+const NF=x=>window.EWi18n?EWi18n.n(x):String(x);
+const wPraise=()=>{const l=window.EWi18n&&EWi18n.has('praise')?EWi18n.list('praise'):PRAISE;return l[Math.random()*l.length|0]};
+window.worldTry=()=>{if(!window.EWi18n||!EWi18n.has('tryAgain')||!(WORLD_SCREENS.includes(screen)))return null;const l=EWi18n.list('tryAgain');return l[Math.random()*l.length|0]};
 /* every line the world can speak (used by tools/check_voice.py to find clips that still need generating) */
 function worldVoice(){const S=[],A=x=>(Array.isArray(x)?x:[x]).forEach(t=>t&&S.push(t));if(!LANDS)return S;
  A(LANDS.world.intro);
@@ -23,7 +33,7 @@ function worldVoice(){const S=[],A=x=>(Array.isArray(x)?x:[x]).forEach(t=>t&&S.p
   if(p.type==='count')wDeck(p.objects).items.forEach(o=>A(o.ask))})});
  if(LANDS.study){A(LANDS.study.prompt);LANDS.study.sections.forEach(s=>{A(s.intro);(s.items||[]).forEach(it=>A(it.say))})}
  Object.values(LANDS.decks).forEach(d=>{A(d.done);(d.items||[]).forEach(it=>A(it.say))});
- A(['Great job! Level complete!','Amen!']);return [...new Set(S)]}
+ A(T('levelComplete'));if(window.EWi18n){A(EWi18n.list('praise'));A(EWi18n.list('tryAgain'))}return [...new Set(S)]}
 window.__worldVoice=worldVoice;
 
 /* --- Android / browser back: activity -> land -> world map -> exit. One guard entry while away from the map. --- */
@@ -31,39 +41,66 @@ let hGuard=false,hIgnore=false;
 try{history.replaceState({emma:'root'},'')}catch(e){}
 function histSync(s){try{if(s==='home'){if(hGuard){hGuard=false;hIgnore=true;history.back()}}else if(!hGuard){history.pushState({emma:'in'},'');hGuard=true}}catch(e){}}
 addEventListener('popstate',()=>{if(hIgnore){hIgnore=false;return}hGuard=false;
- const pn=document.querySelector('#ppanel,#vpanel,.pop');if(pn){pn.remove();if(screen!=='home')histSync(screen);return}
+ const pn=document.querySelector('#ppanel,#vpanel,#lpanel,.pop');if(pn){pn.remove();if(screen!=='home')histSync(screen);return}
  if(screen!=='home')$('#backBtn').click()});
 
 /* --- map sizing: the 9:16 map fills the space under the header without overflowing --- */
 function fitMap(){const m=$('#wmap');if(!m)return;const cs=getComputedStyle(main);
  const top=m.offsetTop-main.offsetTop,avH=main.clientHeight-top-parseFloat(cs.paddingBottom)-10,avW=main.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
- const w=Math.max(160,Math.min(avW,avH*9/16));m.style.width=w+'px';m.style.height=(w*16/9)+'px'}
+ const w=Math.max(160,Math.min(avW,avH*9/16));m.style.width=w+'px';m.style.height=(w*16/9)+'px';fitLabels(m)}
+/* Names differ in length from language to language ("Le monde des Emmavengers", "Pays des Nombres"): the title board
+   and the land signs shrink a little, wrap onto two lines if still too wide, and are nudged back inside the map. */
+function fitLabels(m){const W=m.clientWidth;if(!W)return;
+ m.querySelectorAll('.w6title,.wsign').forEach(e=>{e.style.fontSize='';e.style.whiteSpace='';e.style.maxWidth='';e.style.textAlign=''});
+ const t=m.querySelector('.w6title');if(t){let fs=parseFloat(getComputedStyle(t).fontSize);for(let i=0;i<14&&t.offsetWidth>W*.94;i++){fs*=.93;t.style.fontSize=fs+'px'}}
+ const mr=m.getBoundingClientRect();
+ m.querySelectorAll('.wsignb').forEach(b=>{const s=b.querySelector('.wsign');if(!s)return;b.style.marginLeft='';
+  if(s.offsetWidth>W*.5){s.style.whiteSpace='normal';s.style.maxWidth=(W*.46)+'px';s.style.textAlign='center'}
+  let fs=parseFloat(getComputedStyle(s).fontSize);for(let i=0;i<6&&s.offsetWidth>W*.5;i++){fs*=.93;s.style.fontSize=fs+'px'}
+  const r=b.getBoundingClientRect();let dx=0;if(r.left<mr.left+3)dx=mr.left+3-r.left;else if(r.right>mr.right-3)dx=mr.right-3-r.right;
+  if(dx)b.style.marginLeft=dx+'px'})}
 addEventListener('resize',fitMap);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{const m=$('#wmap');if(m)fitLabels(m)});
 
 /* --- World map (home) --- */
+/* What a child can hear in the first seconds after tapping a land: the world greeting, every land's intro and every
+   place's intro. The service worker fetches these few clips URGENTLY (not in the background precache, which pauses
+   on every tap), so entering a land on a fresh phone does not wait for the network (Stage 2: World Land took ~2 s,
+   Number Land ~1 s on Emmanuel's phone; tools/test_land_voice.py). */
+function homeClips(){if(!LANDS)return;const W=LANDS.world;
+ /* first visit (no offline worker in charge yet): the warm-up queue waits while the welcome line streams, so a child
+    who taps a land during the welcome would wait ~1 s - download and decode the land intros now, two at a time */
+ if(!(navigator.serviceWorker&&navigator.serviceWorker.controller)&&!homeClips.done){homeClips.done=1;
+  const q=[...new Set(LANDS.lands.map(L=>L.intro).filter(Boolean).map(voiceUrl).filter(Boolean))];
+  /* as warm-ups: a line the child taps that is not on the phone cancels them and they re-queue (index.html warmYield) */
+  const pump=()=>{const u=q.shift();if(!u)return;if(vBuf.has(u))return pump();wLive.add(u);decodeClip(u,1).catch(()=>{}).finally(()=>{wLive.delete(u);pump()})};pump();pump()}
+ /* and save the land/place intros and Count It! questions on the phone first (once the worker is in charge) */
+ cacheClips([W.intro,...LANDS.lands.map(L=>L.intro),...LANDS.lands.flatMap(L=>L.places.map(p=>p.intro)),
+  ...LANDS.lands.flatMap(L=>L.places.flatMap(p=>p.type==='count'?wDeck(p.objects).items.map(o=>o.ask):[]))])}
 function home(){curLand=null;state={};if(!LANDS){go('house');return}const W=LANDS.world;$('#title').textContent=W.title;
  if(W.layout==='six')return home6(W);
  main.innerHTML=`<div class="wmap world" id="wmap" style="background-image:url('${W.img}')">${LANDS.lands.map(L=>
   `<button class="wland" data-l="${L.id}" aria-label="${esc(L.name)}" style="left:${L.x}%;top:${L.y}%;width:${L.w}%;height:${L.h}%"></button>`).join('')}${LANDS.lands.map(L=>
-  `<button class="wsignb" data-l="${L.id}" style="left:${L.sx}%;top:${L.sy}%"><span class="wsign" style="--c:${L.color}">${esc(L.name)}</span></button>`).join('')}<button class="say wsay" aria-label="Read aloud">🔊</button></div>`;
+  `<button class="wsignb" data-l="${L.id}" style="left:${L.sx}%;top:${L.sy}%"><span class="wsign" style="--c:${L.color}">${esc(L.name)}</span></button>`).join('')}<button class="say wsay" aria-label="${esc(T('readAloud'))}">🔊</button></div>`;
  fitMap();
  main.querySelector('.wsay').onclick=()=>say(W.intro);
  main.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{sfx.tap();go('land',{id:b.dataset.l})});
  if(!worldGreeted){worldGreeted=true;say(W.intro)}
- warmVoice(LANDS.lands.map(L=>L.intro),1)}
+ warmVoice(LANDS.lands.map(L=>L.intro),1);homeClips()}
 
 /* --- A land's inner map: places are tappable; "Back to Map" returns to the world map --- */
 function land(a){const L=landById((a&&a.id)||curLand);if(!L){go('home');return}if(L.type==='library'){go('study');return}curLand=L.id;state={land:L.id};$('#title').textContent=L.name;
  const best=wSave().best||{};
- main.innerHTML=`<button class="btn wback" id="wback">Back to Map</button><div class="wmap" id="wmap" style="background-image:url('${L.img}')">${L.places.map(p=>{const st=best[p.id];
-  return `<button class="wplace" data-p="${p.id}" style="left:${p.x}%;top:${p.y}%" aria-label="${esc(p.name)}"><span class="ic">${p.photo?`<i style="background-image:url('${p.icon}');background-position:${p.pos||'center'}"></i>`:`<img src="${p.icon}" alt="">`}</span><span class="wsign" style="--c:${L.color}">${esc(p.name)}</span>${st?`<span class="wst">${'⭐'.repeat(st)+'☆'.repeat(3-st)}</span>`:''}</button>`}).join('')}<button class="say wsay" aria-label="Read aloud">🔊</button></div>`;
+ main.innerHTML=`<button class="btn wback" id="wback">${esc(T('backToMap'))}</button><div class="wmap" id="wmap" style="background-image:url('${L.img}')">${L.places.map(p=>{const st=best[p.id];
+  return `<button class="wplace" data-p="${p.id}" style="left:${p.x}%;top:${p.y}%" aria-label="${esc(p.name)}"><span class="ic">${p.photo?`<i style="background-image:url('${p.icon}');background-position:${p.pos||'center'}"></i>`:`<img src="${p.icon}" alt="">`}</span><span class="wsign" style="--c:${L.color}">${esc(p.name)}</span>${st?`<span class="wst">${'⭐'.repeat(st)+'☆'.repeat(3-st)}</span>`:''}</button>`}).join('')}<button class="say wsay" aria-label="${esc(T('readAloud'))}">🔊</button></div>`;
  fitMap();
  $('#wback').onclick=()=>{sfx.tap();go('home')};
  main.querySelector('.wsay').onclick=()=>say(L.intro);
  main.querySelectorAll('.wplace').forEach(b=>b.onclick=()=>{sfx.tap();openPlace(L,placeById(L,b.dataset.p))});
  say(L.intro);
- const LINK_SAY={house:'Pick a room to play!',bible:'Welcome to the Bible Library! Pick a story to read!',morning:"Let's start Mia's Morning Routine!"};
- warmVoice([...L.places.map(p=>p.type==='link'?LINK_SAY[p.go]:p.intro),...L.places.flatMap(p=>p.deck?wDeck(p.deck).items.slice(0,4).flatMap(it=>it.say.slice(0,2)):[])].filter(Boolean),1)}
+ const LINK_SAY={house:'Pick a room to play!',bible:'Welcome to the Bible Library! Pick a story to read!',morning:"Let's start Mia's Morning Routine!"}; /* English modules (Stage 5 translates them) */
+ warmVoice([...L.places.map(p=>p.type==='link'?LINK_SAY[p.go]:p.intro),...L.places.flatMap(p=>p.deck?wDeck(p.deck).items.slice(0,4).flatMap(it=>it.say.slice(0,2)):[])].filter(Boolean),1);
+ cacheClips([...L.places.map(p=>p.type==='link'?LINK_SAY[p.go]:p.intro),...L.places.flatMap(p=>p.deck?wDeck(p.deck).items.flatMap(it=>it.say):[])])}
 function openPlace(L,p){if(!p)return;const a={l:L.id,p:p.id};
  if(p.type==='link'){go(p.go);return}
  if(p.type==='cards')go('wcards',a);else if(p.type==='quiz')go('wquiz',a);else if(p.type==='count')go('wcount',a);else if(p.type==='country')go('ctry',{c:p.country,from:'land'})}
@@ -78,25 +115,25 @@ function tileHTML(k,it,i,seen){const s=seen.has(String(it.id||it.n))?' seen':'';
  if(k==='country')return `<button class="wtile${s}" data-i="${i}"><img ${TI(it.flag)} alt=""><span>${esc(it.name)}</span></button>`;
  return `<button class="wtile${s}" data-i="${i}"><img ${TI(it.img)} alt=""><span>${esc(it.name)}</span></button>`}
 function cardHTML(k,it){
- if(k==='letter'){const w=it.show||`<b>${it.word[0]}</b>${it.word.slice(1)}`;return `<div class="big">${it.id}<small>${it.id.toLowerCase()}</small></div><img class="hero" src="${it.img}" alt="${esc(it.word)}"><div class="wword">${it.id==='X'?`X is at the end of ${w}`:`${it.id} is for ${w}`}</div>`}
+ if(k==='letter'){const w=it.show||`<b>${it.word[0]}</b>${it.word.slice(1)}`; /* Letter Land teaches English letter sounds: English by design */return `<div class="big">${it.id}<small>${it.id.toLowerCase()}</small></div><img class="hero" src="${it.img}" alt="${esc(it.word)}"><div class="wword">${it.id==='X'?`X is at the end of ${w}`:`${it.id} is for ${w}`}</div>`}
  if(k==='number')return `<div class="big">${it.n}</div><div class="objs">${Array.from({length:it.n},(_,j)=>`<img src="${it.img}" alt="" style="animation-delay:${(.25+j*.32).toFixed(2)}s">`).join('')}</div><div class="wword">${it.word}</div>`;
  if(k==='animal')return `<img class="hero" src="${it.img}" alt="${esc(it.name)}"><div class="wword"><b>${esc(it.name)}</b></div><div class="fact">${esc(it.fact)}</div>`;
- if(k==='country')return `<img class="flag" src="${it.flag}" alt="Flag of ${esc(it.name)}"><div class="wword"><b>${esc(it.name)}</b></div><div class="greet">${esc(it.greeting)}</div><div class="fact">"${esc(it.meaning)}" in ${esc(it.language)}</div><div class="frow"><img class="food" src="${it.foodImg}" alt=""><span>${esc(it.food)}</span></div>`;
+ if(k==='country')return `<img class="flag" src="${it.flag}" alt="${esc(T('flagOf',{name:it.name}))}"><div class="wword"><b>${esc(it.name)}</b></div><div class="greet" dir="auto">${esc(it.greeting)}</div><div class="fact">${esc(T('meaningIn',{meaning:it.meaning,language:it.language}))}</div><div class="frow"><img class="food" src="${it.foodImg}" alt=""><span>${esc(it.food)}</span></div>`;
  return `<img class="hero" src="${it.img}" alt=""><div class="wword"><b>${esc(it.name)}</b></div><div class="fact">${esc(it.text||'')}</div>`}
 function wcards(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLand=L.id;state={land:L.id,place:p.id};$('#title').textContent=p.name;
  const sv=wSave(),seen=new Set(((sv.seen||{})[p.deck])||[]);
- main.innerHTML=`<div class="prompt"><span>${esc(p.intro)}</span><button class="say" aria-label="Read aloud">🔊</button></div><div class="wprog">⭐ <b id="wseen">${seen.size}</b> / ${D.items.length}</div><div class="wgrid k-${D.kind}">${D.items.map((it,i)=>tileHTML(D.kind,it,i,seen)).join('')}</div>`;
+ main.innerHTML=`<div class="prompt"><span>${esc(p.intro)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="wprog">⭐ <bdi><b id="wseen">${NF(seen.size)}</b> / ${NF(D.items.length)}</bdi></div><div class="wgrid k-${D.kind}">${D.items.map((it,i)=>tileHTML(D.kind,it,i,seen)).join('')}</div>`;
  bindSay(p.intro);showShelfImgs();
  main.querySelectorAll('.wtile').forEach(b=>b.onclick=()=>{sfx.tap();showWCard(D,p,+b.dataset.i)});
  warmVoice(D.items.flatMap(it=>it.say),1)}
 function showWCard(D,p,i){document.querySelectorAll('.pop').forEach(x=>x.remove());const it=D.items[i],key=String(it.id||it.n);warmVoice(D.items.slice(i+1,i+3).flatMap(x=>x.say),1);
  const sv=wSave();sv.seen=sv.seen||{};const seen=new Set(sv.seen[p.deck]||[]);const fresh=!seen.has(key);
  const d=document.createElement('div');d.className='pop wpop';
- d.innerHTML=`<div class="wcard k-${D.kind}">${cardHTML(D.kind,it)}<div class="row"><button class="say" aria-label="Read aloud">🔊</button><button class="btn" id="wnext">Next ➜</button><button class="btn" id="wdone">Done ✓</button></div></div>`;
+ d.innerHTML=`<div class="wcard k-${D.kind}">${cardHTML(D.kind,it)}<div class="row"><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button><button class="btn" id="wnext">${esc(T('next'))}</button><button class="btn" id="wdone">${esc(T('done'))}</button></div></div>`;
  document.body.appendChild(d);
  let lines=it.say.slice();
  if(fresh){seen.add(key);sv.seen[p.deck]=[...seen];wPut(sv);stars++;setScore();const t=main.querySelector(`.wtile[data-i="${i}"]`);if(t){t.classList.add('seen');const r=t.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2)}
-  const c=$('#wseen');if(c)c.textContent=seen.size;
+  const c=$('#wseen');if(c)c.textContent=NF(seen.size);
   if(seen.size===D.items.length&&D.done){lines.push(D.done);confetti(160);setTimeout(()=>{for(let k=0;k<3;k++)setTimeout(()=>burst(innerWidth*(.25+.25*k),innerHeight*.3),k*200)},300)}}
  if(D.kind==='prayer')confetti(40);
  say(lines);
@@ -109,7 +146,7 @@ function showWCard(D,p,i){document.querySelectorAll('.pop').forEach(x=>x.remove(
 function whenQuiet(fn,min=1200,max=4500){const t0=Date.now();let q=0;const iv=setInterval(()=>{const busyV=vPlaying()||sayHold>Date.now();q=busyV?0:q+150;
  if((Date.now()-t0>=min&&q>=450)||Date.now()-t0>=max){clearInterval(iv);fn()}},150)}
 function wGood(el,line,next){sfx.right();stars++;setScore();state.score++;const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2);el.classList.add('ok');lockAll();
- const tok=++state.tok;say([PRAISE[Math.random()*PRAISE.length|0],line].filter(Boolean),1);confetti(60);whenQuiet(()=>{if(state.tok===tok)next()})}
+ const tok=++state.tok;say([wPraise(),line].filter(Boolean),1);confetti(60);whenQuiet(()=>{if(state.tok===tok)next()})}
 function wNext(a,scr){state.round++;if(state.round>=state.total)go('wreward',a);else go(scr,{...a,r:1})}
 function wStart(a,p,total){state={land:a.l,place:a.p,round:0,total,score:0,miss:0,used:[],missed:[],tok:0,prev:0}}
 function wquiz(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLand=L.id;const pool=D.items.filter(it=>it.hunt!==false);
@@ -119,7 +156,7 @@ function wquiz(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLa
  const ch=shuffle([t,...pick(pool,2,[t])]);const ask=wFill(p.ask,t);
  let body;
  if(p.mode==='letter')body=`<div class="wqpic"><img src="${t.img}" alt=""><div class="wblank"><b>?</b>${esc(t.word.slice(1))}</div></div><div class="choices wlet">${ch.map(c=>`<button class="opt wl" data-ok="${c===t?1:0}">${c.id}</button>`).join('')}</div>`;
- else body=`<div class="choices wpics ${p.mode==='flag'?'flags':''}">${ch.map(c=>`<button class="wpic" data-ok="${c===t?1:0}" aria-label="choice"><img src="${p.mode==='flag'?c.flag:c.img}" alt=""></button>`).join('')}</div>`;
+ else body=`<div class="choices wpics ${p.mode==='flag'?'flags':''}">${ch.map(c=>`<button class="wpic" data-ok="${c===t?1:0}" aria-label="${esc(T('choice'))}"><img src="${p.mode==='flag'?c.flag:c.img}" alt=""></button>`).join('')}</div>`;
  main.innerHTML=header(ask)+body;
  main.querySelector('.say').onclick=()=>say(ask);
  say(state.round===0&&!a.r?[p.intro,ask]:[ask]);
@@ -132,17 +169,17 @@ function wcount(a){const L=landById(a.l),p=placeById(L,a.p),NUM=wDeck(p.deck).it
  let N;do{N=1+(Math.random()*10|0)}while(N===state.prev);state.prev=N;
  const O=OB[Math.random()*OB.length|0];
  const near=shuffle([N-2,N-1,N+1,N+2,N+3,N-3].filter(x=>x>=1&&x<=10));const opts=shuffle([N,near[0],near[1]]);
- main.innerHTML=header(O.ask)+`<div class="wcount" id="wc">${Array.from({length:N},(_,i)=>`<button class="wobj" style="animation-delay:${(i*.06).toFixed(2)}s" aria-label="count"><img src="${O.img}" alt=""></button>`).join('')}</div><div class="hint">Tap each one to count!</div><div class="choices wnums">${opts.map(n=>`<button class="opt wn" data-n="${n}">${n}</button>`).join('')}</div>`;
+ main.innerHTML=header(O.ask)+`<div class="wcount" id="wc">${Array.from({length:N},(_,i)=>`<button class="wobj" style="animation-delay:${(i*.06).toFixed(2)}s" aria-label="${esc(T('count'))}"><img src="${O.img}" alt=""></button>`).join('')}</div><div class="hint">${esc(T('tapToCount'))}</div><div class="choices wnums">${opts.map(n=>`<button class="opt wn" data-n="${n}">${NF(n)}</button>`).join('')}</div>`;
  main.querySelector('.say').onclick=()=>say(O.ask);
  say(state.round===0&&!a.r?[p.intro,O.ask]:[O.ask]);
- let c=0;main.querySelectorAll('.wobj').forEach(b=>b.onclick=()=>{if(b.classList.contains('counted')||b.disabled)return;c++;b.classList.add('counted');b.dataset.c=c;sfx.pop();say(NUM[c-1].say[0],0,1)});
+ let c=0;main.querySelectorAll('.wobj').forEach(b=>b.onclick=()=>{if(b.classList.contains('counted')||b.disabled)return;c++;b.classList.add('counted');b.dataset.c=NF(c);sfx.pop();say(NUM[c-1].say[0],0,1)});
  main.querySelectorAll('.wn').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(+b.dataset.n===N)wGood(b,NUM[N-1].say[0],()=>wNext(a,'wcount'));else wrong(b)});
  warmVoice(OB.map(o=>o.ask).concat(NUM.map(n=>n.say[0])),1)}
 function wreward(a){const L=landById(a.l),p=placeById(L,a.p);curLand=L.id;const s=starsForMiss(state.miss||0),n=state.score,tot=state.total;
  const sv=wSave();sv.best=sv.best||{};sv.best[p.id]=Math.max(s,sv.best[p.id]||0);wPut(sv);
- $('#title').textContent='Great Job!';sfx.win();
- main.innerHTML=`<div class="reward"><h1>Great Job!</h1><div class="bigstars">${[0,1,2].map(i=>`<span style="${i<s?'':'filter:grayscale(1);opacity:.35'}">⭐</span>`).join('')}</div><div class="prompt">You finished ${esc(p.name)}! ${n} of ${tot} right.<br>Total stars: ⭐ ${stars}</div><div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><button class="btn" id="again">Play Again</button><button class="btn" id="tomap">Back to Map</button></div></div>`;
- say('Great job! Level complete!',1);confetti(200);for(let i=0;i<4;i++)setTimeout(()=>burst(innerWidth*(.2+.2*i),innerHeight*.35),i*250);
+ $('#title').textContent=T('greatJob');sfx.win();
+ main.innerHTML=`<div class="reward"><h1>${esc(T('greatJob'))}</h1><div class="bigstars">${[0,1,2].map(i=>`<span style="${i<s?'':'filter:grayscale(1);opacity:.35'}">⭐</span>`).join('')}</div><div class="prompt">${esc(T('finished',{name:p.name,n,total:tot}))}<br>${esc(T('totalStars',{stars}))}</div><div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><button class="btn" id="again">${esc(T('playAgain'))}</button><button class="btn" id="tomap">${esc(T('backToMap'))}</button></div></div>`;
+ say(T('levelComplete'),1);confetti(200);for(let i=0;i<4;i++)setTimeout(()=>burst(innerWidth*(.2+.2*i),innerHeight*.35),i*250);
  $('#again').onclick=()=>{sfx.tap();go(p.type==='count'?'wcount':'wquiz',{l:L.id,p:p.id})};
  $('#tomap').onclick=()=>{sfx.tap();go('land',{id:L.id})}}
 
@@ -161,12 +198,12 @@ function home6(W){const bg=m2(W.bg2,'');const S=LANDS.lands.find(l=>l.type==='li
   ${bg?'':'<span class="w6deco" aria-hidden="true"><i class="sun">☀️</i><i class="c1">☁️</i><i class="c2">☁️</i><i class="c3">☁️</i><i class="boat">⛵</i><i class="whale">🐳</i></span>'}
   <svg class="w6paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${paths}</svg>
   <div class="w6title">${esc(W.title)}</div>
-  ${LANDS.lands.map(isle).join('')}<button class="say wsay" aria-label="Read aloud">🔊</button></div>`;
+  ${LANDS.lands.map(isle).join('')}<button class="say wsay" aria-label="${esc(T('readAloud'))}">🔊</button></div>`;
  fitMap();
  main.querySelector('.wsay').onclick=()=>say(W.intro);
  main.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{sfx.tap();const L=landById(b.dataset.l);if(L&&L.type==='library')go('study');else go('land',{id:b.dataset.l})});
  if(!worldGreeted){worldGreeted=true;say(W.intro)}
- warmVoice(LANDS.lands.map(L=>L.intro),1)}
+ warmVoice(LANDS.lands.map(L=>L.intro),1);homeClips()}
 
 /* ===== Study Land: a library to look and listen (no games). Shelves come from the content library (LANDS.study.sections);
    source = deck:<id> | house | bible, or inline items [{name,img,text,say}]. Adding a subject = one data entry. */
@@ -180,18 +217,18 @@ function studyItems(s){const src=s.source||'';
  if(src.startsWith('deck:')){const D=wDeck(src.slice(5));if(!D)return[];return D.items.map(it=>{
   const img=D.kind==='country'?it.flag:it.img;
   const label=D.kind==='letter'?`${it.id} · ${it.word}`:D.kind==='number'?`${it.n} · ${it.word}`:it.name;
-  const text=D.kind==='country'?`${it.greeting} "${it.meaning}" in ${it.language}`:it.fact||it.text||'';
+  const text=D.kind==='country'?`${it.greeting} ${T('meaningIn',{meaning:it.meaning,language:it.language})}`:it.fact||it.text||'';
   return {label,img,thumb:wThumb(img),text,say:it.say,big:D.kind==='letter'?it.id:D.kind==='number'?String(it.n):''}})}
  return []}
-function study(){const S=LANDS.lands.find(l=>l.type==='library'),T=LANDS.study;curLand=S.id;state={land:S.id};studyFrom=null;$('#title').textContent='📚 '+S.name;
- main.innerHTML=`<div class="prompt"><span>${esc(T.prompt)}</span><button class="say" aria-label="Read aloud">🔊</button></div><div class="sshelves">${T.sections.map(s=>
-  `<button class="ssec" data-s="${s.id}" style="--c:${s.color||'#2f86e8'}"><span class="si"><img src="${m2(s.icon2,s.icon)}"${m2(s.icon2,"")?' class="art"':''} alt=""></span><span class="sn">${esc(s.name)}</span><span class="sc">${studyItems(s).length} to learn</span></button>`).join('')}</div>`;
+function study(){const S=LANDS.lands.find(l=>l.type==='library'),ST=LANDS.study;curLand=S.id;state={land:S.id};studyFrom=null;$('#title').textContent='📚 '+S.name;
+ main.innerHTML=`<div class="prompt"><span>${esc(ST.prompt)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="sshelves">${ST.sections.map(s=>
+  `<button class="ssec" data-s="${s.id}" style="--c:${s.color||'#2f86e8'}"><span class="si"><img src="${m2(s.icon2,s.icon)}"${m2(s.icon2,"")?' class="art"':''} alt=""></span><span class="sn">${esc(s.name)}</span><span class="sc">${esc(T('toLearn',{n:studyItems(s).length}))}</span></button>`).join('')}</div>`;
  main.querySelector('.say').onclick=()=>say(S.intro);say(S.intro);
  main.querySelectorAll('.ssec').forEach(b=>b.onclick=()=>{sfx.tap();go('ssec',{s:b.dataset.s})});
- warmVoice(T.sections.map(s=>s.intro),1)}
+ warmVoice(ST.sections.map(s=>s.intro),1)}
 function ssec(a){const S=LANDS.lands.find(l=>l.type==='library'),s=LANDS.study.sections.find(x=>x.id===a.s);if(!s){go('study');return}curLand=S.id;state={land:S.id,sec:s.id};
  const items=studyItems(s);$('#title').textContent=s.name;let grp=null;
- main.innerHTML=`<div class="prompt"><span>${esc(s.intro||s.name)}</span><button class="say" aria-label="Read aloud">🔊</button></div><div class="sgrid">${items.map((it,i)=>{
+ main.innerHTML=`<div class="prompt"><span>${esc(s.intro||s.name)}</span><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button></div><div class="sgrid">${items.map((it,i)=>{
   const h=it.group&&it.group!==grp?`<h3 class="sgrp">${esc(grp=it.group)}</h3>`:'';
   return h+`<button class="stile" data-i="${i}" style="--c:${s.color||'#2f86e8'}"><img data-src="${it.thumb||it.img}" data-fb="${it.img}" alt=""><span>${esc(it.label)}</span></button>`}).join('')}</div>`;
  bindSay(s.intro||s.name);showShelfImgs();
@@ -199,7 +236,7 @@ function ssec(a){const S=LANDS.lands.find(l=>l.type==='library'),s=LANDS.study.s
  warmVoice(items.slice(0,12).map(it=>it.say),1)}
 function showSCard(s,items,i){document.querySelectorAll('.pop').forEach(x=>x.remove());const it=items[i];
  const d=document.createElement('div');d.className='pop wpop spop';
- d.innerHTML=`<div class="wcard scard" style="--c:${s.color||'#2f86e8'}">${it.big?`<div class="big">${esc(it.big)}</div>`:''}<img class="hero" src="${it.img}" alt="${esc(it.label)}"><div class="wword"><b>${esc(it.label)}</b></div>${it.text?`<div class="fact">${esc(it.text)}</div>`:''}<div class="row"><button class="say" aria-label="Read aloud">🔊</button><button class="btn" id="snext">Next ➜</button><button class="btn" id="sdone">Done ✓</button></div></div>`;
+ d.innerHTML=`<div class="wcard scard" style="--c:${s.color||'#2f86e8'}">${it.big?`<div class="big">${esc(it.big)}</div>`:''}<img class="hero" src="${it.img}" alt="${esc(it.label)}"><div class="wword"><b>${esc(it.label)}</b></div>${it.text?`<div class="fact">${esc(it.text)}</div>`:''}<div class="row"><button class="say" aria-label="${esc(T('readAloud'))}">🔊</button><button class="btn" id="snext">${esc(T('next'))}</button><button class="btn" id="sdone">${esc(T('done'))}</button></div></div>`;
  document.body.appendChild(d);
  if(it.say)say(it.say);
  warmVoice(items.slice(i+1,i+3).map(x=>x.say),1);
@@ -231,4 +268,10 @@ function worldBgm(s){if(!WORLD_SCREENS.includes(s))return false;const L=landById
 /* --- boot: the content library (library.js) opens the verified copy on this device (or downloads the starter
    packs on the very first visit), then the world map opens. LANDS keeps the same shape as the old lands.json. --- */
 const map2Ready=fetch('img/world/map2/ready.json').then(r=>r.ok?r.json():[]).then(a=>{MAP2=new Set(a||[])}).catch(()=>{});
-(window.EWLib?EWLib.ready.then(L=>L.legacy.lands()):Promise.reject(new Error('library.js missing'))).then(j=>map2Ready.then(()=>{LANDS=j;go('home')})).catch(e=>{console.warn('content library not available',e);go('house')});
+(window.EWLib?EWLib.ready.then(L=>(window.EWi18n?EWi18n.ready:Promise.resolve()).catch(()=>{}).then(()=>L.legacy.lands())):Promise.reject(new Error('library.js missing'))).then(j=>map2Ready.then(()=>{LANDS=j;go('home')})).catch(e=>{console.warn('content library not available',e);go('house')});
+/* language switched (i18n.js): re-read the world in the new language and redraw the screen the child is on */
+addEventListener('ewlang',()=>{if(!window.EWLib)return;LANDS=EWLib.legacy.lands();if(!WORLD_SCREENS.includes(screen)&&screen!=='home')return;if(typeof CT_SCREENS!=='undefined'&&CT_SCREENS.includes(screen))return;
+ const a=state&&state.place?{l:state.land,p:state.place}:null;
+ if(screen==='home'){worldGreeted=false;go('home')}else if(screen==='land')go('land',{id:curLand});
+ else if(screen==='study')go('study');else if(screen==='ssec'&&state.sec)go('ssec',{s:state.sec});
+ else if(screen==='wcards'&&a)go('wcards',a);else if(a)go(screen==='wreward'?'land':screen,screen==='wreward'?{id:curLand}:a);else go('home')});

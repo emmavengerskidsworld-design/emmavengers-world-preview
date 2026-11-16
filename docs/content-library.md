@@ -42,7 +42,7 @@ Every record has the same envelope (schema `content/schema/v1/record.schema.json
 
 - **id** — `ew.<type>.<name>`, lower case. Never reused: once removed, an id is *retired* forever (the build refuses to reuse it).
 - **type** — one of: world, land, deck, library, lexicon, character, strings, country, topic, source, lesson,
-  learn-card, activity, quiz-bank, quiz-item, story, line, media. Each type has its own payload schema (`payloads.schema.json`).
+  learn-card, activity, quiz-bank, quiz-item, story, line, media, mission, together, settings. Each type has its own payload schema (`payloads.schema.json`).
 - **revision** — added by the build, never typed by hand. It goes up by one whenever the record's content changes
   (tracked in `content/registry.lock.json`).
 - **status** — `draft → checking → changes-requested → reviewed → approved → published`, plus `withdrawn` and `archived`.
@@ -100,17 +100,47 @@ the screens onto the query API and then the legacy adapter can be deleted.
 
 ## How the plug-in stages fit
 
-- **Stage 2 (languages + voice)**: languages are already data (`locales.json`, per-language files, per-language review
-  status). The voice clip name is still the FNV-1a hash of the exact text (unchanged in Stage 1); the validator already
-  checks every spoken line has a clip, using the same rules as the app. Stage 2 can add per-language voice manifests
-  in the `assets` file without changing the catalog format. Unicode MessageFormat 2 (stable in CLDR 47+) is the
-  intended format for plurals/gender when needed; JavaScript's `Intl.MessageFormat` is not standard yet, so Stage 1
-  only allows simple `{name}` placeholders.
+- **Stage 2 (languages + voice)**: done — see `docs/languages.md` (language records, translation files, fallback
+  chain, ICU-lite messages with CLDR plurals, right-to-left, localized pictures, per-language voice folders, only the
+  chosen languages on the device).
 - **Stage 3 (quiz engine)**: quiz items are records with stable option ids, answer keys, sources, age bands and
   difficulty; `find({type:'quiz-item', ageBand, topic})` is the pool query.
 - **Stage 4 (kid-safe search)**: search only over records in the library (never the open web): `forEachText` gives
   every text per language to build an index on the device.
 - **Stage 5 (migration of the six lands, parents area, privacy page)**: screens switch from `LANDS` to the query API.
+
+## Daily Ari Missions, Together Time and app settings (room made in Stage 2)
+
+Added to the plan by Emmanuel on 2026-11-14. Only the **data shapes, checks and loader** exist now; the screens come with the
+Parents' Corner in Stage 5. Everything below is `draft`, so the live channel strips it (the live library is byte-for-byte unchanged).
+
+- **`mission`** (`ew.mission.<name>`, pack `life`, file `content/src/life/missions.json`): one small real-life task done away
+  from the screen. Fields: `kind` (closed list `taxonomy.missionKinds`: chore, kindness, gratitude, prayer, family, creative,
+  outdoor, care), `title`, `task` (what Ari says), optional `steps`, `doneText`, `where` (home / outdoors / anywhere / travel),
+  `timeOfDay` (`taxonomy.timesOfDay`), `minutes`, **`parentConfirm`** (a grown-up confirms through the parent gate before the
+  star), `proof` (parent-check / draw / tell / none), `adultNearby`, `parentNote` (Parents' Corner only), `stars`,
+  `scripture` (references only). Age bands are the usual `tags.ageBands`.
+  Checks: a mission that needs a grown-up close by (adultNearby, outdoors, or sensitivity adult-accompaniment) must have
+  `parentConfirm: true`; no web addresses; prayer missions should carry subject faith.
+- **`together`** (`ew.together.<name>`, `content/src/life/together.json`): `audience` parent-and-child (activities, family
+  devotion, talk after a story...) or parent (`kind: parent-tip`, the weekly tip in the Parents' Corner). Fields: `title`,
+  `intro`, `steps`, `talkAbout`, `materials`, `minutes`, `cadence`, `timeOfDay`, `screen` (off / on / either), `links` (records
+  in the same pack or core - never web links), `scripture`. Checks: parent tips give advice, so they **must cite sources**;
+  kind parent-tip and audience parent always go together.
+- **`settings`** (exactly one record, `ew.settings.app`, `content/src/core/settings.json`): the app's rules as data, each with
+  an on/off switch and its numbers - `missions` (enabled, defaultMode gentle/firm/off, modes offered, showOnOpen,
+  laterAllowed, breakAfterMinutes {default,min,max}, perDay, confirm, starsUnlock, kinds), `parentGate` (methods math/pin/hold,
+  primary, fallback, pinLength, maxTries, lockSeconds, logConfirmations), `screenTime` (enabled, dailyMinutes range,
+  warnBeforeMinutes, gentle-goodbye end, offlineIdeas), `bedtime` (enabled, start, end, dim, which timesOfDay and record types
+  stay open, musicOff), `together` (enabled, tip cadence and weekday) and `parentsMayChange` (which of these a parent may set on
+  the device). **Every rule is off** until its screen is built, tested and approved.
+  In the app: `EWLib.settings()` = built-in defaults (all off) <- the release's record <- the parent's own choices on this
+  device (`setParentSetting(path, value)`; only listed paths, numbers clamped to min/max, modes must be offered;
+  `clearParentSettings()`). So switching a rule on, changing a number or switching it off is a **content release, not an app
+  rebuild**. A brand-new kind of rule still needs an app change once (the app must know what the rule does), then it is data.
+
+Voices are data in the same way: each language's voice (name, speed, pitch, clip folder) lives in `content/src/locales.json`,
+so a voice can be swapped by regenerating that language's clips (`tools/gen_voice.py`) with no change to the app code.
 
 ## Research this design follows
 

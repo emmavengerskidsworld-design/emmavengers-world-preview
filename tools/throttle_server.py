@@ -1,7 +1,7 @@
 """Static server with shared-bandwidth throttle (slow 4G ~1.6 Mbps down, 150 ms RTT)."""
-import http.server,functools,threading,time,sys
+import http.server,functools,threading,time,sys,os
 RATE=float(sys.argv[3]) if len(sys.argv)>3 else 200_000  # bytes/s
-LAT=0.15
+LAT=float(os.environ.get('EMMA_RTT','0.15'))  # seconds per request (EMMA_RTT=0.4 = far-away phone network)
 lock=threading.Lock();state={'t':time.time(),'tok':0.0}
 import os
 def take(n):

@@ -58,6 +58,28 @@ def render(src, val, build, issues, check_ok=None):
     A('')
     A('A required language must be 100% (else the build fails). Other languages show how far translation has got.')
     A('')
+    # per-language summary for this channel: translation coverage (sourceOnly records skipped), voice, direction
+    LOC = {l['tag']: l for l in src.cfg['locales']['locales']}
+    chan = list(getattr(src, 'channel_locales', locs))
+    vb = (getattr(val, 'stats', {}) or {}).get('voiceByLang', {})
+    vcov = getattr(val, 'coverage', {}) or {}
+    A('## Language coverage in this channel')
+    A('')
+    A('| Language | Status | Direction / script | Texts translated | Falls back to | Spoken lines | Voice clips missing | Translation files used |')
+    A('|---|---|---|---|---|---|---|---|')
+    from .common import chain_for
+    ov = collections.Counter(t for _, t, _, _ in getattr(src, 'overlays', []))
+    skipped = collections.Counter(t for _, t in getattr(src, 'overlay_skipped', []))
+    for lg in chan:
+        l = LOC.get(lg, {})
+        c = vcov.get(lg, {}); n = sum(v[0] for v in c.values()); tot = sum(v[1] for v in c.values())
+        v = vb.get(lg, {})
+        voice = (f'{v.get("missing", 0)} of {v.get("lines", 0)}' if l.get('voice') else 'no voice (text only)')
+        A(f'| {lg} {l.get("name", "")} | {l.get("status")} | {l.get("dir")} / {l.get("script")} | {n}/{tot} ({(100 * n // tot) if tot else 100}%) | '
+          f'{" -> ".join(chain_for(src.cfg["locales"], lg, chan)[1:]) or "-"} | {v.get("lines", "-")} | {voice} | {ov.get(lg, 0)} texts' + (f' ({skipped[lg]} files left out: review state)' if skipped.get(lg) else '') + ' |')
+    A('')
+    A('Records marked `l10n.sourceOnly` (Letter Land English letter sounds) are not counted. A text missing in a language is shown in the next language of its fallback chain, and spoken by that language\'s voice.')
+    A('')
     if build and build.stats:
         A('## Packs (what the app downloads)')
         A('')

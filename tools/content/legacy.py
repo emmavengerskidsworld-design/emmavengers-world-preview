@@ -6,6 +6,20 @@ Also lists every line the app can speak (same rules as world.js worldVoice() and
 so the validator can check that each one has a voice clip."""
 from .common import is_lt, map_lt, flat_en
 
+
+def flat_chain(obj, locales, chain, seen=None):
+    """Localized texts -> plain strings: the first language of the chain that has the text (library.js does the same).
+    seen (dict) records text -> language it was taken from (so the voice of that language speaks it)."""
+    def pick(lt):
+        for l in chain:
+            if lt.get(l) is not None:
+                if seen is not None: seen.setdefault(lt[l], l)
+                return lt[l]
+        k = next(iter(lt)); 
+        if seen is not None: seen.setdefault(lt[k], k)
+        return lt[k]
+    return map_lt(obj, locales, pick)
+
 LEGACY_FILE = 'content/countries/{slug}.json'
 
 
@@ -13,11 +27,13 @@ def _key(recs, rid):
     return recs[rid]['payload']['key']
 
 
-def lands(recs, locales):
-    """lands.json (the world home, six lands, decks, phonemes, study) in English, as before Stage 1."""
+def lands(recs, locales, chain=('en',), seen=None):
+    """lands.json (the world home, six lands, decks, phonemes, study) in one language (chain = that language and
+    its fallbacks); with chain ('en',) it is the pre-Stage-1 English file (plus the grammar fields nameDef/nameOf)."""
+    flat_en = lambda o, locs: flat_chain(o, locs, chain, seen)
     W = recs['ew.world.home']['payload']
     out = {'version': W.get('formatVersion', 1),
-           'world': {'title': W['title']['en'], 'img': W['img'], 'intro': W['intro']['en'], 'layout': W['layout'], 'bg2': W['bg2']},
+           'world': {'title': flat_en(W['title'], locales), 'img': W['img'], 'intro': flat_en(W['intro'], locales), 'layout': W['layout'], 'bg2': W['bg2']},
            'lands': [], 'decks': {}, 'phonemes': {}, 'study': None}
     for lid in W['lands']:
         if lid not in recs:
@@ -50,6 +66,7 @@ def lands(recs, locales):
         D = {'kind': p['kind']}
         if 'done' in p: D['done'] = p['done']
         D['items'] = [{k: (v['text'] if k == 'greeting' else v) for k, v in it.items()} for it in p['items']]
+        if seen is not None: D['_lt'] = r['payload']['items']   # validator only: item texts in every language (see _wfill)
         out['decks'][p['key']] = D
     lex = recs.get('ew.lexicon.letter-sounds')
     if lex:
@@ -201,18 +218,49 @@ def _wfill(t, it):
     return _re.sub(r'\{(\w+)\}', f, t)
 
 
-def world_spoken(L):
+# app words the world screens speak (ew.ui.app keys; list keys hold one line per entry) - same as world.js / index.html
+UI_SPOKEN = ('levelComplete', 'voiceOn')
+UI_SPOKEN_LISTS = ('praise', 'tryAgain')
+
+
+def ui_spoken(recs, chain, seen=None):
+    r = recs.get('ew.ui.app')
+    if not r: return []
+    out = []
+    for k in UI_SPOKEN + UI_SPOKEN_LISTS:
+        lt = r['payload']['strings'].get(k)
+        if not lt: continue
+        lg = next((l for l in chain if lt.get(l) is not None), 'en')
+        for t in (lt[lg].split('\n') if k in UI_SPOKEN_LISTS else [lt[lg]]):
+            t = t.strip()
+            if t:
+                out.append(t)
+                if seen is not None: seen.setdefault(t, lg)
+    return out
+
+
+def world_spoken(L, seen=None, ui=None):
+    """Every line the world screens can speak. seen: text -> language (from lands(..., seen=...)); question lines
+    built from a template take the template's language."""
     S = []
     A = lambda x: [S.append(t) for t in (x if isinstance(x, list) else [x]) if t]
     deck = lambda k: L['decks'].get(k)
+    def ask(tpl, it, raw=None):
+        tl = seen.get(tpl) if seen is not None else None
+        if tl and raw:   # item words in the template's language (same as world.js wFill)
+            it = dict(it, **{k: v[tl] for k, v in raw.items() if isinstance(v, dict) and v.get(tl) is not None and k != 'greeting'})
+        t = _wfill(tpl, it)
+        if seen is not None and tpl in seen: seen.setdefault(t, seen[tpl])
+        A(t)
     A(L['world']['intro'])
     for Ld in L['lands']:
         A(Ld.get('intro'))
         for p in Ld['places']:
             A(p.get('intro'))
             if p['type'] == 'quiz':
-                for it in deck(p['deck'])['items']:
-                    if it.get('hunt') is not False: A(_wfill(p['ask'], it))
+                D = deck(p['deck'])
+                for i, it in enumerate(D['items']):
+                    if it.get('hunt') is not False: ask(p['ask'], it, (D.get('_lt') or [None] * (i + 1))[i])
             if p['type'] == 'count':
                 for o in deck(p['objects'])['items']: A(o.get('ask'))
     if L.get('study'):
@@ -223,17 +271,18 @@ def world_spoken(L):
     for D in L['decks'].values():
         A(D.get('done'))
         for it in D.get('items', []): A(it.get('say'))
-    A(['Great job! Level complete!', 'Amen!'])
+    A(ui if ui is not None else ['Great job! Level complete!'])
     return list(dict.fromkeys(S))
 
 
-def country_spoken(pk, bank, ui):
+def country_spoken(pk, bank, ui, langs=('en', 'fr')):
+    """(text, language) of every line the country player can speak, for the given languages."""
     out = []
     def add(o):
         if not o: return
         if isinstance(o, str): out.append((o, 'en')); return
-        if o.get('en'): out.append((o['en'], 'en'))
-        if o.get('fr'): out.append((o['fr'], 'fr'))
+        for lg in langs:
+            if o.get(lg): out.append((o[lg], lg))
     P = pk['payload']
     for l in P['lines'].values(): add(l['text'])
     for b in ('little', 'big'):

@@ -34,8 +34,51 @@
        "type": "string"
       },
       "uniqueItems": true
+     },
+     "locales": {
+      "type": "array",
+      "items": {
+       "enum": [
+        "active",
+        "in-review",
+        "planned",
+        "test-only"
+       ]
+      },
+      "uniqueItems": true,
+      "description": "Language statuses this channel ships."
+     },
+     "out": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "lib",
+       "lock"
+      ],
+      "properties": {
+       "lib": {
+        "type": "string"
+       },
+       "lock": {
+        "type": "string"
+       }
+      }
+     },
+     "overlays": {
+      "type": "array",
+      "items": {
+       "enum": [
+        "machine-draft",
+        "draft",
+        "reviewed",
+        "approved"
+       ]
+      },
+      "uniqueItems": true,
+      "description": "reviewStatus values of l10n overlay files this channel applies."
      }
-    }
+    },
+    "additionalProperties": false
    }
   },
   "player": {
@@ -63,6 +106,14 @@
     "type": "integer",
     "minimum": 1
    }
+  },
+  "write": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "uniqueItems": true,
+   "description": "Channels a plain build writes (each needs out)."
   }
  }
 }

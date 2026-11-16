@@ -9,7 +9,7 @@ You only edit files in `content/src/`. Never edit `content/library/`, `content/r
 python3 tools/content_build.py      # 1. validate + build. Read the errors; fix; repeat until "OK"
                                     #    -> read content/build-report.md (plain summary, languages, warnings)
 python3 tools/check_voice.py > missing.json   # 2. spoken lines without a voice clip (the build also tells you)
-#    make the clips (tools/gen_voice.py, see README "Voice clips"); French: --kokoro ff_siwis --lang fr-fr
+#    make the clips: python3 tools/voice_jobs.py --lang fr > j.json && python3 tools/gen_voice.py j.json --locale fr
 python3 tools/build_sw.py           # 3. offline cache list for the new files
 python3 tools/run_tests.py          # 4. all tests (validator first). --quick for a 20-second check
 git add -A && git commit            # 5. commit content/src AND the generated files together
@@ -50,12 +50,18 @@ Optional: `python3 tools/run_tests.py --install-hook` makes git run the quick te
 
 ## Add a language
 
-1. `content/src/locales.json`: add `{"tag": "sw", "name": "Kiswahili", "dir": "ltr", "status": "in-review"}`
-   (BCP 47 tag; `dir` `rtl` for Arabic, Hebrew…). Status `active` = ready for children; `in-review` = drafts.
-2. Add the language to texts: `{"en": "Hello", "fr": "Bonjour", "sw": "Habari"}`. The build report shows coverage per pack.
-3. When a pack is complete in that language, add it to that pack's `locales.required` — from then on the build fails
-   if a text is missing. Record per-language review state in `l10n`, e.g. `"l10n": {"sw": {"status": "draft"}}`.
-4. Voice for the new language is Stage 2 (the voice engine). Until then, do not set `active` for a language without clips.
+Full guide: `docs/languages.md`. In short:
+
+1. `content/src/locales.json`: add `{"tag": "sw", "name": "Kiswahili", "englishName": "Swahili", "dir": "ltr", "script": "Latn",
+   "status": "in-review", "fallback": ["en"], "voice": null}` (BCP 47 tag; `dir` `rtl` for Arabic, Hebrew…).
+2. Translate in `content/src/l10n/sw/*.json` (copy the French files: same record ids and paths), `reviewStatus: "draft"`.
+   Small texts can also go straight into records: `{"en": "Hello", "fr": "Bonjour", "sw": "Habari"}`.
+3. Build; read "Language coverage" in `content/build-report.md`. Missing words fall back to the next language of the chain.
+4. Voice: set `voice` (Kokoro voice, phonemizer language, speed, pitch, folder `voice/sw/`), then
+   `python3 tools/voice_jobs.py --lang sw > /tmp/jobs.json && python3 tools/gen_voice.py /tmp/jobs.json --locale sw`.
+   Without a voice the phone's own voice reads the language (fine for testing, not for children).
+5. Pictures with English text drawn in them: add `<name>.sw.<ext>` next to the original.
+6. After a fluent review set `reviewStatus: "reviewed"` (it then ships on live); `status: "active"` when complete.
 
 ## Add or change a land, a place, a deck item, a Study shelf
 
@@ -73,6 +79,22 @@ Optional: `python3 tools/run_tests.py --install-hook` makes git run the quick te
 - A **new** type needs code: add it to `content/src/capabilities.json`, to `TEMPLATES` in `library.js`, write the player in
   `country.js`, and bump `player` in `build.json` if old apps must not receive it. Old app versions skip packs that need
   types they don't know (they never crash on them).
+
+## Add a Daily Ari Mission or a Together Time activity
+
+1. Copy a record in `content/src/life/missions.json` (or `together.json`), give it a new id `ew.mission.<name>` /
+   `ew.together.<name>` (never reuse an old id) and a matching `key`.
+2. Pick `kind` from `taxonomy.missionKinds` / `taxonomy.togetherKinds`, the age bands, `where` and `timeOfDay`.
+3. Keep `task` short enough for a 5-year-old. If a grown-up must be close by, set `adultNearby: true`, `parentConfirm: true`
+   and write a `parentNote`. No web addresses, no photos of the child, nothing that sends the child to strangers.
+4. A parent tip (`kind: parent-tip`, `audience: parent`) must cite a `source` record (add one to `life/sources.json`).
+5. Leave `status: draft` until Emmanuel approves it; then run the routine above.
+
+## Change an app rule (missions on/off, gentle/firm, parent gate, screen limit, bedtime)
+
+Edit `content/src/core/settings.json` (record `ew.settings.app`), run the routine, publish. No app rebuild. The validator
+refuses impossible combinations (a default mode that is not offered, firm missions without a grown-up check, a default
+outside min/max, a parent-changeable setting that does not exist, a second settings record).
 
 ## Statuses and reviews
 
