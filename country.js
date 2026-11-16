@@ -54,7 +54,7 @@ const ctReady=ctLoad().catch(e=>{console.warn('country packs not loaded',e)});
 /* ---- speech + guide bubble (Ari / Ezra). One voice at a time; captions = exact spoken text. ---- */
 function ctLine(id){const l=CT.cur.payload.lines[id];return l?{id,speaker:l.speaker,text:LT(l.text)}:null}
 function ctSay(texts){say(texts.filter(Boolean),0,1)}
-function ctGuide(ids,after){const P=ctPrefs();let ls=(ids||[]).map(ctLine).filter(Boolean);
+function ctGuide(ids,after,before){const P=ctPrefs();let ls=(ids||[]).map(ctLine).filter(Boolean);
  if(CT.enteredAt&&!CT.breakShown&&Date.now()-CT.enteredAt>(CT.cur.payload.breakAfterMinutes||10)*60000){CT.breakShown=true;ls.unshift(ctLine('ari.cm.break'))}
  const box=$('#cguide');if(box){box.innerHTML='';box.classList.toggle('hide',!P.guide||!ls.length)}
  if(!P.guide)ls=[];
@@ -62,7 +62,7 @@ function ctGuide(ids,after){const P=ctPrefs();let ls=(ids||[]).map(ctLine).filte
   d.innerHTML=`<img src="img/world/guides/${l.speaker==='ezra'?'ezra-face':'ari-hello'}.webp" alt=""><span><b>${l.speaker==='ezra'?'Ezra':'Ari'}</b> ${esc(l.text)}</span>`;
   d.setAttribute('aria-label',(l.speaker==='ezra'?'Ezra: ':'Ari: ')+l.text);
   d.onclick=e=>{e.stopPropagation();stopVoice();box.classList.add('hide')};box.appendChild(d)});
- ctSay([...ls.map(l=>l.text),...(after||[])])}
+ ctSay([...(before||[]),...ls.map(l=>l.text),...(after||[])])}
 function ctHideGuide(){const b=$('#cguide');if(b)b.classList.add('hide')}
 const GUIDE_HTML='<div class="cguide hide" id="cguide" aria-live="polite"></div>';
 
@@ -185,7 +185,7 @@ function ctWin(g,line,extra){sfx.right();const s=ctStamp();ctEvent({item:g.id,ac
  main.querySelector('.cscr').insertBefore(w,$('#cguide'));
  $('#cagain').onclick=()=>{sfx.tap();go('cgame',ctA({g:g.id}))};$('#cfin').onclick=()=>{sfx.tap();go('cdone',ctA({mode:'play',g:g.id}))};
  w.scrollIntoView({block:'nearest'});ctSay([line,extra])}
-function ctHint(t,extra){sfx.wrong();ctGuide(['ari.cm.hint'],[t,extra].filter(Boolean));const h=$('#chintline');if(h){h.textContent=t;h.classList.remove('hide')}}
+function ctHint(t,extra,before){sfx.wrong();ctGuide(['ari.cm.hint'],[t,extra].filter(Boolean),before);const h=$('#chintline');if(h){h.textContent=t;h.classList.remove('hide')}}
 /* grid-route.v1: 3x3 practice map, N/S/E/W buttons or tap a neighbouring square; Undo / Start again / Help; any valid route */
 function gRoute(g){const G=CT.cur.payload.practiceMap;let pos=g.start.slice(),hist=[],done=false,helped=false;
  const D={n:[-1,0],s:[1,0],e:[0,1],w:[0,-1]};
@@ -289,20 +289,24 @@ function cquiz(a){if(ctRequire(a,cquiz))return;ctTop(UT('quiz'));const band=ctBa
  const bank=CT.banks[CT.cur.payload.slug],it=bank.items.find(x=>x.id===a.round[a.i]),q=ctQ(it);
  const qs=ctQuizState();qs.seen[a.pool]=[...new Set([...(qs.seen[a.pool]||[]),it.id])];ctSaveQuiz(qs);CT.qcur={id:it.id,key:it.answerKey,pool:a.pool,i:a.i,round:a.round.slice(),practice:!!a.practice};
  const R=ctRules(),qband=CT_POOL_BAND[a.pool]||'5-7';const ids=it.shuffleOptions===false||R.shuffleOptions===false?Object.keys(q.options):shuffle(Object.keys(q.options));let tries=0,hint=false;
+ /* quiz voice rule (rules.voice per age band): Little hears question + answers; Big: speaker, tap an answer, Read to me */
+ const VM=EWQuiz.voiceFor?EWQuiz.voiceFor(R,qband):{question:!!R.voice.readQuestionOnShow,answers:EWQuiz.readAnswersOnShow(R,qband),speakerAnswers:!!R.voice.speakerReadsAnswers,tap:false,toggle:false};
  main.innerHTML=`<div class="cscr cquizscr"><div class="cprog">${esc(UT('question'))} ${a.i+1} ${esc(UT('of'))} ${a.round.length}${a.practice?` · <span class="ctag">${esc(LT(CT.cur.payload.quiz.practiceLabel))}</span>`:''}</div>
-  <p class="ctext" id="cqp">${esc(q.prompt)}</p><div class="cnav"><button class="say" id="csay" aria-label="${esc(UT('readAloud'))}">🔊</button>${R.retry.hintButton?`<button class="cbtn2" id="chelp">? ${esc(UT('hint'))}</button>`:''}</div>
+  <p class="ctext" id="cqp">${esc(q.prompt)}</p><div class="cnav"><button class="say" id="csay" aria-label="${esc(UT('readAloud'))}">🔊</button>${R.retry.hintButton?`<button class="cbtn2" id="chelp">? ${esc(UT('hint'))}</button>`:''}</div>${EWQuiz.toggleHtml?EWQuiz.toggleHtml(VM):''}
   <div class="copts">${ids.map(id=>`<button class="copt" data-o="${id}">${esc(q.options[id])}</button>`).join('')}</div>
   <p class="cfb hint hide" id="chintline"></p><div id="cafter"></div>${GUIDE_HTML}</div>`;
  const next=()=>{if(a.i+1<a.round.length)go('cquiz',ctA({pool:a.pool,practice:a.practice,round:a.round,i:a.i+1}));else go('cdone',ctA({mode:'quiz',pool:a.pool}))};
  const showSkip=()=>{if($('#cskip')||!(R.retry.skipAfterTries>0))return;$('#cafter').innerHTML=`<div class="cnav"><button class="cbtn2" id="cskip">${esc(UT('skip'))} ▶</button></div>`;$('#cskip').onclick=()=>{sfx.tap();ctEvent({item:it.id,skipped:true,repeat:!!a.practice});EWQuiz.progress.record(ctBankId(),it.id,{skipped:true},R);next()}};
  main.querySelectorAll('.copt').forEach(b=>b.onclick=()=>{if(b.disabled)return;
+  const tw=VM.tap?[q.options[b.dataset.o]]:[];
   if(b.dataset.o===it.answerKey){sfx.right();b.classList.add('ok');main.querySelectorAll('.copt').forEach(x=>x.disabled=true);ctEvent({item:it.id,first:tries===0&&!hint,supported:tries>0||hint,repeat:!!a.practice});EWQuiz.progress.record(ctBankId(),it.id,{first:tries===0,hint},R);
    $('#chintline').classList.add('hide');$('#cafter').innerHTML=`<p class="cfb ok">✓ ${esc(q.feedback)}</p><div class="cnav"><button class="btn" id="cnx">${esc(UT(a.i+1<a.round.length?'next':'done'))} ▶</button></div>`;$('#cnx').onclick=()=>{sfx.tap();next()};
-   ctGuide(['ari.cm.correct'],[q.feedback])}
-  else{tries++;b.classList.add('no');if(R.retry.disableWrong!==false)b.disabled=true;if(R.retry.hintAfterTries>0&&tries>=R.retry.hintAfterTries)ctHint(q.hint);else{sfx.wrong();ctGuide(['ari.cm.hint'])}if(tries>=R.retry.skipAfterTries)showSkip()}});
- $('#csay').onclick=()=>{ctHideGuide();ctSay([q.prompt,...(R.voice.speakerReadsAnswers?ids.map(id=>q.options[id]):[])])};
+   ctGuide(['ari.cm.correct'],[q.feedback],tw)}
+  else{tries++;b.classList.add('no');if(R.retry.disableWrong!==false)b.disabled=true;if(R.retry.hintAfterTries>0&&tries>=R.retry.hintAfterTries)ctHint(q.hint,null,tw);else{sfx.wrong();ctGuide(['ari.cm.hint'],null,tw)}if(tries>=R.retry.skipAfterTries)showSkip()}});
+ $('#csay').onclick=()=>{ctHideGuide();ctSay([q.prompt,...(VM.speakerAnswers?ids.map(id=>q.options[id]):[])])};
+ if(EWQuiz.bindToggle)EWQuiz.bindToggle(main,VM,()=>{ctHideGuide();ctSay([q.prompt,...ids.map(id=>q.options[id])])});
  if($('#chelp'))$('#chelp').onclick=()=>{hint=true;ctHint(q.hint);showSkip()};
- ctBind();const opts=ids.map(id=>q.options[id]);if(R.voice.readQuestionOnShow)ctSay(EWQuiz.readAnswersOnShow(R,qband)?[q.prompt,...opts]:[q.prompt]);
+ ctBind();const opts=ids.map(id=>q.options[id]);if(VM.question)ctSay(VM.answers?[q.prompt,...opts]:[q.prompt]);
  if(a.i+1<a.round.length){const nx=ctQ(bank.items.find(x=>x.id===a.round[a.i+1]));warmVoice([nx.prompt],1)}}
 function ctExhausted(a){const Q=CT.cur.payload.quiz;ctTop(UT('quiz'));
  main.innerHTML=`<div class="cscr cexh"><img class="cbigari" src="img/world/guides/ari-thumbs.webp" alt="Ari"><p class="ctext" id="cexh">${esc(LT(Q.exhausted))}</p>

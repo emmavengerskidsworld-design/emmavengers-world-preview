@@ -154,20 +154,26 @@ function wStart(a,p,total){state={land:a.l,place:a.p,round:0,total,score:0,miss:
    rules are exactly the old behaviour. */
 const wRules=p=>window.EWQuiz?EWQuiz.rules(p.quiz||null):null;
 const wQuizId=p=>p.quiz||('place:'+p.id);
+/* the quiz voice rule (rules.voice per age band, docs/quiz-engine.md): ages 5-7 hear the question and every answer,
+   ages 8-13 hear nothing automatically: speaker button, tap an answer to hear its word, or turn "Read to me" on */
+const wVoice=R=>window.EWQuiz&&EWQuiz.voiceFor?EWQuiz.voiceFor(R,EWQuiz.childBand()):{question:true,answers:false,speakerAnswers:false,tap:false,toggle:false};
+const wTry=()=>(window.worldTry&&worldTry())||TRY[Math.random()*TRY.length|0];
 function wquiz(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLand=L.id;const pool=D.items.filter(it=>it.hunt!==false);const R=wRules(p);
  if(!a.r)wStart(a,p,Math.min(p.rounds||EWQuiz.roundSize(R,null,8),pool.length*2));
  $('#title').textContent=p.name;
  const q=EWQuiz.deckQuestion(pool,state,R),t=q.target,ch=q.choices;const ask=wFill(p.ask,t);
+ const VM=wVoice(R),AS=(EWQuiz.generator(p.quiz||null)||{}).answerSay,word=c=>AS?EWQuiz.deckSay(c,AS):null,answers=ch.map(word).filter(Boolean);
  let body;
- if(p.mode==='letter')body=`<div class="wqpic"><img src="${t.img}" alt=""><div class="wblank"><b>?</b>${esc(t.word.slice(1))}</div></div><div class="choices wlet">${ch.map(c=>`<button class="opt wl" data-ok="${c===t?1:0}">${c.id}</button>`).join('')}</div>`;
- else body=`<div class="choices wpics ${p.mode==='flag'?'flags':''}">${ch.map(c=>`<button class="wpic" data-ok="${c===t?1:0}" aria-label="${esc(T('choice'))}"><img src="${p.mode==='flag'?c.flag:c.img}" alt=""></button>`).join('')}</div>`;
- main.innerHTML=header(ask)+body;
- main.querySelector('.say').onclick=()=>say(ask);
- say(state.round===0&&!a.r?[p.intro,ask]:[ask]);
+ if(p.mode==='letter')body=`<div class="wqpic"><img src="${t.img}" alt=""><div class="wblank"><b>?</b>${esc(t.word.slice(1))}</div></div><div class="choices wlet">${ch.map((c,i)=>`<button class="opt wl" data-i="${i}" data-ok="${c===t?1:0}">${c.id}</button>`).join('')}</div>`;
+ else body=`<div class="choices wpics ${p.mode==='flag'?'flags':''}">${ch.map((c,i)=>`<button class="wpic" data-i="${i}" data-ok="${c===t?1:0}" aria-label="${esc(word(c)||T('choice'))}"><img src="${p.mode==='flag'?c.flag:c.img}" alt=""></button>`).join('')}</div>`;
+ main.innerHTML=header(ask)+(window.EWQuiz&&EWQuiz.toggleHtml?EWQuiz.toggleHtml(VM):'')+body;
+ main.querySelector('.say').onclick=()=>say([ask,...(VM.speakerAnswers?answers:[])]);
+ if(window.EWQuiz&&EWQuiz.bindToggle)EWQuiz.bindToggle(main,VM,()=>say([ask,...answers]));
+ if(VM.question)say([state.round===0&&!a.r?p.intro:null,ask,...(VM.answers?answers:[])].filter(Boolean));
  const line=p.mode==='letter'?t.say[1]:t.say[0];
  let tries=0;const rec=()=>EWQuiz.progress.record(wQuizId(p),D.kind+':'+(t.id||t.n),{first:tries===0},R);
- main.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(b.dataset.ok==='1'){rec();wGood(b,line,()=>wNext(a,'wquiz'))}else{tries++;wrong(b)}});
- warmVoice(pool.map(it=>wFill(p.ask,it)).concat(pool.map(it=>p.mode==='letter'?it.say[1]:it.say[0])),1)}
+ main.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(b.dataset.ok==='1'){rec();wGood(b,line,()=>wNext(a,'wquiz'))}else{tries++;wrong(b);const w=VM.tap&&word(ch[+b.dataset.i]);if(w)say([w,wTry()],0,1)}});
+ warmVoice(pool.map(it=>wFill(p.ask,it)).concat(pool.map(it=>p.mode==='letter'?it.say[1]:it.say[0]),pool.map(word).filter(Boolean)),1)}
 function wcount(a){const L=landById(a.l),p=placeById(L,a.p),NUM=wDeck(p.deck).items,OB=wDeck(p.objects).items;curLand=L.id;const R=wRules(p);
  if(!a.r)wStart(a,p,p.rounds||EWQuiz.roundSize(R,null,8));
  $('#title').textContent=p.name;
@@ -175,11 +181,14 @@ function wcount(a){const L=landById(a.l),p=placeById(L,a.p),NUM=wDeck(p.deck).it
  const G0=Object.assign({},EWQuiz.generator(p.quiz||null)||{});G0.max=Math.min(G0.max||10,NUM.length);
  const q=EWQuiz.countQuestion(G0,state,R),N=q.n,opts=q.options;
  const O=OB[Math.random()*OB.length|0];
+ const VM=wVoice(R),AS=G0.answerSay,word=n=>AS?EWQuiz.deckSay(NUM[n-1],AS):null,answers=opts.map(word).filter(Boolean);
  main.innerHTML=header(O.ask)+`<div class="wcount" id="wc">${Array.from({length:N},(_,i)=>`<button class="wobj" style="animation-delay:${(i*.06).toFixed(2)}s" aria-label="${esc(T('count'))}"><img src="${O.img}" alt=""></button>`).join('')}</div><div class="hint">${esc(T('tapToCount'))}</div><div class="choices wnums">${opts.map(n=>`<button class="opt wn" data-n="${n}">${NF(n)}</button>`).join('')}</div>`;
- main.querySelector('.say').onclick=()=>say(O.ask);
- say(state.round===0&&!a.r?[p.intro,O.ask]:[O.ask]);
+ if(window.EWQuiz&&EWQuiz.toggleHtml)main.querySelector('.prompt').insertAdjacentHTML('afterend',EWQuiz.toggleHtml(VM));
+ main.querySelector('.say').onclick=()=>say([O.ask,...(VM.speakerAnswers?answers:[])]);
+ if(window.EWQuiz&&EWQuiz.bindToggle)EWQuiz.bindToggle(main,VM,()=>say([O.ask,...answers]));
+ if(VM.question)say([state.round===0&&!a.r?p.intro:null,O.ask,...(VM.answers?answers:[])].filter(Boolean));
  let c=0;main.querySelectorAll('.wobj').forEach(b=>b.onclick=()=>{if(b.classList.contains('counted')||b.disabled)return;c++;b.classList.add('counted');b.dataset.c=NF(c);sfx.pop();say(NUM[c-1].say[0],0,1)});
- let tries=0;main.querySelectorAll('.wn').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(+b.dataset.n===N){EWQuiz.progress.record(wQuizId(p),'count:'+N,{first:tries===0},R);wGood(b,NUM[N-1].say[0],()=>wNext(a,'wcount'))}else{tries++;wrong(b)}});
+ let tries=0;main.querySelectorAll('.wn').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(+b.dataset.n===N){EWQuiz.progress.record(wQuizId(p),'count:'+N,{first:tries===0},R);wGood(b,NUM[N-1].say[0],()=>wNext(a,'wcount'))}else{tries++;wrong(b);const w=VM.tap&&word(+b.dataset.n);if(w)say([w,wTry()],0,1)}});
  warmVoice(OB.map(o=>o.ask).concat(NUM.map(n=>n.say[0])),1)}
 function wreward(a){const L=landById(a.l),p=placeById(L,a.p);curLand=L.id;const s=window.EWQuiz?EWQuiz.stars(state.miss||0,wRules(p)):starsForMiss(state.miss||0),n=state.score,tot=state.total;if(window.EWQuiz)EWQuiz.progress.finish(wQuizId(p),s);
  const sv=wSave();sv.best=sv.best||{};sv.best[p.id]=Math.max(s,sv.best[p.id]||0);wPut(sv);

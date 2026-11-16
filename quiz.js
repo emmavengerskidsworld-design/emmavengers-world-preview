@@ -28,7 +28,7 @@ const BUILTIN = {
   stars: { basis: 'mistakes', three: 1, two: 2, min: 1 },
   adaptive: { enabled: false, start: 'starter', upAfter: 3, downAfter: 2 },
   spaced: { intervalsDays: [0, 1, 3, 7, 14, 30] },
-  voice: { readQuestionOnShow: true, readAnswersOnShow: {}, speakerReadsAnswers: false, pictureAnswers: false },
+  voice: { readQuestionOnShow: true, readAnswersOnShow: {}, speakerReadsAnswers: false, pictureAnswers: false, tapReadsAnswer: {}, readAloudToggle: {} },
   feedback: { praise: 'app', confetti: true, sound: true },
   progress: { keepItems: 2000 }
 };
@@ -55,7 +55,22 @@ const choicesFor = (R, band) => Math.max(2, Math.min(6, pickBand(R.choices, band
 const roundSize = (R, band, fallback) => pickBand(R.roundSize, band, fallback == null ? 8 : fallback);
 function starsFor(miss, R) { const s = (R && R.stars) || BUILTIN.stars; miss = miss || 0;
   return miss <= s.three ? 3 : miss <= s.two ? 2 : Math.max(1, Math.min(3, s.min == null ? 1 : s.min)) }
-const readAnswersOnShow = (R, band) => !!(R.voice && R.voice.readAnswersOnShow && R.voice.readAnswersOnShow[band]);
+/* a voice setting is one true/false for every age, or one per age band {"5-7": true, "8-10": false, ...} */
+const bandVal = (v, band, dflt) => typeof v === 'boolean' ? v : (isObj(v) && band && v[band] != null) ? !!v[band] : dflt;
+const readAnswersOnShow = (R, band) => bandVal(R.voice && R.voice.readAnswersOnShow, band, false);
+/* what the voice does for this child (docs/quiz-engine.md "Voice"): all from the rules record, per age band.
+   on = the child turned "Read to me" on (kept on this phone, per profile, until they turn it off) */
+function voiceFor(R, band) { const V = (R && R.voice) || BUILTIN.voice, toggle = bandVal(V.readAloudToggle, band, false), on = toggle && progress.readAloud();
+  return { band, toggle, on, question: bandVal(V.readQuestionOnShow, band, true) || on, answers: readAnswersOnShow({ voice: V }, band) || on,
+    speakerAnswers: !!V.speakerReadsAnswers, tap: bandVal(V.tapReadsAnswer, band, false), pictures: !!V.pictureAnswers } }
+/* the age band of the child playing: the Little / Big Explorers choice (Little = 5-7, Big = 8-10, deep = 11-13);
+   a child who has not chosen yet plays as Little (everything read aloud) */
+const AGE_BAND = { little: '5-7', big: '8-10', deep: '11-13' };
+function childBand() { try { const a = JSON.parse((ls() && ls().getItem('emmaCtryPrefs')) || '{}').age; return AGE_BAND[a] || '5-7' } catch (e) { return '5-7' } }
+/* the word a deck card says as an answer (generator.answerSay: 'name', 'word', 'say.0', 'say.1') */
+function deckSay(it, path) { if (!it) return null; path = path || 'say.0';
+  if (path === 'name' || path === 'word') return it[path] || null;
+  const m = /^say\.(\d)$/.exec(path); const sy = it.say; return m && Array.isArray(sy) ? (sy[+m[1]] || null) : null }
 
 /* ---------- randomness: Fisher-Yates; a seed makes it repeatable (tests) ---------- */
 function rng(seed) { let a = (seed >>> 0) || 1; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
@@ -150,10 +165,24 @@ const progress = {
   summary(pid) { const P = prof(load(), pid), t = dayNum(); const items = Object.values(P.items);
     return { profile: pid || profileId(), questions: items.length, dueToday: items.filter(i => i.due != null && i.due <= t).length,
       quizzes: Object.fromEntries(Object.entries(P.banks).map(([k, b]) => [k, { best: b.best || 0, plays: b.plays || 0, level: b.level }])) } },
-  clear(pid) { const o = load(); if (pid) delete o.profiles[pid]; else o.profiles = {}; save(o) }
+  clear(pid) { const o = load(); if (pid) delete o.profiles[pid]; else o.profiles = {}; save(o) },
+  /* "Read to me" switch for older children: get (no argument) or set (true/false); this profile only */
+  readAloud(v) { const o = load(), P = prof(o); if (v === undefined) return !!(P.prefs && P.prefs.readAloud);
+    P.prefs = P.prefs || {}; P.prefs.readAloud = !!v; save(o); return !!v }
 };
 
-const API = { BUILTIN, LEVELS, BANDS, rules, stars: starsFor, choicesFor, roundSize, readAnswersOnShow, rng, shuffle, buildRound, deckQuestion,
+/* the "Read to me" switch (shown only when the rules allow it for this age band). Works in every quiz player. */
+const TQ0 = k => (G.EWi18n ? G.EWi18n.t(k) : ({ quizReadToMe: 'Read to me', quizOn: 'On', quizOff: 'Off' })[k] || k);
+const esc0 = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+function toggleHtml(VM) { if (!VM || !VM.toggle) return '';
+  return `<div class="qreadrow"><button class="qread${VM.on ? ' on' : ''}" id="qread" role="switch" aria-checked="${VM.on}">🗣️ ${esc0(TQ0('quizReadToMe'))}: <b>${esc0(TQ0(VM.on ? 'quizOn' : 'quizOff'))}</b></button></div>` }
+/* onOn: what to read straight away when the child turns it on (the current question and its answers) */
+function bindToggle(root, VM, onOn) { const b = root && root.querySelector('#qread'); if (!b) return;
+  b.onclick = () => { const on = progress.readAloud(!progress.readAloud()); VM.on = on; VM.question = VM.question || on; VM.answers = VM.answers || on;
+    b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); b.querySelector('b').textContent = TQ0(on ? 'quizOn' : 'quizOff');
+    if (typeof sfx !== 'undefined' && sfx.tap) sfx.tap();
+    if (on) { if (onOn) onOn() } else if (typeof stopVoice === 'function') stopVoice() } }
+const API = { BUILTIN, LEVELS, BANDS, rules, stars: starsFor, choicesFor, roundSize, readAnswersOnShow, voiceFor, childBand, deckSay, bandVal, toggleHtml, bindToggle, rng, shuffle, buildRound, deckQuestion,
   countQuestion, countOptions, generator, progress, dayNum, merge };
 G.EWQuiz = API;
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
@@ -182,7 +211,8 @@ function view(r) { const p = r.payload, say = p.optionSay || {};
     v.options = [{ id: 'true', text: P(s.quizTrue || 'True'), img: null, say: null, icon: '✓' }, { id: 'false', text: P(s.quizFalse || 'False'), img: null, say: null, icon: '✗' }] }
   return v }
 const spoken = (o, R) => o.say || (o.img && !(R.voice && R.voice.pictureAnswers) ? null : o.img ? o.say : o.text);
-function answerLines(v, R) { if (v.type === 'count') return []; return [...v.options.map(o => spoken(o, R)), ...v.targets.map(t => t.text)].filter(Boolean) }
+const numWord = n => { const N = (typeof LANDS !== 'undefined' && LANDS && LANDS.decks && LANDS.decks.numbers && LANDS.decks.numbers.items) || []; const w = N.find(x => +x.n === +n); return (w && w.say && w.say[0]) || null };
+function answerLines(v, R) { if (v.type === 'count') return (v._nums || []).map(numWord).filter(Boolean); return [...v.options.map(o => spoken(o, R)), ...v.targets.map(t => t.text)].filter(Boolean) }
 /* every line a bank can speak (tools/check_voice.py; mirrors tools/content/legacy.py quiz_spoken) */
 function bankLines(B) { const out = [], R = rules(B), p = B.payload; out.push(P(p.title), P(p.intro));
   Object.values(p.lines || {}).forEach(ids => ids.forEach(id => { const l = lineOf(id); if (l) out.push(l.text) }));
@@ -222,7 +252,7 @@ function qplay(a) {
     cacheClips(bankLines(QS.B)) }
   const i = a.i == null ? 0 : a.i; QS.i = i; curLand = QS.a.l; state = { land: QS.a.l, place: QS.a.p, quiz: QS.B.id };
   const r = rec(QS.ids[i]); if (!r) { qnext(); return }
-  const v = view(r), R = QS.R, band = QS.band; let tries = 0, hinted = false, done = false;
+  const v = view(r), R = QS.R, band = QS.band, VM = voiceFor(R, childBand());   /* the voice follows the child's age choice, not the quiz's */ let tries = 0, hinted = false, done = false, tw = null;
   $q('#title').textContent = P(QS.B.payload.title) || QS.B.id;
   const ord = list => v.shuffle && R.shuffleOptions !== false ? shuffle(list) : list.slice();
   const opts = ord(v.options), tgts = ord(v.targets);
@@ -232,14 +262,14 @@ function qplay(a) {
   else if (v.type === 'picture-pick')
     body = `<div class="choices wpics qpics">${opts.map(o => `<button class="wpic copt-pic" data-o="${escq(o.id)}" aria-label="${escq(o.say || o.text)}"><img src="${escq(o.img)}" alt=""></button>`).join('')}</div>`;
   else if (v.type === 'count') {
-    const C = v.count, nums = C.numbers ? ord(C.numbers) : countOptions(C.n, { min: 1, max: Math.max(10, C.n + 3) }, R, band);
+    const C = v.count, nums = C.numbers ? ord(C.numbers) : countOptions(C.n, { min: 1, max: Math.max(10, C.n + 3) }, R, band); v._nums = nums;
     body = `<div class="wcount" id="qc">${Array.from({ length: C.n }, (_, k) => `<button class="wobj" style="animation-delay:${(k * .06).toFixed(2)}s" aria-label="${escq(TQ('count'))}"><img src="${escq(C.img)}" alt=""></button>`).join('')}</div><div class="hint">${escq(TQ('tapToCount'))}</div><div class="choices wnums">${nums.map(n => `<button class="opt wn copt-n" data-o="${n}">${NQ(n)}</button>`).join('')}</div>` }
   else if (v.type === 'order')
     body = `<p class="csmall qhelp">${escq(TQ('quizOrderHelp'))}</p><div class="qslots" id="qslots">${v.options.map((_, k) => `<span class="qslot" data-k="${k}">${NQ(k + 1)}</span>`).join('')}</div><div class="copts qorder">${opts.map(o => `<button class="copt" data-o="${escq(o.id)}">${escq(o.text)}</button>`).join('')}</div><div class="cnav"><button class="cbtn2" id="qundo">↶ ${escq(TQ('quizUndo'))}</button></div>`;
   else if (v.type === 'match')
     body = `<p class="csmall qhelp">${escq(TQ('quizMatchHelp'))}</p><div class="qmatch"><div class="copts">${opts.map(o => `<button class="copt qleft" data-o="${escq(o.id)}">${escq(o.text)}</button>`).join('')}</div><div class="copts">${tgts.map(t => `<button class="copt qright" data-t="${escq(t.id)}">${escq(t.text)}</button>`).join('')}</div></div>`;
   main.innerHTML = `<div class="cscr qscr" data-type="${v.type}"><div class="cprog">${escq(TQ('quizQuestion', { n: i + 1, total: QS.ids.length }))}</div>
-   <p class="ctext sm" id="qprompt"><span>${escq(v.prompt)}</span><button class="say" id="qsay" aria-label="${escq(TQ('readAloud'))}">🔊</button></p>
+   <p class="ctext sm" id="qprompt"><span>${escq(v.prompt)}</span><button class="say" id="qsay" aria-label="${escq(TQ('readAloud'))}">🔊</button></p>${toggleHtml(VM)}
    ${v.promptMedia ? `<img class="qmedia" src="${escq(v.promptMedia)}" alt="">` : ''}${body}
    ${R.retry.hintButton && v.hint ? `<div class="cnav"><button class="cbtn2" id="qhint">? ${escq(TQ('quizHint'))}</button></div>` : ''}
    <p class="cfb hint hide" id="qhintline"></p><div id="qafter"></div><div class="cguide hide" id="qguide" aria-live="polite"></div></div>`;
@@ -248,8 +278,8 @@ function qplay(a) {
   const showSkip = () => { if ($q('#qskip') || done) return; const d = $q('#qafter'); d.innerHTML = `<div class="cnav"><button class="cbtn2" id="qskip">${escq(TQ('quizSkip'))} ▶</button></div>`;
     $q('#qskip').onclick = () => { sfx.tap(); progress.record(QS.B.id, v.id, { skipped: true }, R); qnext() } };
   const miss = (el) => { tries++; QS.miss++; sfx.wrong(); if (el) { el.classList.add('no'); if (R.retry.disableWrong) el.disabled = true }
-    const l = praiseLine('tryAgain', v); guide([l]);
-    if (R.retry.hintAfterTries > 0 && tries >= R.retry.hintAfterTries && v.hint) { const h = $q('#qhintline'); h.textContent = v.hint; h.classList.remove('hide'); hinted = true; sayQ([l && l.text, v.hint]) } else sayQ([l && l.text]);
+    const l = praiseLine('tryAgain', v); guide([l]); const w = tw; tw = null;
+    if (R.retry.hintAfterTries > 0 && tries >= R.retry.hintAfterTries && v.hint) { const h = $q('#qhintline'); h.textContent = v.hint; h.classList.remove('hide'); hinted = true; sayQ([w, l && l.text, v.hint]) } else sayQ([w, l && l.text]);
     if (R.retry.skipAfterTries > 0 && tries >= R.retry.skipAfterTries) showSkip();
     if (R.retry.untilCorrect === false) { lockQ(); setTimeout(qnext, 1600) } };
   const lockQ = () => main.querySelectorAll('.qscr .copt,.qscr .wpic,.qscr .wn,.qscr .wobj,#qundo,#qhint').forEach(b => b.disabled = true);
@@ -258,13 +288,15 @@ function qplay(a) {
     const first = tries === 0 && !hinted; const res = progress.record(QS.B.id, v.id, { first, hint: hinted }, R); QS.level = res.level;
     $q('#qhintline').classList.add('hide'); const l = praiseLine('correct', v);
     $q('#qafter').innerHTML = `${v.feedback ? `<p class="cfb ok">✓ ${escq(v.feedback)}</p>` : ''}${v.explanation ? `<p class="cfb">${escq(v.explanation)}</p>` : ''}<div class="cnav"><button class="btn" id="qnext">${escq(TQ(i + 1 < QS.ids.length ? 'next' : 'done'))} ▶</button></div>`;
-    $q('#qnext').onclick = () => { sfx.tap(); qnext() }; guide([l]); sayQ([l && l.text, v.feedback, v.explanation]) };
+    $q('#qnext').onclick = () => { sfx.tap(); qnext() }; guide([l]); const w = tw; tw = null; sayQ([w, l && l.text, v.feedback, v.explanation]) };
+  /* ages 8-13 (rules: tapReadsAnswer): tapping an answer also says that answer's word */
+  const tapSay = o => { tw = VM.tap && o ? (o.say || (o.img && !o.say ? null : o.text)) : null };
   /* answers */
   if (['single-choice', 'true-false', 'picture-pick'].includes(v.type))
-    main.querySelectorAll('.qscr [data-o]').forEach(b => b.onclick = () => { if (b.disabled || done) return; if (b.dataset.o === String(v.key)) good(b); else miss(b) });
+    main.querySelectorAll('.qscr [data-o]').forEach(b => b.onclick = () => { if (b.disabled || done) return; tapSay(v.options.find(o => o.id === b.dataset.o)); if (b.dataset.o === String(v.key)) good(b); else miss(b) });
   if (v.type === 'count') { let c = 0; const NUM = (typeof LANDS !== 'undefined' && LANDS && LANDS.decks && LANDS.decks.numbers && LANDS.decks.numbers.items) || [];
     main.querySelectorAll('.wobj').forEach(b => b.onclick = () => { if (b.classList.contains('counted') || b.disabled) return; c++; b.classList.add('counted'); b.dataset.c = NQ(c); sfx.pop(); const w = NUM[c - 1]; if (w && w.say) say(w.say[0], 0, 1) });
-    main.querySelectorAll('.wn').forEach(b => b.onclick = () => { if (b.disabled || done) return; if (String(b.dataset.o) === String(v.key)) good(b); else miss(b) }) }
+    main.querySelectorAll('.wn').forEach(b => b.onclick = () => { if (b.disabled || done) return; tw = VM.tap ? numWord(b.dataset.o) : null; if (String(b.dataset.o) === String(v.key)) good(b); else miss(b) }) }
   if (v.type === 'order') { let placed = [];
     const draw = () => { main.querySelectorAll('.qslot').forEach((s, k) => { const o = v.options.find(x => x.id === placed[k]); s.textContent = o ? o.text : NQ(k + 1); s.classList.toggle('full', !!o) });
       main.querySelectorAll('.qorder .copt').forEach(b => { b.disabled = done || placed.includes(b.dataset.o); b.classList.toggle('used', placed.includes(b.dataset.o)) }) };
@@ -278,10 +310,13 @@ function qplay(a) {
       const L = main.querySelector(`.qleft[data-o="${CSS.escape(sel)}"]`);
       if (v.key[sel] === b.dataset.t) { sfx.pop(); matched.add(sel); [L, b].forEach(x => { x.classList.add('ok'); x.classList.remove('sel'); x.disabled = true }); sel = null; if (matched.size === v.options.length) good(null) }
       else { miss(null); L.classList.remove('sel'); sel = null } }) }
-  $q('#qsay').onclick = () => { stopVoice(); sayQ([v.prompt, ...(R.voice.speakerReadsAnswers ? ans : [])]) };
+  $q('#qsay').onclick = () => { stopVoice(); sayQ([v.prompt, ...(VM.speakerAnswers ? ans : [])]) };
+  bindToggle(main, VM, () => { stopVoice(); sayQ([v.prompt, ...ans]) });
   if ($q('#qhint')) $q('#qhint').onclick = () => { sfx.tap(); showHint(); if (R.retry.skipAfterTries > 0) showSkip() };
   const first = i === 0 && !a.keep, intro = first ? (P(QS.B.payload.intro) || (pickLine((QS.B.payload.lines || {}).start) || {}).text) : null;
-  if (R.voice.readQuestionOnShow) sayQ([intro, v.prompt, ...(readAnswersOnShow(R, band) ? ans : [])]); else if (intro) sayQ([intro]);
+  /* the voice rule is data (rules.voice, per age band): ages 5-7 hear the question and every answer; ages 8-13 hear
+     nothing until they tap the speaker, tap an answer, or turn "Read to me" on */
+  if (VM.question) sayQ([intro, v.prompt, ...(VM.answers ? ans : [])]);
   const nx = QS.ids[i + 1] && rec(QS.ids[i + 1]); if (nx) { const w = view(nx); warmVoice([w.prompt, ...answerLines(w, R)], 1) }
 }
 function qnext() { if (!QS) { go('home'); return } if (QS.i + 1 < QS.ids.length) go('qplay', Object.assign({}, QS.a, { i: QS.i + 1 })); else go('qdone', QS.a) }

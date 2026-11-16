@@ -25,7 +25,7 @@ ok(def && def.status === 'published', 'ew.quizrules.default exists and is publis
 const rNone = Q.rules({ id: 'x', payload: {} });
 ok(rNone.selection === def.payload.selection && rNone.retry.hintAfterTries === def.payload.retry.hintAfterTries, 'bank with no rules -> ew.quizrules.default on top of built-in');
 const lc = Q.rules({ id: 'x', payload: { rules: 'ew.quizrules.land-classic' } });
-ok(lc.selection === 'random' && Q.roundSize(lc, '5-7') === 8 && Q.choicesFor(lc, '11-13') === 3 && lc.voice.speakerReadsAnswers === false, 'land-classic = the old land quiz behaviour (random, 8 questions, 3 choices)');
+ok(lc.selection === 'random' && Q.roundSize(lc, '5-7') === 8 && Q.choicesFor(lc, '11-13') === 3, 'land-classic = the old land quiz behaviour (random, 8 questions, 3 choices)');
 ok(!lc.adaptive.enabled && lc.retry.hintAfterTries === 0, 'land-classic does not inherit hints/adaptive from the default record');
 const ov = Q.rules({ id: 'x', payload: { rules: 'ew.quizrules.land-classic', ruleOverrides: { choices: { default: 4 }, stars: { three: 0 } } } });
 ok(Q.choicesFor(ov, '5-7') === 4 && ov.stars.three === 0 && ov.stars.two === lc.stars.two, 'ruleOverrides win and merge deeply');
@@ -36,6 +36,34 @@ ok(Q.choicesFor({ choices: { default: 9 } }) === 6 && Q.choicesFor({ choices: { 
 const dR = Q.rules({ id: 'x', payload: {} });
 ok(Q.roundSize(dR, '5-7') === 4 && Q.roundSize(dR, '11-13') === 6 && Q.roundSize(dR, 'nope') === 5, 'round size per age band, default for unknown band');
 ok(Q.readAnswersOnShow(dR, '5-7') && !Q.readAnswersOnShow(dR, '8-10'), 'answers read on show for ages 5-7 only (default rules)');
+
+/* ---- voice rule (Emmanuel, 2026-11-16): Little hears everything, Big hears nothing automatically ---- */
+Q.progress.clear();
+for (const id of ['ew.quizrules.default', 'ew.quizrules.land-classic', 'ew.quizrules.country-classic']) {
+  const R = Q.rules({ id: 'x', payload: { rules: id } });
+  const L = Q.voiceFor(R, '5-7'), B8 = Q.voiceFor(R, '8-10'), B11 = Q.voiceFor(R, '11-13');
+  ok(L.question && L.answers && L.pictures && !L.toggle, `${id}: ages 5-7 hear the question and every answer (pictures too), no switch needed`);
+  ok(!B8.question && !B8.answers && !B11.question && !B11.answers, `${id}: ages 8-10 and 11-13 hear nothing automatically`);
+  ok(B8.toggle && B8.tap && B8.speakerAnswers && B11.toggle && B11.tap, `${id}: ages 8-13 get the Read to me switch, tap-an-answer and the speaker reads every answer`);
+}
+const Rd = Q.rules({ id: 'x', payload: {} });
+ok(Q.progress.readAloud() === false, 'Read to me starts off');
+Q.progress.readAloud(true);
+const on8 = Q.voiceFor(Rd, '8-10');
+ok(on8.on && on8.question && on8.answers, 'Read to me on -> an older child hears question + answers on show');
+ok(Q.voiceFor(Rd, '8-10').on, 'Read to me stays on for the next question (remembered)');
+ok(JSON.parse(store.emmaQuiz).profiles.default.prefs.readAloud === true, 'the switch is kept on this phone under the profile');
+store.emmaProfile = 'kid2'; ok(!Q.voiceFor(Rd, '8-10').on, 'another profile has its own switch (off)'); delete store.emmaProfile;
+Q.progress.readAloud(false); ok(!Q.voiceFor(Rd, '8-10').question, 'turned off -> no automatic reading again');
+ok(Q.voiceFor(Q.rules(null), '8-10').question === true && !Q.voiceFor(Q.rules(null), '8-10').toggle, 'no rules record (older content) -> the old behaviour (question read, no switch)');
+ok(Q.bandVal(true, '8-10', false) === true && Q.bandVal({ '8-10': false }, '8-10', true) === false && Q.bandVal({}, '8-10', true) === true, 'voice values: one for all ages, or per band, with a fallback');
+globalThis.localStorage.setItem('emmaCtryPrefs', JSON.stringify({ age: 'big' })); ok(Q.childBand() === '8-10', 'Big Explorers -> 8-10');
+globalThis.localStorage.setItem('emmaCtryPrefs', JSON.stringify({ age: 'little' })); ok(Q.childBand() === '5-7', 'Little Explorers -> 5-7');
+globalThis.localStorage.removeItem('emmaCtryPrefs'); ok(Q.childBand() === '5-7', 'not chosen yet -> 5-7 (everything read aloud)');
+ok(Q.deckSay({ name: 'Ghana', say: ['This is Ghana!'] }, 'name') === 'Ghana' && Q.deckSay({ say: ['Lion!', 'x'] }, 'say.0') === 'Lion!' && Q.deckSay({ say: [] }, 'say.1') === null, 'deck answer words come from generator.answerSay');
+for (const [b, w] of [['ew.quizbank.letter-hunt', 'say.0'], ['ew.quizbank.animal-quiz', 'say.0'], ['ew.quizbank.flag-quiz', 'name'], ['ew.quizbank.count-it', 'say.0']])
+  ok((RECS[b].payload.generator || {}).answerSay === w, `${b}: answers are spoken with ${w}`);
+Q.progress.clear();
 
 /* ---- stars ---- */
 ok(Q.stars(0) === 3 && Q.stars(1) === 3 && Q.stars(2) === 2 && Q.stars(3) === 1 && Q.stars(40) === 1, 'stars: 0-1 misses 3, 2 misses 2, more 1 (never 0)');
@@ -112,7 +140,7 @@ Q.progress.finish('bk', 2); Q.progress.finish('bk', 1);
 const sm = Q.progress.summary();
 ok(sm.quizzes.bk.best === 2 && sm.quizzes.bk.plays === 2, 'finish keeps the best stars and play count');
 const raw = store.emmaQuiz;
-const allowed = new Set(['box', 'seen', 'right', 'miss', 'last', 'due', 'level', 'up', 'down', 'best', 'plays']);
+const allowed = new Set(['readAloud', 'box', 'seen', 'right', 'miss', 'last', 'due', 'level', 'up', 'down', 'best', 'plays']);
 const P0 = JSON.parse(raw).profiles.default;
 ok(Object.values(P0.items).concat(Object.values(P0.banks)).every(o => Object.entries(o).every(([k, v]) => allowed.has(k) && (typeof v === 'number' || Q.LEVELS.includes(v)))), 'storage holds only counts, days and levels (no names, no answers)');
 ok(Object.keys(JSON.parse(raw).profiles).join() === 'default', 'one default profile until Stage 5');
