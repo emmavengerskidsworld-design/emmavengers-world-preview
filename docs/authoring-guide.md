@@ -80,6 +80,29 @@ Full guide: `docs/languages.md`. In short:
   `country.js`, and bump `player` in `build.json` if old apps must not receive it. Old app versions skip packs that need
   types they don't know (they never crash on them).
 
+## Add a quiz (or questions to a quiz)
+
+Full design: `docs/quiz-engine.md`. Nothing about a quiz is in the code - it is all records.
+
+1. **Questions**: copy a `quiz-item` record (e.g. in `content/src/core/quiz.json`), give it a new id `ew.quiz.<name>`.
+   Pick `responseType`: `single-choice`, `picture-pick` (add `optionMedia` pictures + `optionSay` words for the voice),
+   `count` (`count: {n, img}`), `true-false` (`answerKey` `"true"`/`"false"`), `order` (`answerKey` = option ids in order)
+   or `match` (`targets` + `answerKey` = `{option: target}`). Write `prompt`, `options`, `hint`, `feedback` and, if it
+   helps, `explanation`. Tag the age band and `difficulty` (`starter`, `core`, `stretch`). A digit answer such as "5"
+   gets an `optionSay` word ("Five.") so the voice never guesses. Facts need `evidence` with a `source` record.
+2. **The quiz**: a `quiz-bank` record lists the `items` (or a `generator` for deck quizzes), a `title`, an `intro`
+   and optional Ari/Ezra `lines` (`start`, `correct`, `tryAgain`, `hint`, `done` - pre-written `line` records only).
+3. **Rules**: name a `quiz-rules` record in `rules` (`ew.quizrules.default` if you leave it out) and, for one quiz only,
+   change single values in `ruleOverrides` (e.g. `{"choices": {"default": 4}}`). Precedence: built-in <- the rules
+   record <- `ruleOverrides`. The validator refuses impossible rules (2 stars stricter than 3, unknown levels,
+   intervals going down).
+4. **Put it on a land**: add a place with `"type": "bank"` and `"quiz": "<bank id>"` to the land record (name, sub,
+   icon, x, y, intro, + translations in `l10n/<lang>/core-lands.json`). A draft bank is left out of the live site, and so
+   is its place.
+5. **Voice**: run the routine above (voice_jobs -> gen_voice for English E3 and for French). Every question, answer,
+   hint and line needs an English clip, or the build stops.
+6. Test: `python3 tools/test_quiz_schema.py`, `node tools/test_quiz_engine.js`, `python3 tools/test_quiz.py`.
+
 ## Add a Daily Ari Mission or a Together Time activity
 
 1. Copy a record in `content/src/life/missions.json` (or `together.json`), give it a new id `ew.mission.<name>` /

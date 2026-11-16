@@ -42,7 +42,7 @@ Every record has the same envelope (schema `content/schema/v1/record.schema.json
 
 - **id** — `ew.<type>.<name>`, lower case. Never reused: once removed, an id is *retired* forever (the build refuses to reuse it).
 - **type** — one of: world, land, deck, library, lexicon, character, strings, country, topic, source, lesson,
-  learn-card, activity, quiz-bank, quiz-item, story, line, media, mission, together, settings. Each type has its own payload schema (`payloads.schema.json`).
+  learn-card, activity, quiz-bank, quiz-item, quiz-rules, story, line, media, mission, together, settings. Each type has its own payload schema (`payloads.schema.json`).
 - **revision** — added by the build, never typed by hand. It goes up by one whenever the record's content changes
   (tracked in `content/registry.lock.json`).
 - **status** — `draft → checking → changes-requested → reviewed → approved → published`, plus `withdrawn` and `archived`.
@@ -103,8 +103,11 @@ the screens onto the query API and then the legacy adapter can be deleted.
 - **Stage 2 (languages + voice)**: done — see `docs/languages.md` (language records, translation files, fallback
   chain, ICU-lite messages with CLDR plurals, right-to-left, localized pictures, per-language voice folders, only the
   chosen languages on the device).
-- **Stage 3 (quiz engine)**: quiz items are records with stable option ids, answer keys, sources, age bands and
-  difficulty; `find({type:'quiz-item', ageBand, topic})` is the pool query.
+- **Stage 3 (quiz engine)**: done - see `docs/quiz-engine.md`. Questions are `quiz-item` records (six types:
+  single-choice, picture-pick, count, true-false, order, match) with stable option ids, answer keys, per-language text,
+  age band, difficulty, hint and explanation; quizzes are `quiz-bank` records (authored items or a generator that makes
+  questions from a deck); every rule (round size, answer buttons, stars, hints, retry, spaced review, adaptive level,
+  what the voice reads) is a `quiz-rules` record. One player (`quiz.js`) plays them all; progress stays on the phone.
 - **Stage 4 (kid-safe search)**: search only over records in the library (never the open web): `forEachText` gives
   every text per language to build an index on the device.
 - **Stage 5 (migration of the six lands, parents area, privacy page)**: screens switch from `LANDS` to the query API.
