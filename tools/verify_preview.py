@@ -82,7 +82,7 @@ async def main():
     await pg.evaluate("go('land',{id:'number'})");await pg.wait_for_timeout(900)
     if await pg.is_visible('.wplace[data-p="quiztime"]'):
       await pg.click('.wplace[data-p="quiztime"]');await pg.wait_for_timeout(1500)
-      q=await pg.evaluate("[screen,(document.querySelector('#qprompt')||{}).textContent||'',document.querySelectorAll('#main .copt,#main .qtf button,#main .qslot').length]")
+      q=await pg.evaluate("[screen,(document.querySelector('#qprompt')||{}).textContent||'',document.querySelectorAll('.copt,.qtf button,.wn').length]")
       ok(q[0]=='qplay' and q[1].strip() and q[2]>=2,f'Quiz Time opens: {q[1].strip()[:50]!r}, {q[2]} answer buttons')
       await pg.evaluate('__ev=[];stopVoice();window.__t0=performance.now()');await pg.tap('#qsay');e=None
       for _ in range(200):
@@ -90,10 +90,10 @@ async def main():
         if e:break
         await pg.wait_for_timeout(50)
       await pg.wait_for_timeout(2500);allv=await pg.evaluate('__ev.map(x=>x.src)')
-      ok(bool(e) and '/voice/' in e['src'] and 'TTS' not in allv,f"quiz speaker plays recorded clips ({len(allv)} sounds, first {e and e['src'].split('/')[-1]})")
+      ok(bool(e) and 'voice/' in e['src'] and 'TTS' not in allv,f"quiz speaker plays recorded clips ({len(allv)} sounds: {[x.split('/')[-2]+'/'+x.split('/')[-1] if '/' in x else x for x in allv][:4]})")
     else: ok(False,'Quiz Time place missing on Number Land (preview should show the draft)')
     await pg.evaluate("go('wquiz',{l:'nature',p:'animalquiz'})");await pg.wait_for_timeout(1200)
-    ok(await pg.evaluate("screen==='wquiz'&&document.querySelectorAll('#main [data-ok]').length>=2"),'a land quiz (Animal Quiz) still plays on the engine')
+    ok(await pg.evaluate("screen==='wquiz'&&document.querySelectorAll('[data-ok]').length>=2"),'a land quiz (Animal Quiz) still plays on the engine')
     await pg.evaluate("go('home')");await pg.wait_for_timeout(500)
     info=await pg.evaluate("""async()=>{await navigator.serviceWorker.ready;const t0=Date.now();for(;;){const sw=await fetch('sw.js').then(r=>r.text());const want=JSON.parse(sw.match(/ASSETS=(\\[.*?\\]);/)[1]);
       /* every file of THIS build's core on the phone (the worker takes charge after the shell; the rest downloads in the background) */let have=0;for(const u of want)if(await caches.match(new URL(u,location.href).href,{ignoreSearch:true}))have++;
