@@ -1389,6 +1389,15 @@
       },
       "noRepeatPrevious": {
        "type": "boolean"
+      },
+      "answerSay": {
+       "description": "which field of a deck card the voice says for that answer (deck-pick: 'name', 'say.0' ...; count: the number card's 'say.0')",
+       "enum": [
+        "name",
+        "word",
+        "say.0",
+        "say.1"
+       ]
       }
      }
     }
@@ -2432,28 +2441,33 @@
      "additionalProperties": false,
      "properties": {
       "readQuestionOnShow": {
-       "type": "boolean"
+       "description": "read the question when it appears: one value for all ages, or per age band",
+       "oneOf": [
+        {
+         "type": "boolean"
+        },
+        {
+         "$ref": "#/$defs/quizBandFlags"
+        }
+       ]
       },
       "readAnswersOnShow": {
-       "type": "object",
-       "additionalProperties": false,
-       "properties": {
-        "5-7": {
-         "type": "boolean"
-        },
-        "8-10": {
-         "type": "boolean"
-        },
-        "11-13": {
-         "type": "boolean"
-        }
-       }
+       "description": "also read every answer when the question appears, per age band",
+       "$ref": "#/$defs/quizBandFlags"
       },
       "speakerReadsAnswers": {
        "type": "boolean"
       },
       "pictureAnswers": {
        "type": "boolean"
+      },
+      "tapReadsAnswer": {
+       "description": "tapping an answer also says that answer's word, per age band",
+       "$ref": "#/$defs/quizBandFlags"
+      },
+      "readAloudToggle": {
+       "description": "show a 'Read to me' switch; when the child turns it on, questions and answers are read on show until they turn it off (kept on this phone, per profile)",
+       "$ref": "#/$defs/quizBandFlags"
       }
      }
     },
@@ -2485,6 +2499,22 @@
        "maximum": 5000
       }
      }
+    }
+   }
+  },
+  "quizBandFlags": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "one true/false per age band",
+   "properties": {
+    "5-7": {
+     "type": "boolean"
+    },
+    "8-10": {
+     "type": "boolean"
+    },
+    "11-13": {
+     "type": "boolean"
     }
    }
   }

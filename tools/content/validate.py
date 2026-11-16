@@ -415,6 +415,12 @@ class Validator:
         iv = (p.get('spaced') or {}).get('intervalsDays')
         if iv and iv != sorted(iv):
             self.add('error', 'quiz-rules', w, f'{pre}spaced.intervalsDays must go up: {iv}')
+        vo = p.get('voice') or {}
+        flag = lambda v, b: v if isinstance(v, bool) else (v or {}).get(b)
+        if 'readQuestionOnShow' in vo:
+            for b in self.tax.get('ageBands', ['5-7', '8-10', '11-13']):
+                if flag(vo['readQuestionOnShow'], b) is False and not flag(vo.get('readAloudToggle'), b):
+                    self.add('warn', 'quiz-rules', w, f'{pre}voice: ages {b} never hear a question unless they tap the speaker (no Read to me switch)')
         rt = p.get('retry') or {}
         if rt.get('untilCorrect') is False and rt.get('skipAfterTries') == 0:
             self.add('warn', 'quiz-rules', w, f'{pre}retry: no retry and no skip - a child could be stuck')

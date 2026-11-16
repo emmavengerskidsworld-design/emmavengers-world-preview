@@ -686,18 +686,18 @@
    "type": "together"
   },
   "ew.quizrules.default": {
-   "rev": 1,
-   "hash": "cec35599af38e04de3220e7096110f24f1bf53a86553b01f42a686fdefe5866c",
+   "rev": 2,
+   "hash": "9ebb5baf85bfeb4db19a83bf9c4dc587143526f76f41f0ed9f29b11145c215c4",
    "type": "quiz-rules"
   },
   "ew.quizrules.land-classic": {
-   "rev": 1,
-   "hash": "b389fda672d6f124a3ce4c2d732103f2fc570ba787b29d137cdd070a665a3441",
+   "rev": 2,
+   "hash": "453095f1f54661d6ec1bd0372d82e77edf97464dc24f143c48c0b51bc62cdb79",
    "type": "quiz-rules"
   },
   "ew.quizrules.country-classic": {
-   "rev": 1,
-   "hash": "ae9d529eec83ed4694cf061b597650903e8780f71d69cdc1c3e0a11431081e38",
+   "rev": 2,
+   "hash": "6a8d939ea04c9fa1d5cca33930a7491f34ff7ab919c63c36ca8b2096cc634c99",
    "type": "quiz-rules"
   },
   "ew.line.quiz-ari-correct-1": {
@@ -741,23 +741,23 @@
    "type": "line"
   },
   "ew.quizbank.letter-hunt": {
-   "rev": 1,
-   "hash": "9b9e985d76246b78907c2e0e33ef0096a4de3158cd05918d918818109fe7e3e3",
+   "rev": 2,
+   "hash": "2578152a0b4d6b847497198cff0bd11a59c3821f1499ccf8abbf5b5bb8c52bdd",
    "type": "quiz-bank"
   },
   "ew.quizbank.animal-quiz": {
-   "rev": 1,
-   "hash": "c030cb9d66bfea2000e534d78fdd4e39a5d5dbabe6ad99d10718c531d7dafba8",
+   "rev": 2,
+   "hash": "488ceda07c364602bfcaa33236f6df59a5f661a93a1109a8418c54609aee32f2",
    "type": "quiz-bank"
   },
   "ew.quizbank.flag-quiz": {
-   "rev": 1,
-   "hash": "6214014363b02f42f494d542449f07a2d068d253e7e6af4a9241ad6cf40af625",
+   "rev": 2,
+   "hash": "ad9694035fd8834358a141e63fc22814bd6b0936af42ee1d6345533c4456ddfc",
    "type": "quiz-bank"
   },
   "ew.quizbank.count-it": {
-   "rev": 1,
-   "hash": "d9243a60bb6a54d9e8a60950899f6a33751f5ad130cea7634ab67b93aadd2502",
+   "rev": 2,
+   "hash": "16383b975fc37f3c71728fd4b4aebd3d9e90168bfffc66cd829a34f37a735c67",
    "type": "quiz-bank"
   },
   "ew.quizbank.quiztime": {
@@ -809,8 +809,8 @@
  "retired": {},
  "packs": {
   "core": {
-   "rev": 6,
-   "hash": "f24d2959b550d1b0afab10c53bb5a1b708d3797a61f6a109173bbf1dd49a25da"
+   "rev": 7,
+   "hash": "5916773b72a6a09138f242da82592b46e090d4937005f57036c8f4b4e1b719c9"
   },
   "country.cameroon": {
    "rev": 3,
@@ -822,31 +822,6 @@
   }
  },
  "releases": [
-  {
-   "sequence": 11,
-   "issued": "2026-11-15T21:36:56Z",
-   "channel": "preview",
-   "contentHash": "c42a75481b9c4eacfa86883d8bb12666e2992f51a371eb65b3e53799ef7cf48f",
-   "catalogSha256": "ae77b03fe3cf65ae0aaf9c3834bfd2ebfec23392f556d97b9f91ac627569b6a0",
-   "files": [
-    "catalog.json",
-    "indexes/core.5a38087371366ca1.json",
-    "indexes/countries.africa.b8e99f8fce21dea6.json",
-    "indexes/life.d315a88a004476bd.json",
-    "packs/core.assets.3be2daa4529f306e.json",
-    "packs/core.c41c550e4018133e.json",
-    "packs/core@en.f16c459c7149acad.json",
-    "packs/core@fr.e322bad562c779fe.json",
-    "packs/country.cameroon.531bcaa945e83704.json",
-    "packs/country.cameroon.assets.208c77330cec4695.json",
-    "packs/country.cameroon@en.334e0a59f758de6d.json",
-    "packs/country.cameroon@fr.2e92937f8fee430e.json",
-    "packs/life.3ec743214fab8c24.json",
-    "packs/life.assets.3a1a45d5de980648.json",
-    "packs/life@en.62bf8a3ff77c29b9.json",
-    "packs/life@fr.af634c1edfe0d27a.json"
-   ]
-  },
   {
    "sequence": 12,
    "issued": "2026-11-16T04:43:07Z",
@@ -871,7 +846,32 @@
     "packs/life@en.62bf8a3ff77c29b9.json",
     "packs/life@fr.af634c1edfe0d27a.json"
    ]
+  },
+  {
+   "sequence": 13,
+   "issued": "2026-11-16T05:49:46Z",
+   "channel": "preview",
+   "contentHash": "6a7dd44dc53012100794701deb8d8fa9c19d944e21f2126865349501a4026523",
+   "catalogSha256": "15be9f28a7663172f9938b4638eaba8b2e10cf1a69a49e724253a0649142d330",
+   "files": [
+    "catalog.json",
+    "indexes/core.e6012de407f33547.json",
+    "indexes/countries.africa.ed666325028257c3.json",
+    "indexes/life.d315a88a004476bd.json",
+    "packs/core.83ad9299e2bdce8a.json",
+    "packs/core.assets.c196b235616b078b.json",
+    "packs/core@en.e170265d1038cf0d.json",
+    "packs/core@fr.5cc7c9e0db5e62bd.json",
+    "packs/country.cameroon.assets.ed6b4c467b5b7f17.json",
+    "packs/country.cameroon.d6f422180521c4cc.json",
+    "packs/country.cameroon@en.8d2d9960258089bb.json",
+    "packs/country.cameroon@fr.b63ed55ede9ff186.json",
+    "packs/life.3ec743214fab8c24.json",
+    "packs/life.assets.3a1a45d5de980648.json",
+    "packs/life@en.62bf8a3ff77c29b9.json",
+    "packs/life@fr.af634c1edfe0d27a.json"
+   ]
   }
  ],
- "sequence": 12
+ "sequence": 13
 }

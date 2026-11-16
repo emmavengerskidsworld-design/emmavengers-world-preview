@@ -19,7 +19,7 @@
    },
    "review": {
     "ownerRole": "product-owner",
-    "note": "Stage 3: the gentle default rules for new quizzes (docs/quiz-engine.md section 1): spaced review (Leitner), simple adaptive difficulty, hint and Skip after one miss, every answer read aloud for ages 5-7, no timers, no lives. Pending Emmanuel's approval with Stage 3."
+    "note": "Stage 3: the gentle default rules for new quizzes (docs/quiz-engine.md section 1): spaced review (Leitner), simple adaptive difficulty, hint and Skip after one miss, every answer read aloud for ages 5-7, no timers, no lives. Pending Emmanuel's approval with Stage 3. Voice rule approved by Emmanuel on 2026-11-16: ages 5-7 hear the question and every answer (pictures too) automatically; ages 8-13 hear nothing automatically, have the speaker button, hear an answer's word when they tap it, and can turn 'Read to me' on (it stays on until they turn it off)."
    },
    "payload": {
     "key": "default",
@@ -74,14 +74,28 @@
      ]
     },
     "voice": {
-     "readQuestionOnShow": true,
+     "readQuestionOnShow": {
+      "5-7": true,
+      "8-10": false,
+      "11-13": false
+     },
      "readAnswersOnShow": {
       "5-7": true,
       "8-10": false,
       "11-13": false
      },
      "speakerReadsAnswers": true,
-     "pictureAnswers": true
+     "pictureAnswers": true,
+     "tapReadsAnswer": {
+      "5-7": false,
+      "8-10": true,
+      "11-13": true
+     },
+     "readAloudToggle": {
+      "5-7": false,
+      "8-10": true,
+      "11-13": true
+     }
     },
     "feedback": {
      "praise": "lines",
@@ -110,7 +124,7 @@
    },
    "review": {
     "ownerRole": "product-owner",
-    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children except the approved voice rule below). Ships with Stage 3 only after Emmanuel approves it. Voice rule approved by Emmanuel on 2026-11-16: ages 5-7 hear the question and every answer (pictures too) automatically; ages 8-13 hear nothing automatically, have the speaker button, hear an answer's word when they tap it, and can turn 'Read to me' on (it stays on until they turn it off)."
    },
    "payload": {
     "key": "land-classic",
@@ -142,14 +156,28 @@
      "enabled": false
     },
     "voice": {
-     "readQuestionOnShow": true,
-     "readAnswersOnShow": {
-      "5-7": false,
+     "readQuestionOnShow": {
+      "5-7": true,
       "8-10": false,
       "11-13": false
      },
-     "speakerReadsAnswers": false,
-     "pictureAnswers": false
+     "readAnswersOnShow": {
+      "5-7": true,
+      "8-10": false,
+      "11-13": false
+     },
+     "speakerReadsAnswers": true,
+     "pictureAnswers": true,
+     "tapReadsAnswer": {
+      "5-7": false,
+      "8-10": true,
+      "11-13": true
+     },
+     "readAloudToggle": {
+      "5-7": false,
+      "8-10": true,
+      "11-13": true
+     }
     },
     "feedback": {
      "praise": "app",
@@ -175,7 +203,7 @@
    },
    "review": {
     "ownerRole": "product-owner",
-    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children except the approved voice rule below). Ships with Stage 3 only after Emmanuel approves it. Voice rule approved by Emmanuel on 2026-11-16: ages 5-7 hear the question and every answer (pictures too) automatically; ages 8-13 hear nothing automatically, have the speaker button, hear an answer's word when they tap it, and can turn 'Read to me' on (it stays on until they turn it off)."
    },
    "payload": {
     "key": "country-classic",
@@ -195,14 +223,28 @@
      "enabled": false
     },
     "voice": {
-     "readQuestionOnShow": true,
+     "readQuestionOnShow": {
+      "5-7": true,
+      "8-10": false,
+      "11-13": false
+     },
      "readAnswersOnShow": {
       "5-7": true,
       "8-10": false,
       "11-13": false
      },
      "speakerReadsAnswers": true,
-     "pictureAnswers": false
+     "pictureAnswers": true,
+     "tapReadsAnswer": {
+      "5-7": false,
+      "8-10": true,
+      "11-13": true
+     },
+     "readAloudToggle": {
+      "5-7": false,
+      "8-10": true,
+      "11-13": true
+     }
     },
     "feedback": {
      "praise": "lines",
@@ -497,7 +539,8 @@
    },
    "payload": {
     "generator": {
-     "kind": "deck-pick"
+     "kind": "deck-pick",
+     "answerSay": "say.0"
     },
     "rules": "ew.quizrules.land-classic"
    }
@@ -524,7 +567,8 @@
    },
    "payload": {
     "generator": {
-     "kind": "deck-pick"
+     "kind": "deck-pick",
+     "answerSay": "say.0"
     },
     "rules": "ew.quizrules.land-classic"
    }
@@ -551,7 +595,8 @@
    },
    "payload": {
     "generator": {
-     "kind": "deck-pick"
+     "kind": "deck-pick",
+     "answerSay": "name"
     },
     "rules": "ew.quizrules.land-classic"
    }
@@ -589,7 +634,8 @@
       3,
       -3
      ],
-     "noRepeatPrevious": true
+     "noRepeatPrevious": true,
+     "answerSay": "say.0"
     },
     "rules": "ew.quizrules.land-classic"
    }

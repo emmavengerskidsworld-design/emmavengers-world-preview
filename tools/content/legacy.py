@@ -357,4 +357,20 @@ def quiz_spoken(recs, chain, seen=None):
             lines(q.get('lines'))
             if q['responseType'] == 'true-false':
                 pick(ui.get('quizTrue')); pick(ui.get('quizFalse'))
+    # deck quizzes (generator banks): the word the voice says for each answer card (generator.answerSay), used by the
+    # speaker button, by 'read every answer' (ages 5-7) and by tap-an-answer (ages 8-13)
+    def field(it, path):
+        if path == 'name': return it.get('name')
+        if path == 'word': return it.get('word')
+        if path and path.startswith('say.'):
+            k = int(path[4:]); sy = it.get('say') or []
+            return sy[k] if k < len(sy) else None
+    for land in sorted((r for r in recs.values() if r['type'] == 'land'), key=lambda r: r['id']):
+        for pl in land['payload'].get('places', []):
+            b = recs.get(pl.get('quiz') or '')
+            g = (b or {}).get('payload', {}).get('generator') or {}
+            if not g.get('answerSay') or pl.get('deck') not in recs: continue
+            for it in recs[pl['deck']]['payload'].get('items', []):
+                if it.get('hunt') is False and g['kind'] == 'deck-pick': continue
+                pick(field(it, g['answerSay']))
     return list(dict.fromkeys(out))

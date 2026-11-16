@@ -686,18 +686,18 @@
    "type": "together"
   },
   "ew.quizrules.default": {
-   "rev": 1,
-   "hash": "cec35599af38e04de3220e7096110f24f1bf53a86553b01f42a686fdefe5866c",
+   "rev": 2,
+   "hash": "9ebb5baf85bfeb4db19a83bf9c4dc587143526f76f41f0ed9f29b11145c215c4",
    "type": "quiz-rules"
   },
   "ew.quizrules.land-classic": {
-   "rev": 1,
-   "hash": "b389fda672d6f124a3ce4c2d732103f2fc570ba787b29d137cdd070a665a3441",
+   "rev": 2,
+   "hash": "453095f1f54661d6ec1bd0372d82e77edf97464dc24f143c48c0b51bc62cdb79",
    "type": "quiz-rules"
   },
   "ew.quizrules.country-classic": {
-   "rev": 1,
-   "hash": "ae9d529eec83ed4694cf061b597650903e8780f71d69cdc1c3e0a11431081e38",
+   "rev": 2,
+   "hash": "6a8d939ea04c9fa1d5cca33930a7491f34ff7ab919c63c36ca8b2096cc634c99",
    "type": "quiz-rules"
   },
   "ew.line.quiz-ari-correct-1": {
@@ -741,23 +741,23 @@
    "type": "line"
   },
   "ew.quizbank.letter-hunt": {
-   "rev": 1,
-   "hash": "9b9e985d76246b78907c2e0e33ef0096a4de3158cd05918d918818109fe7e3e3",
+   "rev": 2,
+   "hash": "2578152a0b4d6b847497198cff0bd11a59c3821f1499ccf8abbf5b5bb8c52bdd",
    "type": "quiz-bank"
   },
   "ew.quizbank.animal-quiz": {
-   "rev": 1,
-   "hash": "c030cb9d66bfea2000e534d78fdd4e39a5d5dbabe6ad99d10718c531d7dafba8",
+   "rev": 2,
+   "hash": "488ceda07c364602bfcaa33236f6df59a5f661a93a1109a8418c54609aee32f2",
    "type": "quiz-bank"
   },
   "ew.quizbank.flag-quiz": {
-   "rev": 1,
-   "hash": "6214014363b02f42f494d542449f07a2d068d253e7e6af4a9241ad6cf40af625",
+   "rev": 2,
+   "hash": "ad9694035fd8834358a141e63fc22814bd6b0936af42ee1d6345533c4456ddfc",
    "type": "quiz-bank"
   },
   "ew.quizbank.count-it": {
-   "rev": 1,
-   "hash": "d9243a60bb6a54d9e8a60950899f6a33751f5ad130cea7634ab67b93aadd2502",
+   "rev": 2,
+   "hash": "16383b975fc37f3c71728fd4b4aebd3d9e90168bfffc66cd829a34f37a735c67",
    "type": "quiz-bank"
   },
   "ew.quizbank.quiztime": {
@@ -809,8 +809,8 @@
  "retired": {},
  "packs": {
   "core": {
-   "rev": 4,
-   "hash": "ba1e1d1f3e9484d73fa97a0f9194034c0aaa183735d807566e3dfabb05ea0d73"
+   "rev": 5,
+   "hash": "19c2e870a24f89278e048f92937a1e5d2e68b9ea68611a2f23dc6ee71cadf8b3"
   },
   "country.cameroon": {
    "rev": 3,
@@ -818,26 +818,6 @@
   }
  },
  "releases": [
-  {
-   "sequence": 6,
-   "issued": "2026-11-15T21:36:55Z",
-   "channel": "live",
-   "contentHash": "47415c94774cf62e63012a9ea0ba2bb90641b71e5e74c8dc35e28bd5bbc545a3",
-   "catalogSha256": "aeb43b0e75d824f66795a151fb4d25bd70fab94cc49859b3b7fccc765542c74f",
-   "files": [
-    "catalog.json",
-    "indexes/core.f0b560334c80e575.json",
-    "indexes/countries.africa.b8e99f8fce21dea6.json",
-    "packs/core.assets.41064936d1f7f917.json",
-    "packs/core.cca5ef4f3a524934.json",
-    "packs/core@en.be3b59e8ece9b5fe.json",
-    "packs/core@fr.3477ebacb6dbca1a.json",
-    "packs/country.cameroon.531bcaa945e83704.json",
-    "packs/country.cameroon.assets.208c77330cec4695.json",
-    "packs/country.cameroon@en.334e0a59f758de6d.json",
-    "packs/country.cameroon@fr.2e92937f8fee430e.json"
-   ]
-  },
   {
    "sequence": 7,
    "issued": "2026-11-16T04:43:06Z",
@@ -857,7 +837,27 @@
     "packs/country.cameroon@en.8d2d9960258089bb.json",
     "packs/country.cameroon@fr.b63ed55ede9ff186.json"
    ]
+  },
+  {
+   "sequence": 8,
+   "issued": "2026-11-16T05:49:45Z",
+   "channel": "live",
+   "contentHash": "013c6d5a43ed7225bd512a820ff7c26bd243535f42730d788ba3bcdd277fd77a",
+   "catalogSha256": "321b91e0d580807271373cba306445e1530c2fba97d4fb820cfc6bb4d686b34c",
+   "files": [
+    "catalog.json",
+    "indexes/core.bb2a6a5fd842a0fb.json",
+    "indexes/countries.africa.06e15fdb74923f72.json",
+    "packs/core.57b6df05d630af5e.json",
+    "packs/core.assets.369571fe4280050c.json",
+    "packs/core@en.d97548c69210a630.json",
+    "packs/core@fr.f7535cda1c256791.json",
+    "packs/country.cameroon.assets.e32b2fd3f2cb9a64.json",
+    "packs/country.cameroon.d6f422180521c4cc.json",
+    "packs/country.cameroon@en.8d2d9960258089bb.json",
+    "packs/country.cameroon@fr.b63ed55ede9ff186.json"
+   ]
   }
  ],
- "sequence": 7
+ "sequence": 8
 }
