@@ -8,6 +8,14 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Emmavengers World</title>
+<script>/* TEST site only (path emmavengers-world-preview or a local test server): its own app name + red TEST icon, so it is
+   never confused with the live app on a phone's home screen; a red TEST badge on screen; updates switch in by themselves */
+window.EW_TEST=/(^|\/)emmavengers-world-preview(\/|$)/.test(location.pathname);
+if(EW_TEST){document.title='Emmavengers TEST';const m=document.querySelector('link[rel=manifest]');if(m)m.href='manifest-preview.json';
+ const a=document.querySelector('link[rel=apple-touch-icon]');if(a)a.href='icons/icon-test-192.png';const t=document.querySelector('meta[name=theme-color]');if(t)t.content='#d81e1e';
+ addEventListener('DOMContentLoaded',()=>{const b=document.createElement('div');b.id='testBadge';b.textContent='TEST';b.setAttribute('aria-hidden','true');
+  b.style.cssText='position:fixed;left:6px;bottom:6px;z-index:9998;background:#d81e1e;color:#fff;font:800 13px system-ui,sans-serif;padding:3px 8px;border-radius:8px;pointer-events:none;opacity:.9';document.body.appendChild(b)})}
+</script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;font-family:var(--ew-font,"Arial Rounded MT Bold","Trebuchet MS","Segoe UI",system-ui,sans-serif);font-weight:900;color:#123a7a}
@@ -811,7 +819,7 @@ function confetti(n=80){cv.width=innerWidth;cv.height=innerHeight;const cols=['#
 function loop(){cx.clearRect(0,0,cv.width,cv.height);parts=parts.filter(p=>p.y<cv.height+30);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);if(p.e){cx.font=(p.w*2.6|0)+'px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(p.e,0,0)}else{cx.fillStyle=p.c;cx.fillRect(-p.w/2,-p.w/4,p.w,p.w/2)}cx.restore()});raf=parts.length?requestAnimationFrame(loop):0}
 /* extra screens registered by country.js (XSCREENS) and their back targets (XBACK) */
 const XSCREENS={},XBACK={};
-function go(s,arg){if(s==='living room')s='living';screen=s;stopVoice();if(typeof mPauseVids==='function')mPauseVids();document.querySelectorAll('.pop').forEach(p=>p.remove());
+function go(s,arg){if(s==='living room')s='living';screen=s;window.__lastGo=[s,arg];stopVoice();if(typeof mPauseVids==='function')mPauseVids();document.querySelectorAll('.pop').forEach(p=>p.remove());
  document.body.classList.toggle('onmap',s==='levelmap');document.body.classList.toggle('wmapmode',s==='home'||s==='land');document.body.classList.toggle('l4',L4_SCREENS.includes(s));$('#backBtn').classList.toggle('hidden',s==='home');if(s!=='reader')document.body.classList.remove('reading');document.body.classList.toggle('ctry',!!XSCREENS[s]);if(!XSCREENS[s])main.removeAttribute('lang');(({home,house,land,study,ssec,wcards,wquiz,wcount,wreward,kitchen,bedroom,bathroom,living,levelmap,learnmenu,learn,find,use,room,spell,find2,used3,mix4,settable,bedhunt,bubbles,tidy,reward,fail,bible,reader,bquiz,bdone,morning,mstep,mwin,morningAsk})[s]||XSCREENS[s])(arg);bgmFor(screen);document.body.classList.toggle('morning',['morning','mstep','mwin','morningAsk'].includes(s));if(s!=='mstep'&&typeof mTok!=='undefined')mTok++;if(typeof histSync==='function')histSync(s);main.scrollTop=0;main.classList.remove('enter');void main.offsetWidth;main.classList.add('enter')}
 $('#backBtn').onclick=()=>{sfx.tap();
   if(screen==='home')return;
@@ -1532,7 +1540,9 @@ if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWo
  if(reg.waiting&&navigator.serviceWorker.controller){let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!done){done=true;location.reload()}});reg.waiting.postMessage('skipWaiting')}
  // A new version finished downloading while the app is open: show a tap-to-update button.
  const offer=w=>{if(!w||!navigator.serviceWorker.controller||document.getElementById('updBtn'))return;const b=document.createElement('button');b.id='updBtn';b.textContent=(window.TT?TT('updateReady',null,'✨ New update ready! Tap to open'):'✨ New update ready! Tap to open');b.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;padding:14px 22px;border:0;border-radius:30px;background:#ffcc00;color:#3a2a00;font:800 18px var(--ew-font,system-ui,sans-serif);max-width:92vw;box-shadow:0 6px 18px rgba(0,0,0,.3)';b.onclick=()=>{let d=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!d){d=true;location.reload()}});w.postMessage('skipWaiting');setTimeout(()=>location.reload(),4000)};document.body.appendChild(b)};
- reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed')offer(w)})});
+ reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'){if(window.EW_TEST&&navigator.serviceWorker.controller){let d=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!d){d=true;location.reload()}});w.postMessage('skipWaiting')}else offer(w)}})});
+ /* TEST site: look for a new build every time the app is opened or brought back */
+ if(window.EW_TEST){reg.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{})})}
  addEventListener('online',()=>reg.update().catch(()=>{}));setInterval(()=>navigator.onLine&&reg.update().catch(()=>{}),30*60*1000);
  // The worker takes over once the small app shell is on the phone; the rest (pictures, voice) then downloads in the
  // background. Keep that download going while the app is open, until the worker says everything is saved.

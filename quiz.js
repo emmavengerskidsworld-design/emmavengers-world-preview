@@ -176,15 +176,27 @@ const TQ0 = (k, v) => (G.EWi18n ? G.EWi18n.t(k, v) : ({ quizReadToMe: 'Read to m
 const readLabel = on => { const st = TQ0(on ? 'quizOn' : 'quizOff'), full = String(TQ0('quizReadToMe', { state: '\u0001' })); const [a, b] = full.includes('\u0001') ? full.split('\u0001') : [full + ' ', ''];
   return `${esc0(a)}<b>${esc0(st)}</b>${esc0(b)}` };
 const esc0 = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-function toggleHtml(VM) { if (!VM || !VM.toggle) return '';
-  return `<div class="qreadrow"><button class="qread${VM.on ? ' on' : ''}" id="qread" role="switch" aria-checked="${VM.on}">🗣️ <span>${readLabel(VM.on)}</span></button></div>` }
+/* the age choice is on every quiz screen (Little 5-7 = read aloud; Big 8-13 = speaker / tap / Read to me), so a parent
+   or child can see and change it anywhere - not only in the Cameroon player. Same store as Cameroon: emmaCtryPrefs.age */
+const ageNow = () => { try { return JSON.parse((ls() && ls().getItem('emmaCtryPrefs')) || '{}').age || null } catch (e) { return null } };
+const TA = (k, d) => { const t = G.EWi18n && G.EWi18n.has && G.EWi18n.has(k) ? G.EWi18n.t(k) : null; return t || d };
+function toggleHtml(VM) { if (!VM) return ''; const big = VM.band && VM.band !== '5-7';
+  const seg = `<div class="cseg qage" role="group" aria-label="${esc0(TA('quizWhoPlays', 'Who is playing?'))}"><button class="qagebtn${!big ? ' on' : ''}" data-age="little" aria-pressed="${!big}">🐣 ${esc0(TA('quizLittle', 'Little 5–7'))}</button><button class="qagebtn${big ? ' on' : ''}" data-age="big" aria-pressed="${big}">🦁 ${esc0(TA('quizBig8', 'Big 8–13'))}</button></div>`;
+  const rd = VM.toggle ? `<button class="qread${VM.on ? ' on' : ''}" id="qread" role="switch" aria-checked="${VM.on}">🗣️ <span>${readLabel(VM.on)}</span></button>` : '';
+  return `<div class="qreadrow">${seg}${rd}</div>` }
 /* onOn: what to read straight away when the child turns it on (the current question and its answers) */
-function bindToggle(root, VM, onOn) { const b = root && root.querySelector('#qread'); if (!b) return;
+function bindToggle(root, VM, onOn) {
+  root && root.querySelectorAll('.qagebtn').forEach(x => x.onclick = () => { if (x.classList.contains('on')) return;
+    try { const s = ls(), o = JSON.parse((s && s.getItem('emmaCtryPrefs')) || '{}'); o.age = x.dataset.age; s.setItem('emmaCtryPrefs', JSON.stringify(o)) } catch (e) {}
+    if (typeof sfx !== 'undefined' && sfx.tap) sfx.tap(); if (typeof stopVoice === 'function') stopVoice();
+    const lg = G.__lastGo; if (lg && typeof go === 'function') { const scr = lg[0], a = Object.assign({}, lg[1] || {});
+      if (scr === 'cquiz') go('cquiz', { c: a.c }); else if (scr === 'qplay') go('qplay', Object.assign(a, { fresh: 1, i: 0 })); else { delete a.r; go(scr, a) } } });
+  const b = root && root.querySelector('#qread'); if (!b) return;
   b.onclick = () => { const on = progress.readAloud(!progress.readAloud()); VM.on = on; VM.question = VM.question || on; VM.answers = VM.answers || on;
     b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); b.querySelector('span').innerHTML = readLabel(on);
     if (typeof sfx !== 'undefined' && sfx.tap) sfx.tap();
     if (on) { if (onOn) onOn() } else if (typeof stopVoice === 'function') stopVoice() } }
-const API = { BUILTIN, LEVELS, BANDS, rules, stars: starsFor, choicesFor, roundSize, readAnswersOnShow, voiceFor, childBand, deckSay, bandVal, toggleHtml, bindToggle, rng, shuffle, buildRound, deckQuestion,
+const API = { BUILTIN, LEVELS, BANDS, rules, stars: starsFor, choicesFor, roundSize, readAnswersOnShow, voiceFor, childBand, ageNow, deckSay, bandVal, toggleHtml, bindToggle, rng, shuffle, buildRound, deckQuestion,
   countQuestion, countOptions, generator, progress, dayNum, merge };
 G.EWQuiz = API;
 if (typeof module !== 'undefined' && module.exports) module.exports = API;

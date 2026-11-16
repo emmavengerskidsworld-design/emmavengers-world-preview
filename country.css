@@ -145,7 +145,7 @@ body.ctry main.enter>*{animation:none!important}
 .qscr .csmall.qhelp{text-align:center;color:#fff;margin:0;font-size:17px}
 .reward.qdone .cguide{position:static;margin:8px auto;max-width:520px}
 /* Stage 3 quiz voice: "Read to me" switch for ages 8-13 (rules.voice.readAloudToggle) */
-.qreadrow{display:flex;justify-content:center;margin:6px 0 8px}
+.qreadrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:6px 0 8px}.qage button{font-size:15px;padding:6px 12px}
 .qread{min-height:48px;padding:8px 18px;border-radius:999px;border:3px solid #1d5fa8;background:#fff;color:#16365c;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.15)}
 .qread b{display:inline-block;min-width:2.6em;margin-left:4px;padding:2px 8px;border-radius:999px;background:#d9e2ec;color:#3b4b5c}
 .qread.on{background:#fff7d6;border-color:#f0a500}

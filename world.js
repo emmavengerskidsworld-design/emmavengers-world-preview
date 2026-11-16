@@ -70,7 +70,8 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{const m=$
 function homeClips(){if(!LANDS)return;const W=LANDS.world;
  /* first visit (no offline worker in charge yet): the warm-up queue waits while the welcome line streams, so a child
     who taps a land during the welcome would wait ~1 s - download and decode the land intros now, two at a time */
- if(!(navigator.serviceWorker&&navigator.serviceWorker.controller)&&!homeClips.done){homeClips.done=1;
+ /* also with the worker in charge: decoding a cached clip takes a few ms, and the intro is then ready the instant a land is tapped */
+ if(!homeClips.done){homeClips.done=1;
   const q=[...new Set(LANDS.lands.map(L=>L.intro).filter(Boolean).map(voiceUrl).filter(Boolean))];
   /* as warm-ups: a line the child taps that is not on the phone cancels them and they re-queue (index.html warmYield) */
   const pump=()=>{const u=q.shift();if(!u)return;if(vBuf.has(u))return pump();wLive.add(u);decodeClip(u,1).catch(()=>{}).finally(()=>{wLive.delete(u);pump()})};pump();pump()}
