@@ -1535,7 +1535,7 @@ setScore();
 <script src="quiz.js"></script>
 <script src="country.js"></script>
 <script>/* offline: service worker (see README) */
-if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').then(reg=>{
+if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
  // A new version downloaded in the background last time: switch to it now, as the game opens.
  if(reg.waiting&&navigator.serviceWorker.controller){let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!done){done=true;location.reload()}});reg.waiting.postMessage('skipWaiting')}
  // A new version finished downloading while the app is open: show a tap-to-update button.

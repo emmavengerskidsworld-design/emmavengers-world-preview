@@ -88,8 +88,25 @@ async function cacheBook(slug,id){const b=BOOKS[slug];if(!b)return {slug,ok:fals
   return {slug,ok:!fail,n:urls.length,fail}}finally{delete busy[key]}})()}
 async function cacheAllBooks(id){await refreshManifest();const res=[];for(const s of Object.keys(BOOKS)){if(updating())break;res.push(await cacheBook(s,id))}return res}
 async function tell(msg,src){const cl=await self.clients.matchAll({type:'window'});cl.forEach(c=>c.postMessage(msg));}
-self.addEventListener('install',e=>e.waitUntil(precache()));
-self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(mine(k)&&k!==CACHE)await caches.delete(k);await self.clients.claim();
+self.addEventListener('install',e=>e.waitUntil((async()=>{
+  await precache();
+  /* Preview only: take over as soon as the new shell is cached. Otherwise a phone that already has
+     the app keeps serving the old cache-first index.html until the child taps "New update ready". */
+  if(/\/emmavengers-world-preview(\/|$)/.test(self.registration.scope)) await self.skipWaiting();
+})()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{
+  let hadOld=false;
+  for(const k of await caches.keys())if(mine(k)&&k!==CACHE){await caches.delete(k);hadOld=true}
+  await self.clients.claim();
+  /* Preview only, and only when this is an update (an older cache was just removed): reload open
+     tabs onto the new page. The old JS never auto-reloads unless someone taps the yellow button.
+     First visits are left alone (no old cache). Live is unchanged. */
+  if(hadOld&&/\/emmavengers-world-preview(\/|$)/.test(self.registration.scope)){
+    /* Do not await navigate() inside this waitUntil: the navigation waits for the
+       worker to finish activating, which deadlocks and freezes the open tab. */
+    const cl=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    setTimeout(()=>{cl.forEach(c=>{if(c.navigate)c.navigate(c.url).catch(()=>{})})},50);
+  }
  /* the page is open and probably in use right now: start the background download only after a quiet moment */
  lastBusy=Date.now();core()})()));
 self.addEventListener('message',e=>{
