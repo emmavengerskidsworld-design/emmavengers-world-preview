@@ -172,14 +172,16 @@ const progress = {
 };
 
 /* the "Read to me" switch (shown only when the rules allow it for this age band). Works in every quiz player. */
-const TQ0 = k => (G.EWi18n ? G.EWi18n.t(k) : ({ quizReadToMe: 'Read to me', quizOn: 'On', quizOff: 'Off' })[k] || k);
+const TQ0 = (k, v) => (G.EWi18n ? G.EWi18n.t(k, v) : ({ quizReadToMe: 'Read to me: {state}', quizOn: 'On', quizOff: 'Off' })[k] || k);
+const readLabel = on => { const st = TQ0(on ? 'quizOn' : 'quizOff'), full = String(TQ0('quizReadToMe', { state: '\u0001' })); const [a, b] = full.includes('\u0001') ? full.split('\u0001') : [full + ' ', ''];
+  return `${esc0(a)}<b>${esc0(st)}</b>${esc0(b)}` };
 const esc0 = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 function toggleHtml(VM) { if (!VM || !VM.toggle) return '';
-  return `<div class="qreadrow"><button class="qread${VM.on ? ' on' : ''}" id="qread" role="switch" aria-checked="${VM.on}">🗣️ ${esc0(TQ0('quizReadToMe'))}: <b>${esc0(TQ0(VM.on ? 'quizOn' : 'quizOff'))}</b></button></div>` }
+  return `<div class="qreadrow"><button class="qread${VM.on ? ' on' : ''}" id="qread" role="switch" aria-checked="${VM.on}">🗣️ <span>${readLabel(VM.on)}</span></button></div>` }
 /* onOn: what to read straight away when the child turns it on (the current question and its answers) */
 function bindToggle(root, VM, onOn) { const b = root && root.querySelector('#qread'); if (!b) return;
   b.onclick = () => { const on = progress.readAloud(!progress.readAloud()); VM.on = on; VM.question = VM.question || on; VM.answers = VM.answers || on;
-    b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); b.querySelector('b').textContent = TQ0(on ? 'quizOn' : 'quizOff');
+    b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); b.querySelector('span').innerHTML = readLabel(on);
     if (typeof sfx !== 'undefined' && sfx.tap) sfx.tap();
     if (on) { if (onOn) onOn() } else if (typeof stopVoice === 'function') stopVoice() } }
 const API = { BUILTIN, LEVELS, BANDS, rules, stars: starsFor, choicesFor, roundSize, readAnswersOnShow, voiceFor, childBand, deckSay, bandVal, toggleHtml, bindToggle, rng, shuffle, buildRound, deckQuestion,

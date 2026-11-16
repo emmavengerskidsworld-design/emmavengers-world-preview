@@ -63,8 +63,8 @@ Every rule has its switch and numbers here (see `content/src/core/quiz.json`):
 (answer buttons per age band), `shuffleOptions`, `noRepeatInRound`, `exhaustion` (`finish-or-practice` | `reshuffle`),
 `retry` (`untilCorrect`, `disableWrong`, `hintAfterTries`, `skipAfterTries`, `hintButton`), `stars` (`basis: mistakes`,
 `three` = most mistakes for 3 stars, `two` = for 2 stars), `adaptive` (`enabled`, `start`, `upAfter`, `downAfter`),
-`spaced` (`intervalsDays`), `voice` (`readQuestionOnShow`, `readAnswersOnShow` per age band, `speakerReadsAnswers`,
-`pictureAnswers`), `feedback` (`praise`: `app` lists or `lines`, `confetti`), `progress` (`keepItems`).
+`spaced` (`intervalsDays`), `voice` (`readQuestionOnShow`, `readAnswersOnShow`, `tapReadsAnswer`, `readAloudToggle`
+- each one true/false per age band - plus `speakerReadsAnswers`, `pictureAnswers`), `feedback` (`praise`: `app` lists or `lines`, `confetti`), `progress` (`keepItems`).
 Order of precedence: built-in defaults (= the behaviour of the quizzes before Stage 3) <- the bank's `rules` record
 (or `ew.quizrules.default` when the bank names none) <- the bank's `ruleOverrides`. A rule the running app does not know is ignored, so old
 phones never break on new rules. Timers, lives, streaks and leaderboards do not exist and the schema has no place
@@ -99,13 +99,29 @@ words True/False) is a "spoken line": the validator lists it per language and fa
 language's clip is missing (`tools/content/legacy.py: quiz_spoken`). English clips are made with
 `tools/gen_voice.py` (E3 voice, pronunciation dictionary, listening check), French with ff_siwis.
 
+**The voice rule (approved by Emmanuel on 2026-11-16), written in every rules record, per age band:**
+
+| | Ages 5-7 (Little Explorers) | Ages 8-13 (Big Explorers) |
+|---|---|---|
+| When a question appears | the voice reads the question **and every answer**, picture answers too (`readQuestionOnShow`, `readAnswersOnShow`, `pictureAnswers`) | nothing is read (`readQuestionOnShow: false`) |
+| Speaker button 🔊 (always there) | reads the question and every answer | reads the question and every answer (`speakerReadsAnswers`) |
+| Tapping an answer | the answer is checked (Ari's line) | the voice first says that answer's word, then Ari's line (`tapReadsAnswer`) - e.g. to hear how a hard word is said |
+| "Read to me" switch | not shown (everything is read anyway) | shown (`readAloudToggle`); once on, questions and answers are read on show until the child turns it off. Kept on this phone per profile (`emmaQuiz` -> `prefs.readAloud`), also after closing the app |
+
+The child's age band comes from the Little / Big Explorers choice (`emmaCtryPrefs.age`; Cameroon: the chosen
+question pool); a child who has not chosen yet is treated as Little. For deck quizzes the word of an answer card is
+data too: `generator.answerSay` (`say.0` = "Lion!", "A!", "Three!"; `name` = "Ghana" for flags). Older content with no
+rules record keeps the old behaviour (question read, no switch). Tests: `tools/test_quiz_voice.py`,
+`tools/test_quiz_engine.js`.
+
 ## 5. Honest limits
 
 - Profiles: there is one "default" profile until Stage 5 adds child profiles in the Parents' Corner; the store is
   already keyed by profile.
 - Adaptive difficulty needs items tagged with `difficulty`; the Cameroon items have none yet (left empty rather than
   guessed), so it stays off there.
-- Picture answers in the land quizzes are not read aloud (the picture is the answer and the old games never read
-  them); `voice.pictureAnswers` can switch it on per quiz once Emmanuel decides.
+- For ages 5-7 the picture answers are now read aloud too (Emmanuel's decision, 2026-11-16). In Animal Quiz and Flag
+  Quiz, hearing all three names (e.g. "Ghana, Kenya, Nigeria") makes the question about matching a heard name to a
+  picture, which is the point for pre-readers; for ages 8-13 it is their choice (switch or speaker).
 - The sampler quiz ("Quiz Time" in Number Land) is a draft for the preview site only; its French is machine-drafted
   and needs a fluent review.

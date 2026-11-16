@@ -246,7 +246,7 @@
       "en": "You finished {name}!"
      },
      "quizReadToMe": {
-      "en": "Read to me"
+      "en": "Read to me: {state}"
      },
      "quizOn": {
       "en": "On"

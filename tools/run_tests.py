@@ -3,7 +3,7 @@
      else runs - broken or un-built content must never reach the app.
   2. content tests (test_content.py), quiz content/validator tests (test_quiz_schema.py), quiz engine unit tests
      (node tools/test_quiz_engine.js) and loader tests in a browser (test_library.py)
-  3. the game suites (world, Cameroon pilot, quiz engine player (test_quiz.py), languages/RTL, study, parents, voice, offline, Bible offline, voice clip
+  3. the game suites (world, Cameroon pilot, quiz engine player (test_quiz.py), quiz voice per age (test_quiz_voice.py), languages/RTL, study, parents, voice, offline, Bible offline, voice clip
      check, quick taps, tap-to-sound latency on cached clips, first-visit EN vs FR tap latency on slow 4G,
      Number/World Land lines whole + in order and the offline worker taking charge on a slow phone)
   --quick         only 1 + 2 (about 20 s)       --scale   also the 200-country x 5-language scale test
@@ -42,6 +42,7 @@ def main():
         print('== game suites ==')
         for name, cmd in [('test_world', ['tools/test_world.py']), ('test_cameroon', ['tools/test_cameroon.py', os.path.join(LOGS, 'cameroon-shots')]),
                           ('test_quiz', ['tools/test_quiz.py', os.path.join(LOGS, 'quiz-shots')]),
+                          ('test_quiz_voice', ['tools/test_quiz_voice.py', os.path.join(LOGS, 'quiz-voice-shots')]),
                           ('test_i18n', ['tools/test_i18n.py', os.path.join(LOGS, 'i18n-shots')]),
                           ('test_study', ['tools/test_study.py']), ('test_parents', ['tools/test_parents.py']),
                           ('test_voice_off', ['tools/test_voice_off.py']), ('test_voice_settings', ['tools/test_voice_settings.py']),
