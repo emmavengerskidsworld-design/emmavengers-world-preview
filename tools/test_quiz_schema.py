@@ -83,6 +83,13 @@ for name, rel, fn, want in CASES:
 t = tmp_src(); s = os.path.join(t, 'src'); edit(s, Q, lambda d: pay(IT + 'find-banana')(d).pop('optionSay', None))
 S, V, iss = validate(s, 'preview'); ok(any(i.sev == 'warn' and 'optionSay' in i.msg for i in iss), 'picture answers with no optionSay -> warning'); shutil.rmtree(t)
 
+t = tmp_src(); s = os.path.join(t, 'src'); edit(s, Q, lambda d: pay('ew.quizrules.default')(d)['voice'].update(readAloudToggle={'5-7': False, '8-10': False, '11-13': False}))
+S, V, iss = validate(s, 'preview'); ok(any(i.sev == 'warn' and 'never hear a question' in i.msg for i in iss), 'voice: an age band with no auto-reading and no Read to me switch -> warning'); shutil.rmtree(t)
+t = tmp_src(); s = os.path.join(t, 'src'); edit(s, Q, lambda d: pay('ew.quizrules.default')(d)['voice'].update(tapReadsAnswer={'8-10': 'yes'}))
+S, V, iss = validate(s, 'preview'); ok(bool(errors(iss)), 'voice: a band value that is not true/false is an error'); shutil.rmtree(t)
+t = tmp_src(); s = os.path.join(t, 'src'); edit(s, Q, lambda d: pay('ew.quizbank.flag-quiz')(d)['generator'].update(answerSay='flag'))
+S, V, iss = validate(s, 'preview'); ok(bool(errors(iss)), 'generator.answerSay must be a known card field'); shutil.rmtree(t)
+
 print('3. channels')
 def build(src, ch):
     t = tempfile.mkdtemp(prefix='ewql-'); S, V, iss = validate(src, ch); B = Build(S, V, None, channel=ch).run()
