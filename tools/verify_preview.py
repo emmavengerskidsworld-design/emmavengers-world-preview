@@ -94,6 +94,15 @@ async def main():
     else: ok(False,'Quiz Time place missing on Number Land (preview should show the draft)')
     await pg.evaluate("go('wquiz',{l:'nature',p:'animalquiz'})");await pg.wait_for_timeout(1200)
     ok(await pg.evaluate("screen==='wquiz'&&document.querySelectorAll('[data-ok]').length>=2"),'a land quiz (Animal Quiz) still plays on the engine')
+    # ---- quiz voice rule (2026-11-16): Big Explorers hear nothing automatically and get the Read to me switch
+    await pg.evaluate("localStorage.setItem('emmaCtryPrefs',JSON.stringify({lang:'en',age:'big',guide:true}))")
+    await pg.evaluate("__ev=[];stopVoice();window.__t0=performance.now();go('wquiz',{l:'nature',p:'animalquiz'})");await pg.wait_for_timeout(1500)
+    big=await pg.evaluate("[!!document.querySelector('#qread'),__ev.filter(x=>x.t>=__t0).length]")
+    ok(big[0] and big[1]==0,f'Big Explorers: Read to me switch shown, nothing read automatically ({big[1]} sounds)')
+    await pg.evaluate("localStorage.setItem('emmaCtryPrefs',JSON.stringify({lang:'en',age:'little',guide:true}))")
+    await pg.evaluate("__ev=[];stopVoice();window.__t0=performance.now();go('wquiz',{l:'nature',p:'animalquiz',r:1})");await pg.wait_for_timeout(4000)
+    lit=await pg.evaluate("[!!document.querySelector('#qread'),__ev.filter(x=>x.t>=__t0).map(x=>x.src)]")
+    ok(not lit[0] and len(lit[1])>=2 and all('voice/' in x for x in lit[1]),f'Little Explorers: question + answers read from recorded clips ({len(lit[1])} sounds), no switch')
     await pg.evaluate("go('home')");await pg.wait_for_timeout(500)
     info=await pg.evaluate("""async()=>{await navigator.serviceWorker.ready;const t0=Date.now();for(;;){const sw=await fetch('sw.js').then(r=>r.text());const want=JSON.parse(sw.match(/ASSETS=(\\[.*?\\]);/)[1]);
       /* every file of THIS build's core on the phone (the worker takes charge after the shell; the rest downloads in the background) */let have=0;for(const u of want)if(await caches.match(new URL(u,location.href).href,{ignoreSearch:true}))have++;
