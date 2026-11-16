@@ -12,7 +12,7 @@ an app rebuild**. Nothing about the child leaves the phone.
 | Finding | Source | Rule in the engine |
 |---|---|---|
 | Answering questions (retrieval practice) helps children remember more than re-reading; it worked in 46 of 49 classroom studies, across ages and subjects. | Agarwal, Nunes & Blunt (2021), *Educational Psychology Review* 33, 1409-1453; Roediger & Karpicke (2006), *Psychological Science* 17(3) | Quizzes come after Learn/cards, are short (4-8 questions) and low-stakes: no timer, no score shown to others, no losing. |
-| Spacing practice over days beats massed practice ("spaced repetition"); the Leitner box system is the simplest form. | Cepeda et al. (2006), *Psychological Bulletin* 132(3); Kang (2016), *Policy Insights from the Behavioral and Brain Sciences* 3(1) | `selection: "leitner"`: each question has a box (0-5); right first time moves it up (seen again after 1, 3, 7, 14, 30 days), a miss moves it back to box 1. Due questions come first. The interval list is data. |
+| Spacing practice over days beats massed practice ("spaced repetition"); the Leitner box system is the simplest form. | Cepeda et al. (2006), *Psychological Bulletin* 132(3); Kang (2016), *Policy Insights from the Behavioral and Brain Sciences* 3(1) | `selection: "leitner"`: each question has a box (0-5); right first time (no hint) moves it up one box (seen again after 1, 3, 7, 14, 30 days), a miss or a hint puts it in box 0 (it comes back in the next round). Due questions come first. The interval list is data. |
 | Feedback helps most when it is about the task ("the star is in the middle") and immediate for young learners; feedback about the person ("you're bad at this") harms. Praise effort and strategy, not "being smart". | Hattie & Timperley (2007), *Review of Educational Research* 77(1); Shute (2008), *RER* 78(1); Mueller & Dweck (1998), *JPSP* 75(1) | Wrong answer: a soft sound, the option greys out, Ari says a pre-written "Nice try! Let's look again." - never red crosses, buzzers, "wrong!" or lost lives. Correct: a short task-specific feedback/explanation line. |
 | Mistakes followed by corrective feedback are good for learning (errorful learning), especially with a hint and another try. | Metcalfe (2017), *Annual Review of Psychology* 68 | Retry until right (`retry.untilCorrect`), hint button + hint after the first miss (`hintAfterTries`), Skip offered after a miss (`skipAfterTries`) so no child is stuck. |
 | Learning is fastest when the task is neither too easy nor too hard - about 85% success in a two-choice task. | Wilson et al. (2019), *Nature Communications* 10:4646 ("Eighty Five Percent Rule") | Simple adaptive difficulty (`adaptive`): items carry `tags.difficulty` starter/core/stretch; 3 right-first-time in a row -> one level up, 2 misses in a row -> one level down, never more than one step at a time; the child never sees a "level". Off by default for migrated quizzes. |
@@ -65,8 +65,8 @@ Every rule has its switch and numbers here (see `content/src/core/quiz.json`):
 `three` = most mistakes for 3 stars, `two` = for 2 stars), `adaptive` (`enabled`, `start`, `upAfter`, `downAfter`),
 `spaced` (`intervalsDays`), `voice` (`readQuestionOnShow`, `readAnswersOnShow` per age band, `speakerReadsAnswers`,
 `pictureAnswers`), `feedback` (`praise`: `app` lists or `lines`, `confetti`), `progress` (`keepItems`).
-Order of precedence: built-in defaults (= the behaviour of the quizzes before Stage 3) <- `ew.quizrules.default` <-
-the bank's `rules` record <- the bank's `ruleOverrides`. A rule the running app does not know is ignored, so old
+Order of precedence: built-in defaults (= the behaviour of the quizzes before Stage 3) <- the bank's `rules` record
+(or `ew.quizrules.default` when the bank names none) <- the bank's `ruleOverrides`. A rule the running app does not know is ignored, so old
 phones never break on new rules. Timers, lives, streaks and leaderboards do not exist and the schema has no place
 for them.
 

@@ -725,7 +725,21 @@
      "en": "Yes! Five comes after four.",
      "fr": "Oui ! Cinq vient après quatre."
     },
-    "readAloudAllowed": true
+    "readAloudAllowed": true,
+    "optionSay": {
+     "a": {
+      "en": "Three.",
+      "fr": "Trois."
+     },
+     "b": {
+      "en": "Five.",
+      "fr": "Cinq."
+     },
+     "c": {
+      "en": "Seven.",
+      "fr": "Sept."
+     }
+    }
    }
   },
   {
@@ -974,7 +988,21 @@
      "en": "Yes! One, two, three!",
      "fr": "Oui ! Un, deux, trois !"
     },
-    "readAloudAllowed": true
+    "readAloudAllowed": true,
+    "optionSay": {
+     "a": {
+      "en": "One.",
+      "fr": "Un."
+     },
+     "b": {
+      "en": "Two.",
+      "fr": "Deux."
+     },
+     "c": {
+      "en": "Three.",
+      "fr": "Trois."
+     }
+    }
    }
   },
   {
@@ -1055,7 +1083,21 @@
      "en": "Well done! You matched them all!",
      "fr": "Bravo ! Tu as tout relié !"
     },
-    "readAloudAllowed": true
+    "readAloudAllowed": true,
+    "optionSay": {
+     "n1": {
+      "en": "One.",
+      "fr": "Un."
+     },
+     "n2": {
+      "en": "Two.",
+      "fr": "Deux."
+     },
+     "n3": {
+      "en": "Three.",
+      "fr": "Trois."
+     }
+    }
    }
   },
   {
@@ -1118,7 +1160,21 @@
      "en": "Yes! Nine is the biggest.",
      "fr": "Oui ! Neuf est le plus grand."
     },
-    "readAloudAllowed": true
+    "readAloudAllowed": true,
+    "optionSay": {
+     "a": {
+      "en": "Two.",
+      "fr": "Deux."
+     },
+     "b": {
+      "en": "Nine.",
+      "fr": "Neuf."
+     },
+     "c": {
+      "en": "Six.",
+      "fr": "Six."
+     }
+    }
    }
   },
   {

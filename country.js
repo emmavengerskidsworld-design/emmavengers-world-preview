@@ -271,12 +271,15 @@ function ctQuizState(){const P=ctProg(),k=CT.cur.payload.slug;P[k]=P[k]||{};let 
  if(q.day!==t){q={day:t,seen:{},prev:q.seen||q.prev||{}}}P[k].quiz=q;ctPutProg(P);return q}
 function ctSaveQuiz(q){const P=ctProg(),k=CT.cur.payload.slug;P[k]=P[k]||{};P[k].quiz=q;ctPutProg(P)}
 function ctPool(name){const Q=CT.cur.payload.quiz,bands=Q.pools[name];return CT.banks[CT.cur.payload.slug].items.filter(it=>bands.includes(it.band)&&it.status!=='withdrawn')}
-/* builds a round: practice=false -> only items not yet seen today (preferring ones not seen last time); null when exhausted */
-function ctBuildRound(name,practice){const Q=CT.cur.payload.quiz,n=Q.roundSize[name],pool=ctPool(name),qs=ctQuizState();
- const seen=new Set(qs.seen[name]||[]),prev=new Set(qs.prev[name]||[]);
- if(practice)return shuffle(pool).slice(0,Math.min(n,pool.length)).map(x=>x.id);
- const fresh=pool.filter(it=>!seen.has(it.id));if(fresh.length<n)return null;
- const a=shuffle(fresh.filter(it=>!prev.has(it.id))),b=shuffle(fresh.filter(it=>prev.has(it.id)));return [...a,...b].slice(0,n).map(x=>x.id)}
+/* Stage 3: the round is built by the quiz engine (quiz.js) with the bank's rules (ew.quizrules.country-classic:
+   selection fresh-today = only items not yet seen today, preferring ones not seen last time; null when exhausted ->
+   Finish / Practise again). Pools and round sizes stay in the country's quiz data. */
+const ctBankId=()=>CT.banks[CT.cur.payload.slug].bank;
+const ctRules=()=>EWQuiz.rules(ctBankId());
+const CT_POOL_BAND={little:'5-7',big:'8-10',deep:'11-13'};
+function ctBuildRound(name,practice){const Q=CT.cur.payload.quiz,n=Q.roundSize[name],pool=ctPool(name),qs=ctQuizState(),R=ctRules();
+ const ids=EWQuiz.buildRound({pool:pool.map(it=>({id:it.id})),n,practice,strategy:R.selection,seen:qs.seen[name]||[],prev:qs.prev[name]||[],progress:EWQuiz.progress.get()});
+ if(!ids&&R.exhaustion==='reshuffle')return EWQuiz.buildRound({pool:pool.map(it=>({id:it.id})),n,practice:true});return ids}
 window.__ctBuildRound=ctBuildRound;
 function cquiz(a){if(ctRequire(a,cquiz))return;ctTop(UT('quiz'));const band=ctBand();
  if(!a.pool){if(band==='little'){go('cquiz',ctA({pool:'little'}));return}
@@ -285,21 +288,21 @@ function cquiz(a){if(ctRequire(a,cquiz))return;ctTop(UT('quiz'));const band=ctBa
  if(!a.round){const ids=ctBuildRound(a.pool,!!a.practice);if(!ids){ctExhausted(a);return}go('cquiz',ctA({pool:a.pool,practice:!!a.practice,round:ids,i:0}));return}
  const bank=CT.banks[CT.cur.payload.slug],it=bank.items.find(x=>x.id===a.round[a.i]),q=ctQ(it);
  const qs=ctQuizState();qs.seen[a.pool]=[...new Set([...(qs.seen[a.pool]||[]),it.id])];ctSaveQuiz(qs);CT.qcur={id:it.id,key:it.answerKey,pool:a.pool,i:a.i,round:a.round.slice(),practice:!!a.practice};
- const ids=it.shuffleOptions===false?Object.keys(q.options):shuffle(Object.keys(q.options));let tries=0,hint=false;
+ const R=ctRules(),qband=CT_POOL_BAND[a.pool]||'5-7';const ids=it.shuffleOptions===false||R.shuffleOptions===false?Object.keys(q.options):shuffle(Object.keys(q.options));let tries=0,hint=false;
  main.innerHTML=`<div class="cscr cquizscr"><div class="cprog">${esc(UT('question'))} ${a.i+1} ${esc(UT('of'))} ${a.round.length}${a.practice?` · <span class="ctag">${esc(LT(CT.cur.payload.quiz.practiceLabel))}</span>`:''}</div>
-  <p class="ctext" id="cqp">${esc(q.prompt)}</p><div class="cnav"><button class="say" id="csay" aria-label="${esc(UT('readAloud'))}">🔊</button><button class="cbtn2" id="chelp">? ${esc(UT('hint'))}</button></div>
+  <p class="ctext" id="cqp">${esc(q.prompt)}</p><div class="cnav"><button class="say" id="csay" aria-label="${esc(UT('readAloud'))}">🔊</button>${R.retry.hintButton?`<button class="cbtn2" id="chelp">? ${esc(UT('hint'))}</button>`:''}</div>
   <div class="copts">${ids.map(id=>`<button class="copt" data-o="${id}">${esc(q.options[id])}</button>`).join('')}</div>
   <p class="cfb hint hide" id="chintline"></p><div id="cafter"></div>${GUIDE_HTML}</div>`;
  const next=()=>{if(a.i+1<a.round.length)go('cquiz',ctA({pool:a.pool,practice:a.practice,round:a.round,i:a.i+1}));else go('cdone',ctA({mode:'quiz',pool:a.pool}))};
- const showSkip=()=>{if($('#cskip'))return;$('#cafter').innerHTML=`<div class="cnav"><button class="cbtn2" id="cskip">${esc(UT('skip'))} ▶</button></div>`;$('#cskip').onclick=()=>{sfx.tap();ctEvent({item:it.id,skipped:true,repeat:!!a.practice});next()}};
+ const showSkip=()=>{if($('#cskip')||!(R.retry.skipAfterTries>0))return;$('#cafter').innerHTML=`<div class="cnav"><button class="cbtn2" id="cskip">${esc(UT('skip'))} ▶</button></div>`;$('#cskip').onclick=()=>{sfx.tap();ctEvent({item:it.id,skipped:true,repeat:!!a.practice});EWQuiz.progress.record(ctBankId(),it.id,{skipped:true},R);next()}};
  main.querySelectorAll('.copt').forEach(b=>b.onclick=()=>{if(b.disabled)return;
-  if(b.dataset.o===it.answerKey){sfx.right();b.classList.add('ok');main.querySelectorAll('.copt').forEach(x=>x.disabled=true);ctEvent({item:it.id,first:tries===0&&!hint,supported:tries>0||hint,repeat:!!a.practice});
+  if(b.dataset.o===it.answerKey){sfx.right();b.classList.add('ok');main.querySelectorAll('.copt').forEach(x=>x.disabled=true);ctEvent({item:it.id,first:tries===0&&!hint,supported:tries>0||hint,repeat:!!a.practice});EWQuiz.progress.record(ctBankId(),it.id,{first:tries===0,hint},R);
    $('#chintline').classList.add('hide');$('#cafter').innerHTML=`<p class="cfb ok">✓ ${esc(q.feedback)}</p><div class="cnav"><button class="btn" id="cnx">${esc(UT(a.i+1<a.round.length?'next':'done'))} ▶</button></div>`;$('#cnx').onclick=()=>{sfx.tap();next()};
    ctGuide(['ari.cm.correct'],[q.feedback])}
-  else{tries++;b.classList.add('no');b.disabled=true;ctHint(q.hint);showSkip()}});
- $('#csay').onclick=()=>{ctHideGuide();ctSay([q.prompt,...ids.map(id=>q.options[id])])};
- $('#chelp').onclick=()=>{hint=true;ctHint(q.hint);showSkip()};
- ctBind();const opts=ids.map(id=>q.options[id]);ctSay(band==='little'?[q.prompt,...opts]:[q.prompt]);
+  else{tries++;b.classList.add('no');if(R.retry.disableWrong!==false)b.disabled=true;if(R.retry.hintAfterTries>0&&tries>=R.retry.hintAfterTries)ctHint(q.hint);else{sfx.wrong();ctGuide(['ari.cm.hint'])}if(tries>=R.retry.skipAfterTries)showSkip()}});
+ $('#csay').onclick=()=>{ctHideGuide();ctSay([q.prompt,...(R.voice.speakerReadsAnswers?ids.map(id=>q.options[id]):[])])};
+ if($('#chelp'))$('#chelp').onclick=()=>{hint=true;ctHint(q.hint);showSkip()};
+ ctBind();const opts=ids.map(id=>q.options[id]);if(R.voice.readQuestionOnShow)ctSay(EWQuiz.readAnswersOnShow(R,qband)?[q.prompt,...opts]:[q.prompt]);
  if(a.i+1<a.round.length){const nx=ctQ(bank.items.find(x=>x.id===a.round[a.i+1]));warmVoice([nx.prompt],1)}}
 function ctExhausted(a){const Q=CT.cur.payload.quiz;ctTop(UT('quiz'));
  main.innerHTML=`<div class="cscr cexh"><img class="cbigari" src="img/world/guides/ari-thumbs.webp" alt="Ari"><p class="ctext" id="cexh">${esc(LT(Q.exhausted))}</p>

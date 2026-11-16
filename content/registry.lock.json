@@ -46,13 +46,13 @@
    "type": "land"
   },
   "ew.land.letter": {
-   "rev": 1,
-   "hash": "6f1324d8485b8b39f4b65be4574985472502c8702ae80917f66fd280a5e330b3",
+   "rev": 2,
+   "hash": "bcadcbc9c24a56423b97dda3a2f8ed12d7384e7635ff525d6e47100a3353823f",
    "type": "land"
   },
   "ew.land.number": {
-   "rev": 1,
-   "hash": "e6f9cd1e7f919aa15a638b6a44af20993c0eb0906df7c430c1839301b81e7cfb",
+   "rev": 2,
+   "hash": "9c0bb88bda19ff873844325d55d894f298c9fb91187c41726d1b3b7d4019630e",
    "type": "land"
   },
   "ew.land.study": {
@@ -61,13 +61,13 @@
    "type": "land"
   },
   "ew.land.nature": {
-   "rev": 1,
-   "hash": "b0c36de017ba3abee104e2357eacad1ca0c9b9c1bc18cb4aa1240cd6def24326",
+   "rev": 2,
+   "hash": "9a8cb57badf35bb43088b2bd3f1d3a8b57765d8ce06417f96471f29b1f58528d",
    "type": "land"
   },
   "ew.land.world": {
-   "rev": 1,
-   "hash": "5aec78dfd88a1a55238aa3a94cd5ab43aa5654b37d5388c0f960c528de084883",
+   "rev": 2,
+   "hash": "72d17f6fb37f501516426157953375a6517d091c429c3109784b74eff1126b41",
    "type": "land"
   },
   "ew.lexicon.letter-sounds": {
@@ -436,8 +436,8 @@
    "type": "activity"
   },
   "ew.quizbank.pilot-cameroon": {
-   "rev": 1,
-   "hash": "0d8fc50c95a0c9b67f9a0ad5814fd54315b01b6bd692f454049004ab0b50d944",
+   "rev": 2,
+   "hash": "cff10bd3768744bb442a5b4ecff67c0863459e498ea661ebde695b95b15ae03a",
    "type": "quiz-bank"
   },
   "ew.quiz.pilot-cameroon-q01": {
@@ -616,8 +616,8 @@
    "type": "story"
   },
   "ew.ui.app": {
-   "rev": 1,
-   "hash": "049a2017a2e53a89271654f6fbe8f088f99449a764f17226cf44d50dfb10f4b4",
+   "rev": 2,
+   "hash": "f44279d9163a80d20f6a9c35f6281ca09fa5c6f7982cf0d6af8bfaeed01dca0b",
    "type": "strings"
   },
   "ew.settings.app": {
@@ -684,40 +684,140 @@
    "rev": 1,
    "hash": "89c1164a17105805d7bcf8d61f51072feb0cd156352ab94a55be29bedb1c50ae",
    "type": "together"
+  },
+  "ew.quizrules.default": {
+   "rev": 1,
+   "hash": "cec35599af38e04de3220e7096110f24f1bf53a86553b01f42a686fdefe5866c",
+   "type": "quiz-rules"
+  },
+  "ew.quizrules.land-classic": {
+   "rev": 1,
+   "hash": "b389fda672d6f124a3ce4c2d732103f2fc570ba787b29d137cdd070a665a3441",
+   "type": "quiz-rules"
+  },
+  "ew.quizrules.country-classic": {
+   "rev": 1,
+   "hash": "ae9d529eec83ed4694cf061b597650903e8780f71d69cdc1c3e0a11431081e38",
+   "type": "quiz-rules"
+  },
+  "ew.line.quiz-ari-correct-1": {
+   "rev": 1,
+   "hash": "23210402b213b7b891cd3bc1dfb269b898b797406f608a91827e529d1f6e19ea",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-correct-2": {
+   "rev": 1,
+   "hash": "892503008e7e1ef055ab604d81b5d54c64edca5e21e7d68478292bbe33ef3509",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-correct-3": {
+   "rev": 1,
+   "hash": "2b39de7c9d7c2479b309120cbb80cf2e7db739d8c726fc3afe916f07e36a34c4",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-tryagain-1": {
+   "rev": 1,
+   "hash": "7897753cedec8590050d69effd8c5b3debb428b78d84916a4956a0de00aa364f",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-tryagain-2": {
+   "rev": 1,
+   "hash": "0c653f41ee9e013826278ed208d8c093e1d781a7021c7bc87a63503ee93ecfe2",
+   "type": "line"
+  },
+  "ew.line.quiz-ezra-hint": {
+   "rev": 1,
+   "hash": "68961f1af166a7420dc987601860e0ec2c452640cc410a7a5ee98226b08f48aa",
+   "type": "line"
+  },
+  "ew.line.quiz-ezra-start": {
+   "rev": 1,
+   "hash": "91b327b97a3c02d6defe0f09ab9ed3c92f5d29880504d78e8bfbc7c4bcd297a4",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-done": {
+   "rev": 1,
+   "hash": "a02eb448748422626303d7f7429fabadfba4a4d9ddd648d238b765a4b6eb67cf",
+   "type": "line"
+  },
+  "ew.quizbank.letter-hunt": {
+   "rev": 1,
+   "hash": "9b9e985d76246b78907c2e0e33ef0096a4de3158cd05918d918818109fe7e3e3",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.animal-quiz": {
+   "rev": 1,
+   "hash": "c030cb9d66bfea2000e534d78fdd4e39a5d5dbabe6ad99d10718c531d7dafba8",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.flag-quiz": {
+   "rev": 1,
+   "hash": "6214014363b02f42f494d542449f07a2d068d253e7e6af4a9241ad6cf40af625",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.count-it": {
+   "rev": 1,
+   "hash": "d9243a60bb6a54d9e8a60950899f6a33751f5ad130cea7634ab67b93aadd2502",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.quiztime": {
+   "rev": 1,
+   "hash": "2c4200c26e4ce35c38bf1d43173a37d10061d053d204dd15c220da1e192ef265",
+   "type": "quiz-bank"
+  },
+  "ew.quiz.quiztime-after-four": {
+   "rev": 1,
+   "hash": "624b07cb0ecbd55395b5893a5b8938a196831dd085e4c52c3ba5812f269d206b",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-find-banana": {
+   "rev": 1,
+   "hash": "030f178c68db01f042a6088081b1c5b35ee151e052f91f7f09d61f9ff3eba628",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-count-stars": {
+   "rev": 1,
+   "hash": "5a33338006cfbebbbf5144445af3b7f8834c3d827a3aaa5980f4a8092feb1e0f",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-three-more": {
+   "rev": 1,
+   "hash": "16b625147a176e84edf2f18ebc60077587f673209c7e476b9b13f6160275a79f",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-order-123": {
+   "rev": 1,
+   "hash": "4462c1ac206de335a8c808cca9f37f8d1a650ed102a5ab8b27685741cd18a321",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-match-words": {
+   "rev": 1,
+   "hash": "dc9154e67e1d36b55b7d55b3e90d95c5d2c90dd280f17a8ea96b87cb40a85986",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-biggest": {
+   "rev": 1,
+   "hash": "12f6387320f4e9f5814dd896a41dc8bdfd3d2737a602ab55f12b1144d4bcdd1e",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-five-five": {
+   "rev": 1,
+   "hash": "6135e225a29ed07149a3f28f80bd2107f611ab597bcea691027db5a39e28887c",
+   "type": "quiz-item"
   }
  },
  "retired": {},
  "packs": {
   "core": {
-   "rev": 3,
-   "hash": "8ffd5834fda3ddf488365789a14042f10cd963c98aceab422661e8cc81ce275c"
+   "rev": 4,
+   "hash": "ba1e1d1f3e9484d73fa97a0f9194034c0aaa183735d807566e3dfabb05ea0d73"
   },
   "country.cameroon": {
-   "rev": 2,
-   "hash": "3023f8127a082354b3cde010d3feaa83eeed215441b2ab4db5438b293ac64d54"
+   "rev": 3,
+   "hash": "80c0b9e82bed0fd5b796d883ac5d9616e469bb24eb2cbf9c5697cf449153151a"
   }
  },
  "releases": [
-  {
-   "sequence": 5,
-   "issued": "2026-11-15T14:04:48Z",
-   "channel": "live",
-   "contentHash": "b0fb34fbe2f7578c86238b56443b86b584b77f92329d91d8228860ec18e9dc6e",
-   "catalogSha256": "54de43ba308177b84e8603cea922cdb8a0868a31199a1a3e382f229dc67985db",
-   "files": [
-    "catalog.json",
-    "indexes/core.dcc8eac7b91c8467.json",
-    "indexes/countries.africa.852530a8ccfa299b.json",
-    "packs/core.assets.3955ec47d659b283.json",
-    "packs/core.cca5ef4f3a524934.json",
-    "packs/core@en.be3b59e8ece9b5fe.json",
-    "packs/core@fr.3477ebacb6dbca1a.json",
-    "packs/country.cameroon.531bcaa945e83704.json",
-    "packs/country.cameroon.assets.bf2ccb21a25c5a79.json",
-    "packs/country.cameroon@en.334e0a59f758de6d.json",
-    "packs/country.cameroon@fr.2e92937f8fee430e.json"
-   ]
-  },
   {
    "sequence": 6,
    "issued": "2026-11-15T21:36:55Z",
@@ -737,7 +837,27 @@
     "packs/country.cameroon@en.334e0a59f758de6d.json",
     "packs/country.cameroon@fr.2e92937f8fee430e.json"
    ]
+  },
+  {
+   "sequence": 7,
+   "issued": "2026-11-16T04:43:06Z",
+   "channel": "live",
+   "contentHash": "da59ab203fc89a4b66495a65fed60a0495348b6f6f2f8b55594dfc776ab0c5b2",
+   "catalogSha256": "c0195c780613b497774519f8c33ca6c716e0248299023d0ead279cd93a8f5158",
+   "files": [
+    "catalog.json",
+    "indexes/core.6c57e9f786a3a59f.json",
+    "indexes/countries.africa.de76a6041e656f3d.json",
+    "packs/core.assets.41064936d1f7f917.json",
+    "packs/core.cb81e6b40d5a892a.json",
+    "packs/core@en.1abf1d366dba9bf1.json",
+    "packs/core@fr.235a02645d361292.json",
+    "packs/country.cameroon.assets.208c77330cec4695.json",
+    "packs/country.cameroon.d6f422180521c4cc.json",
+    "packs/country.cameroon@en.8d2d9960258089bb.json",
+    "packs/country.cameroon@fr.b63ed55ede9ff186.json"
+   ]
   }
  ],
- "sequence": 6
+ "sequence": 7
 }

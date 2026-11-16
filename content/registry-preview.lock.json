@@ -46,13 +46,13 @@
    "type": "land"
   },
   "ew.land.letter": {
-   "rev": 2,
-   "hash": "f6105f561526cba1de9a281568febfb2b1340872ae11523621c85b52d77b1550",
+   "rev": 3,
+   "hash": "7c3f4f982b91f6c3530ac9a520967ee730114a2293f30c00668fd81e930fc00c",
    "type": "land"
   },
   "ew.land.number": {
-   "rev": 2,
-   "hash": "515bdc9cd510f36cfa8a27882cf0536a14e283651f86f4a8f4e8502a8cf92d2f",
+   "rev": 3,
+   "hash": "9ea523eb19faff16989405f3c5d00c0c5c0ec6099f8c969b5abd17668d325d60",
    "type": "land"
   },
   "ew.land.study": {
@@ -61,13 +61,13 @@
    "type": "land"
   },
   "ew.land.nature": {
-   "rev": 2,
-   "hash": "7b0e84632bc8365e14592df7ce71b4bb5445c333b15dbd8f11ca215854fa0970",
+   "rev": 3,
+   "hash": "9d1ef9d6ced68b91531af99ea282c8e820afab5a3402acbe913d21e181bf8ee2",
    "type": "land"
   },
   "ew.land.world": {
-   "rev": 2,
-   "hash": "e6a05d6daf8d96a6765676847adeef94acc002a2d6ac1c1021c55993e1b5940b",
+   "rev": 3,
+   "hash": "95499244538de40cda5c5650291bf83c77c9958e518c697dd78f778259d2fabf",
    "type": "land"
   },
   "ew.lexicon.letter-sounds": {
@@ -436,8 +436,8 @@
    "type": "activity"
   },
   "ew.quizbank.pilot-cameroon": {
-   "rev": 1,
-   "hash": "0d8fc50c95a0c9b67f9a0ad5814fd54315b01b6bd692f454049004ab0b50d944",
+   "rev": 2,
+   "hash": "cff10bd3768744bb442a5b4ecff67c0863459e498ea661ebde695b95b15ae03a",
    "type": "quiz-bank"
   },
   "ew.quiz.pilot-cameroon-q01": {
@@ -616,8 +616,8 @@
    "type": "story"
   },
   "ew.ui.app": {
-   "rev": 1,
-   "hash": "ce30f6b3fbf0f6079513a356311abd0b4253f2d173e286f268f143103da2cb1b",
+   "rev": 2,
+   "hash": "f7815133b5e2268887b305ee8a584356177832797d2ecea791f41dd4edaa67f4",
    "type": "strings"
   },
   "ew.settings.app": {
@@ -684,17 +684,137 @@
    "rev": 1,
    "hash": "89c1164a17105805d7bcf8d61f51072feb0cd156352ab94a55be29bedb1c50ae",
    "type": "together"
+  },
+  "ew.quizrules.default": {
+   "rev": 1,
+   "hash": "cec35599af38e04de3220e7096110f24f1bf53a86553b01f42a686fdefe5866c",
+   "type": "quiz-rules"
+  },
+  "ew.quizrules.land-classic": {
+   "rev": 1,
+   "hash": "b389fda672d6f124a3ce4c2d732103f2fc570ba787b29d137cdd070a665a3441",
+   "type": "quiz-rules"
+  },
+  "ew.quizrules.country-classic": {
+   "rev": 1,
+   "hash": "ae9d529eec83ed4694cf061b597650903e8780f71d69cdc1c3e0a11431081e38",
+   "type": "quiz-rules"
+  },
+  "ew.line.quiz-ari-correct-1": {
+   "rev": 1,
+   "hash": "23210402b213b7b891cd3bc1dfb269b898b797406f608a91827e529d1f6e19ea",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-correct-2": {
+   "rev": 1,
+   "hash": "892503008e7e1ef055ab604d81b5d54c64edca5e21e7d68478292bbe33ef3509",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-correct-3": {
+   "rev": 1,
+   "hash": "2b39de7c9d7c2479b309120cbb80cf2e7db739d8c726fc3afe916f07e36a34c4",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-tryagain-1": {
+   "rev": 1,
+   "hash": "7897753cedec8590050d69effd8c5b3debb428b78d84916a4956a0de00aa364f",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-tryagain-2": {
+   "rev": 1,
+   "hash": "0c653f41ee9e013826278ed208d8c093e1d781a7021c7bc87a63503ee93ecfe2",
+   "type": "line"
+  },
+  "ew.line.quiz-ezra-hint": {
+   "rev": 1,
+   "hash": "68961f1af166a7420dc987601860e0ec2c452640cc410a7a5ee98226b08f48aa",
+   "type": "line"
+  },
+  "ew.line.quiz-ezra-start": {
+   "rev": 1,
+   "hash": "91b327b97a3c02d6defe0f09ab9ed3c92f5d29880504d78e8bfbc7c4bcd297a4",
+   "type": "line"
+  },
+  "ew.line.quiz-ari-done": {
+   "rev": 1,
+   "hash": "a02eb448748422626303d7f7429fabadfba4a4d9ddd648d238b765a4b6eb67cf",
+   "type": "line"
+  },
+  "ew.quizbank.letter-hunt": {
+   "rev": 1,
+   "hash": "9b9e985d76246b78907c2e0e33ef0096a4de3158cd05918d918818109fe7e3e3",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.animal-quiz": {
+   "rev": 1,
+   "hash": "c030cb9d66bfea2000e534d78fdd4e39a5d5dbabe6ad99d10718c531d7dafba8",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.flag-quiz": {
+   "rev": 1,
+   "hash": "6214014363b02f42f494d542449f07a2d068d253e7e6af4a9241ad6cf40af625",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.count-it": {
+   "rev": 1,
+   "hash": "d9243a60bb6a54d9e8a60950899f6a33751f5ad130cea7634ab67b93aadd2502",
+   "type": "quiz-bank"
+  },
+  "ew.quizbank.quiztime": {
+   "rev": 1,
+   "hash": "2c4200c26e4ce35c38bf1d43173a37d10061d053d204dd15c220da1e192ef265",
+   "type": "quiz-bank"
+  },
+  "ew.quiz.quiztime-after-four": {
+   "rev": 1,
+   "hash": "624b07cb0ecbd55395b5893a5b8938a196831dd085e4c52c3ba5812f269d206b",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-find-banana": {
+   "rev": 1,
+   "hash": "030f178c68db01f042a6088081b1c5b35ee151e052f91f7f09d61f9ff3eba628",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-count-stars": {
+   "rev": 1,
+   "hash": "5a33338006cfbebbbf5144445af3b7f8834c3d827a3aaa5980f4a8092feb1e0f",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-three-more": {
+   "rev": 1,
+   "hash": "16b625147a176e84edf2f18ebc60077587f673209c7e476b9b13f6160275a79f",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-order-123": {
+   "rev": 1,
+   "hash": "4462c1ac206de335a8c808cca9f37f8d1a650ed102a5ab8b27685741cd18a321",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-match-words": {
+   "rev": 1,
+   "hash": "dc9154e67e1d36b55b7d55b3e90d95c5d2c90dd280f17a8ea96b87cb40a85986",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-biggest": {
+   "rev": 1,
+   "hash": "12f6387320f4e9f5814dd896a41dc8bdfd3d2737a602ab55f12b1144d4bcdd1e",
+   "type": "quiz-item"
+  },
+  "ew.quiz.quiztime-five-five": {
+   "rev": 1,
+   "hash": "6135e225a29ed07149a3f28f80bd2107f611ab597bcea691027db5a39e28887c",
+   "type": "quiz-item"
   }
  },
  "retired": {},
  "packs": {
   "core": {
-   "rev": 5,
-   "hash": "e9466ee35f7383a16316927a86db1e36a61e4f01feb5b38f866447f099a330cc"
+   "rev": 6,
+   "hash": "f24d2959b550d1b0afab10c53bb5a1b708d3797a61f6a109173bbf1dd49a25da"
   },
   "country.cameroon": {
-   "rev": 2,
-   "hash": "3023f8127a082354b3cde010d3feaa83eeed215441b2ab4db5438b293ac64d54"
+   "rev": 3,
+   "hash": "80c0b9e82bed0fd5b796d883ac5d9616e469bb24eb2cbf9c5697cf449153151a"
   },
   "life": {
    "rev": 1,
@@ -702,31 +822,6 @@
   }
  },
  "releases": [
-  {
-   "sequence": 10,
-   "issued": "2026-11-15T14:04:49Z",
-   "channel": "preview",
-   "contentHash": "e1b87dfead17170d5bee012bb498b9ad83d40b6d88f235b90ae42fccb4603b8d",
-   "catalogSha256": "5306084b3f5ffbafc3e56fa330bcfe07535ccb1b353f9b1bd4c8f3b5bc9c855c",
-   "files": [
-    "catalog.json",
-    "indexes/core.d17f8a25dcddd4e4.json",
-    "indexes/countries.africa.852530a8ccfa299b.json",
-    "indexes/life.d315a88a004476bd.json",
-    "packs/core.assets.8059016788595957.json",
-    "packs/core.c41c550e4018133e.json",
-    "packs/core@en.f16c459c7149acad.json",
-    "packs/core@fr.e322bad562c779fe.json",
-    "packs/country.cameroon.531bcaa945e83704.json",
-    "packs/country.cameroon.assets.bf2ccb21a25c5a79.json",
-    "packs/country.cameroon@en.334e0a59f758de6d.json",
-    "packs/country.cameroon@fr.2e92937f8fee430e.json",
-    "packs/life.3ec743214fab8c24.json",
-    "packs/life.assets.3a1a45d5de980648.json",
-    "packs/life@en.62bf8a3ff77c29b9.json",
-    "packs/life@fr.af634c1edfe0d27a.json"
-   ]
-  },
   {
    "sequence": 11,
    "issued": "2026-11-15T21:36:56Z",
@@ -751,7 +846,32 @@
     "packs/life@en.62bf8a3ff77c29b9.json",
     "packs/life@fr.af634c1edfe0d27a.json"
    ]
+  },
+  {
+   "sequence": 12,
+   "issued": "2026-11-16T04:43:07Z",
+   "channel": "preview",
+   "contentHash": "3bb7d9e80d233624f5aefad0ef21f68d00f1172552afa954da1667d43a6b0adb",
+   "catalogSha256": "5d581488405477cb9ab067c73c015c9e6e6fc6a23f99ca48d3af60bc14dd9acf",
+   "files": [
+    "catalog.json",
+    "indexes/core.3341da9b523ef691.json",
+    "indexes/countries.africa.de76a6041e656f3d.json",
+    "indexes/life.d315a88a004476bd.json",
+    "packs/core.1a1843f60c79c352.json",
+    "packs/core.assets.4b267830711b70ec.json",
+    "packs/core@en.3e30639f2ccc68db.json",
+    "packs/core@fr.ee875eb392411585.json",
+    "packs/country.cameroon.assets.208c77330cec4695.json",
+    "packs/country.cameroon.d6f422180521c4cc.json",
+    "packs/country.cameroon@en.8d2d9960258089bb.json",
+    "packs/country.cameroon@fr.b63ed55ede9ff186.json",
+    "packs/life.3ec743214fab8c24.json",
+    "packs/life.assets.3a1a45d5de980648.json",
+    "packs/life@en.62bf8a3ff77c29b9.json",
+    "packs/life@fr.af634c1edfe0d27a.json"
+   ]
   }
  ],
- "sequence": 11
+ "sequence": 12
 }

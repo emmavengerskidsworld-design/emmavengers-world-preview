@@ -103,7 +103,7 @@ function land(a){const L=landById((a&&a.id)||curLand);if(!L){go('home');return}i
  cacheClips([...L.places.map(p=>p.type==='link'?LINK_SAY[p.go]:p.intro),...L.places.flatMap(p=>p.deck?wDeck(p.deck).items.flatMap(it=>it.say):[])])}
 function openPlace(L,p){if(!p)return;const a={l:L.id,p:p.id};
  if(p.type==='link'){go(p.go);return}
- if(p.type==='cards')go('wcards',a);else if(p.type==='quiz')go('wquiz',a);else if(p.type==='count')go('wcount',a);else if(p.type==='country')go('ctry',{c:p.country,from:'land'})}
+ if(p.type==='cards')go('wcards',a);else if(p.type==='quiz')go('wquiz',a);else if(p.type==='count')go('wcount',a);else if(p.type==='country')go('ctry',{c:p.country,from:'land'});else if(p.type==='bank')go('qplay',{l:L.id,p:p.id,b:p.quiz,fresh:1})}
 
 /* --- cards: tap a tile to open its big card (voice + 3D picture). First look at each card = 1 star. --- */
 const LCOL=['#e8261c','#2f86e8','#1f8a2b','#ff8c00','#a855f7','#e83e8c'];
@@ -149,11 +149,15 @@ function wGood(el,line,next){sfx.right();stars++;setScore();state.score++;const 
  const tok=++state.tok;say([wPraise(),line].filter(Boolean),1);confetti(60);whenQuiet(()=>{if(state.tok===tok)next()})}
 function wNext(a,scr){state.round++;if(state.round>=state.total)go('wreward',a);else go(scr,{...a,r:1})}
 function wStart(a,p,total){state={land:a.l,place:a.p,round:0,total,score:0,miss:0,used:[],missed:[],tok:0,prev:0}}
-function wquiz(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLand=L.id;const pool=D.items.filter(it=>it.hunt!==false);
- if(!a.r)wStart(a,p,Math.min(p.rounds||8,pool.length*2));
+/* Stage 3: the land quizzes run on the quiz engine (quiz.js). The place's quiz bank (content: ew.quizbank.*) gives the
+   rules - rounds, answer buttons, stars, the number range of Count It! - as data; without one the engine's built-in
+   rules are exactly the old behaviour. */
+const wRules=p=>window.EWQuiz?EWQuiz.rules(p.quiz||null):null;
+const wQuizId=p=>p.quiz||('place:'+p.id);
+function wquiz(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLand=L.id;const pool=D.items.filter(it=>it.hunt!==false);const R=wRules(p);
+ if(!a.r)wStart(a,p,Math.min(p.rounds||EWQuiz.roundSize(R,null,8),pool.length*2));
  $('#title').textContent=p.name;
- let t=pick(pool,1,state.used)[0];if(!t){state.used=[];t=pick(pool,1,[state.last])[0]}state.used.push(t);state.last=t;
- const ch=shuffle([t,...pick(pool,2,[t])]);const ask=wFill(p.ask,t);
+ const q=EWQuiz.deckQuestion(pool,state,R),t=q.target,ch=q.choices;const ask=wFill(p.ask,t);
  let body;
  if(p.mode==='letter')body=`<div class="wqpic"><img src="${t.img}" alt=""><div class="wblank"><b>?</b>${esc(t.word.slice(1))}</div></div><div class="choices wlet">${ch.map(c=>`<button class="opt wl" data-ok="${c===t?1:0}">${c.id}</button>`).join('')}</div>`;
  else body=`<div class="choices wpics ${p.mode==='flag'?'flags':''}">${ch.map(c=>`<button class="wpic" data-ok="${c===t?1:0}" aria-label="${esc(T('choice'))}"><img src="${p.mode==='flag'?c.flag:c.img}" alt=""></button>`).join('')}</div>`;
@@ -161,21 +165,23 @@ function wquiz(a){const L=landById(a.l),p=placeById(L,a.p),D=wDeck(p.deck);curLa
  main.querySelector('.say').onclick=()=>say(ask);
  say(state.round===0&&!a.r?[p.intro,ask]:[ask]);
  const line=p.mode==='letter'?t.say[1]:t.say[0];
- main.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(b.dataset.ok==='1')wGood(b,line,()=>wNext(a,'wquiz'));else wrong(b)});
+ let tries=0;const rec=()=>EWQuiz.progress.record(wQuizId(p),D.kind+':'+(t.id||t.n),{first:tries===0},R);
+ main.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(b.dataset.ok==='1'){rec();wGood(b,line,()=>wNext(a,'wquiz'))}else{tries++;wrong(b)}});
  warmVoice(pool.map(it=>wFill(p.ask,it)).concat(pool.map(it=>p.mode==='letter'?it.say[1]:it.say[0])),1)}
-function wcount(a){const L=landById(a.l),p=placeById(L,a.p),NUM=wDeck(p.deck).items,OB=wDeck(p.objects).items;curLand=L.id;
- if(!a.r)wStart(a,p,p.rounds||8);
+function wcount(a){const L=landById(a.l),p=placeById(L,a.p),NUM=wDeck(p.deck).items,OB=wDeck(p.objects).items;curLand=L.id;const R=wRules(p);
+ if(!a.r)wStart(a,p,p.rounds||EWQuiz.roundSize(R,null,8));
  $('#title').textContent=p.name;
- let N;do{N=1+(Math.random()*10|0)}while(N===state.prev);state.prev=N;
+ /* the number range is data (generator min/max) but never beyond the number cards the deck has */
+ const G0=Object.assign({},EWQuiz.generator(p.quiz||null)||{});G0.max=Math.min(G0.max||10,NUM.length);
+ const q=EWQuiz.countQuestion(G0,state,R),N=q.n,opts=q.options;
  const O=OB[Math.random()*OB.length|0];
- const near=shuffle([N-2,N-1,N+1,N+2,N+3,N-3].filter(x=>x>=1&&x<=10));const opts=shuffle([N,near[0],near[1]]);
  main.innerHTML=header(O.ask)+`<div class="wcount" id="wc">${Array.from({length:N},(_,i)=>`<button class="wobj" style="animation-delay:${(i*.06).toFixed(2)}s" aria-label="${esc(T('count'))}"><img src="${O.img}" alt=""></button>`).join('')}</div><div class="hint">${esc(T('tapToCount'))}</div><div class="choices wnums">${opts.map(n=>`<button class="opt wn" data-n="${n}">${NF(n)}</button>`).join('')}</div>`;
  main.querySelector('.say').onclick=()=>say(O.ask);
  say(state.round===0&&!a.r?[p.intro,O.ask]:[O.ask]);
  let c=0;main.querySelectorAll('.wobj').forEach(b=>b.onclick=()=>{if(b.classList.contains('counted')||b.disabled)return;c++;b.classList.add('counted');b.dataset.c=NF(c);sfx.pop();say(NUM[c-1].say[0],0,1)});
- main.querySelectorAll('.wn').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(+b.dataset.n===N)wGood(b,NUM[N-1].say[0],()=>wNext(a,'wcount'));else wrong(b)});
+ let tries=0;main.querySelectorAll('.wn').forEach(b=>b.onclick=()=>{if(b.disabled)return;if(+b.dataset.n===N){EWQuiz.progress.record(wQuizId(p),'count:'+N,{first:tries===0},R);wGood(b,NUM[N-1].say[0],()=>wNext(a,'wcount'))}else{tries++;wrong(b)}});
  warmVoice(OB.map(o=>o.ask).concat(NUM.map(n=>n.say[0])),1)}
-function wreward(a){const L=landById(a.l),p=placeById(L,a.p);curLand=L.id;const s=starsForMiss(state.miss||0),n=state.score,tot=state.total;
+function wreward(a){const L=landById(a.l),p=placeById(L,a.p);curLand=L.id;const s=window.EWQuiz?EWQuiz.stars(state.miss||0,wRules(p)):starsForMiss(state.miss||0),n=state.score,tot=state.total;if(window.EWQuiz)EWQuiz.progress.finish(wQuizId(p),s);
  const sv=wSave();sv.best=sv.best||{};sv.best[p.id]=Math.max(s,sv.best[p.id]||0);wPut(sv);
  $('#title').textContent=T('greatJob');sfx.win();
  main.innerHTML=`<div class="reward"><h1>${esc(T('greatJob'))}</h1><div class="bigstars">${[0,1,2].map(i=>`<span style="${i<s?'':'filter:grayscale(1);opacity:.35'}">⭐</span>`).join('')}</div><div class="prompt">${esc(T('finished',{name:p.name,n,total:tot}))}<br>${esc(T('totalStars',{stars}))}</div><div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap"><button class="btn" id="again">${esc(T('playAgain'))}</button><button class="btn" id="tomap">${esc(T('backToMap'))}</button></div></div>`;
@@ -270,7 +276,7 @@ function worldBgm(s){if(!WORLD_SCREENS.includes(s))return false;const L=landById
 const map2Ready=fetch('img/world/map2/ready.json').then(r=>r.ok?r.json():[]).then(a=>{MAP2=new Set(a||[])}).catch(()=>{});
 (window.EWLib?EWLib.ready.then(L=>(window.EWi18n?EWi18n.ready:Promise.resolve()).catch(()=>{}).then(()=>L.legacy.lands())):Promise.reject(new Error('library.js missing'))).then(j=>map2Ready.then(()=>{LANDS=j;go('home')})).catch(e=>{console.warn('content library not available',e);go('house')});
 /* language switched (i18n.js): re-read the world in the new language and redraw the screen the child is on */
-addEventListener('ewlang',()=>{if(!window.EWLib)return;LANDS=EWLib.legacy.lands();if(!WORLD_SCREENS.includes(screen)&&screen!=='home')return;if(typeof CT_SCREENS!=='undefined'&&CT_SCREENS.includes(screen))return;
+addEventListener('ewlang',()=>{if(!window.EWLib)return;LANDS=EWLib.legacy.lands();if(!WORLD_SCREENS.includes(screen)&&screen!=='home')return;if(screen==='qplay'||screen==='qdone')return; /* quiz.js redraws its own screens */if(typeof CT_SCREENS!=='undefined'&&CT_SCREENS.includes(screen))return;
  const a=state&&state.place?{l:state.land,p:state.place}:null;
  if(screen==='home'){worldGreeted=false;go('home')}else if(screen==='land')go('land',{id:curLand});
  else if(screen==='study')go('study');else if(screen==='ssec'&&state.sec)go('ssec',{s:state.sec});

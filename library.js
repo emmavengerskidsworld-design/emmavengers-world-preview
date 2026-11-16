@@ -441,7 +441,7 @@ function create(opts) {
       for (const lid of W.lands) { const r = R(lid); if (!r) continue; const p = flat(r.payload, ch); const L = { id: p.key, name: p.name };
         if (p.landType) L.type = p.landType; for (const k of ['color', 'img', 'music']) if (k in p) L[k] = p[k];
         for (const [k, v] of Object.entries(p.layout)) if (k !== 'm6') L[k] = v; L.intro = p.intro;
-        L.places = p.places.filter(q => !q.country || M.recs.has(q.country) || api.packFor(q.country)).map(q => { const o = {};
+        L.places = p.places.filter(q => (!q.country || M.recs.has(q.country) || api.packFor(q.country)) && !(q.type === 'bank' && (!q.quiz || !M.recs.has(q.quiz)))).map(q => { const o = {};
           for (const [k, v] of Object.entries(q)) { if (k === 'key') o.id = v; else if (k === 'deck' || k === 'objects') o[k] = key(v); else if (k === 'country') o[k] = (R(v) ? R(v).payload.slug : summaryOf(v).slug); else o[k] = v } return o });
         if (p.layout.m6) L.m6 = p.layout.m6; out.lands.push(L) }
       for (const r of api.find({ type: 'deck' })) { const p = flat(r.payload, ch); const D = { kind: p.kind }; if ('done' in p) D.done = p.done;

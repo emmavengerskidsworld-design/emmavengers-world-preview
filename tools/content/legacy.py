@@ -348,9 +348,10 @@ def quiz_spoken(recs, chain, seen=None):
             if not it: continue
             q = it['payload']
             pick(q['prompt'])
-            if q['responseType'] != 'picture-pick':
-                for v in (q.get('options') or {}).values(): pick(v)
-            for v in (q.get('optionSay') or {}).values(): pick(v)
+            say = q.get('optionSay') or {}
+            for oid, v in (q.get('options') or {}).items():   # an option is spoken by its optionSay words if it has them
+                if oid in say: pick(say[oid])
+                elif q['responseType'] != 'picture-pick': pick(v)
             for v in (q.get('targets') or {}).values(): pick(v)
             for f in ('hint', 'feedback', 'explanation'): pick(q.get(f))
             lines(q.get('lines'))
