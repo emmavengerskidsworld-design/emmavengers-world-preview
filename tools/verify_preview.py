@@ -82,7 +82,7 @@ async def main():
     await pg.evaluate("go('land',{id:'number'})");await pg.wait_for_timeout(900)
     if await pg.is_visible('.wplace[data-p="quiztime"]'):
       await pg.click('.wplace[data-p="quiztime"]');await pg.wait_for_timeout(1500)
-      q=await pg.evaluate("[screen,(document.querySelector('#qprompt')||{}).textContent||'',document.querySelectorAll('.copt,.qtf button,.wn').length]")
+      q=await pg.evaluate("[screen,(document.querySelector('#qprompt')||{}).textContent||'',document.querySelectorAll('#qplay [data-o],[data-o]').length]")
       ok(q[0]=='qplay' and q[1].strip() and q[2]>=2,f'Quiz Time opens: {q[1].strip()[:50]!r}, {q[2]} answer buttons')
       await pg.evaluate('__ev=[];stopVoice();window.__t0=performance.now()');await pg.tap('#qsay');e=None
       for _ in range(200):
