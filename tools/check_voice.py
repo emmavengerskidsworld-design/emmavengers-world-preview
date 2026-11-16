@@ -20,6 +20,7 @@ if(typeof L4!=='undefined')JSON.stringify(L4,(k,v)=>{if(typeof v==='string'&&/[a
 if(window.__extraVoice)A(window.__extraVoice);
 if(window.__worldVoice)A(window.__worldVoice());
 if(window.__ctryVoice)A(window.__ctryVoice());
+if(window.__quizVoice)A(window.__quizVoice());
 return [...S].map(t=>[t,vh(t)])}"""
 async def main(target):
     srv=None

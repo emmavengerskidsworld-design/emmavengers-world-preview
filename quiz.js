@@ -287,7 +287,7 @@ function qplay(a) {
 function qnext() { if (!QS) { go('home'); return } if (QS.i + 1 < QS.ids.length) go('qplay', Object.assign({}, QS.a, { i: QS.i + 1 })); else go('qdone', QS.a) }
 function qdone(a) {
   if (!QS) { go('land', { id: (a && a.l) || curLand }); return }
-  const s = starsFor(QS.miss, QS.R), n = QS.score, tot = QS.ids.length, name = P(QS.B.payload.title);
+  const s = starsFor(QS.miss, QS.R), n = QS.score, tot = QS.ids.length, name = String(P(QS.B.payload.title) || '').replace(/[\s\u00a0\u202f]*[!?.\uff01]+$/, '');  /* "Quiz Time!" -> no "Quiz Time!!" in "You finished {name}!" */
   progress.finish(QS.B.id, s);
   if (QS.a.p && typeof wSave === 'function') { const sv = wSave(); sv.best = sv.best || {}; sv.best[QS.a.p] = Math.max(s, sv.best[QS.a.p] || 0); wPut(sv) }
   curLand = QS.a.l; $q('#title').textContent = TQ('greatJob'); sfx.win();
