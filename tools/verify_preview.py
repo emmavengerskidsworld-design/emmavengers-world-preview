@@ -27,6 +27,12 @@ def no_grammar(L):   # Stage 2 grammar helper fields for question templates (doc
   for d in L.get('decks',{}).values():
     for it in d.get('items',[]):it.pop('nameDef',None);it.pop('nameOf',None)
   return L
+def no_stage3(L):   # Stage 3 quiz engine: places gain a 'quiz' link to their quiz bank (rules), new 'bank' places (docs/quiz-engine.md)
+  L=copy.deepcopy(L)
+  for l in L.get('lands',[]):
+    l['places']=[p for p in l.get('places',[]) if p.get('type')!='bank']
+    for p in l['places']:p.pop('quiz',None)
+  return L
 async def voice_tap(pg,lg):
   await pg.evaluate("go('clearn',{c:'cameroon',i:0})");await pg.wait_for_timeout(1500)
   await pg.evaluate('__ev=[];stopVoice()');await pg.wait_for_timeout(200);await pg.tap('#cnext');e=None
@@ -44,7 +50,7 @@ async def main():
     pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and errs.append(m.text+' @ '+str((m.location or {}).get('url',''))))
     await pg.goto(U,wait_until='load');await pg.wait_for_function('typeof LANDS!=="undefined"&&LANDS!==null&&screen==="home"&&window.CTRY_READY',timeout=60000)
     st=await pg.evaluate('EWLib.status()');ok(st['ready'] and st['source']=='network',f"online first visit: release {st['sequence']}, {len(st['fetched'])} files, {st['bytes']/1024:.0f} KB, storage {st['storage']}")
-    L=json.loads(await pg.evaluate('JSON.stringify(LANDS)'));ok(no_grammar(L)==json.load(open(F+'lands.json')),'LANDS identical to the pre-Stage-1 lands.json (+ Stage 2 nameDef/nameOf only)')
+    L=json.loads(await pg.evaluate('JSON.stringify(LANDS)'));ok(no_stage3(no_grammar(L))==json.load(open(F+'lands.json')),'LANDS identical to the pre-Stage-1 lands.json (+ Stage 2 nameDef/nameOf, Stage 3 quiz links / Quiz Time place only)')
     ok(all('nameDef' in i for i in L['decks']['animals']['items']),'Stage 2 grammar fields present on the animal deck')
     pk=json.loads(await pg.evaluate('JSON.stringify(CT.packs.cameroon)'));ok(golive(pk)==golive(no_fr(json.load(open(F+'cameroon.json')))),'Cameroon pack (English) identical to the original, except the go-live approval fields')
     await pg.evaluate("go('land',{id:'world'})");await pg.wait_for_timeout(800)
@@ -71,6 +77,24 @@ async def main():
     try: await pg.wait_for_function("EWi18n.lang==='en'&&(document.querySelector('.cmode[data-mode=learn] b')||{}).textContent==='Learn'",timeout=30000);en=True
     except Exception: en=False
     ok(en,'switch back to English: Learn label')
+    # ---- Stage 3 quiz engine: Quiz Time (preview draft) opens, the speaker reads the question from a recorded clip
+    ok(await pg.evaluate('!!window.EWQuiz&&!!EWLib.get("ew.quizrules.default")'),'quiz engine loaded with its rules records')
+    await pg.evaluate("go('land',{id:'number'})");await pg.wait_for_timeout(900)
+    if await pg.is_visible('.wplace[data-p="quiztime"]'):
+      await pg.click('.wplace[data-p="quiztime"]');await pg.wait_for_timeout(1500)
+      q=await pg.evaluate("[screen,(document.querySelector('#qprompt')||{}).textContent||'',document.querySelectorAll('#main .copt,#main .qtf button,#main .qslot').length]")
+      ok(q[0]=='qplay' and q[1].strip() and q[2]>=2,f'Quiz Time opens: {q[1].strip()[:50]!r}, {q[2]} answer buttons')
+      await pg.evaluate('__ev=[];stopVoice();window.__t0=performance.now()');await pg.tap('#qsay');e=None
+      for _ in range(200):
+        e=await pg.evaluate('__ev.find(x=>x.t>=__t0)||null')
+        if e:break
+        await pg.wait_for_timeout(50)
+      await pg.wait_for_timeout(2500);allv=await pg.evaluate('__ev.map(x=>x.src)')
+      ok(bool(e) and '/voice/' in e['src'] and 'TTS' not in allv,f"quiz speaker plays recorded clips ({len(allv)} sounds, first {e and e['src'].split('/')[-1]})")
+    else: ok(False,'Quiz Time place missing on Number Land (preview should show the draft)')
+    await pg.evaluate("go('wquiz',{l:'nature',p:'animalquiz'})");await pg.wait_for_timeout(1200)
+    ok(await pg.evaluate("screen==='wquiz'&&document.querySelectorAll('#main [data-ok]').length>=2"),'a land quiz (Animal Quiz) still plays on the engine')
+    await pg.evaluate("go('home')");await pg.wait_for_timeout(500)
     info=await pg.evaluate("""async()=>{await navigator.serviceWorker.ready;const t0=Date.now();for(;;){const sw=await fetch('sw.js').then(r=>r.text());const want=JSON.parse(sw.match(/ASSETS=(\\[.*?\\]);/)[1]);
       /* every file of THIS build's core on the phone (the worker takes charge after the shell; the rest downloads in the background) */let have=0;for(const u of want)if(await caches.match(new URL(u,location.href).href,{ignoreSearch:true}))have++;
       if(have>=want.length&&navigator.serviceWorker.controller)return {have,want:want.length,s:(Date.now()-t0)/1000};if(Date.now()-t0>600000)return {timeout:true,have,want:want.length};await new Promise(z=>setTimeout(z,2000))}}""")

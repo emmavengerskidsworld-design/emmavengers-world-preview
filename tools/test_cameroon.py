@@ -240,7 +240,7 @@ async def online(b,url,vw,vh):
         # every spoken Cameroon line (EN + FR) has a recorded clip
         miss=await pg.evaluate("async()=>{const m=[];for(const t of __ctryVoice()){const r=await fetch(voiceUrl(t),{method:'HEAD'});if(!r.ok)m.push(t)}return m}")
         ok(not miss,f'every Cameroon line has a voice clip ({len(miss)} missing {miss[:2]})')
-        priv=await pg.evaluate("Object.keys(localStorage)");ok(set(priv)<= {'emmaCtry','emmaCtryPrefs','emmaWorld','emmaStars','emmaLevels','emmaVoice','emmaVoiceOff','emmaParentPin','emmaMuted','emmaMute','emmaLang','ewOldDbGone'} ,f'only app keys in local storage {priv}')
+        priv=await pg.evaluate("Object.keys(localStorage)");ok(set(priv)<= {'emmaCtry','emmaCtryPrefs','emmaWorld','emmaStars','emmaLevels','emmaVoice','emmaVoiceOff','emmaParentPin','emmaMuted','emmaMute','emmaLang','ewOldDbGone','emmaQuiz','emmaProfile'} ,f'only app keys in local storage {priv}')
         ev=await pg.evaluate("JSON.parse(localStorage.emmaCtry).events.slice(0,3)");ok(all(set(e)<= {'item','first','supported','repeat','skipped','activity','moves'} for e in ev),f'practice events hold no personal data {ev}')
     ok(not errs,f'{vw}: no JS/console errors {errs[:4]}')
     await ctx.close()

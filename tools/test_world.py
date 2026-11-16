@@ -134,9 +134,9 @@ async def offline(b,url):
     await pg.wait_for_function('LANDS!==null&&screen==="home"',timeout=10000)
     res=await pg.evaluate("""async()=>{const bad=[];const chk=async u=>{try{const r=await fetch(u);if(!r.ok)bad.push(u)}catch(e){bad.push(u)}};await chk(LANDS.world.img);
       for(const L of LANDS.lands){go('land',{id:L.id});await new Promise(z=>setTimeout(z,250));await chk(L.img);for(const p of L.places){await chk(p.icon);if(p.type==='link'||p.type==='country')continue; /* country packs: tools/test_cameroon.py */
-        go(p.type==='cards'?'wcards':p.type==='quiz'?'wquiz':'wcount',{l:L.id,p:p.id});await new Promise(z=>setTimeout(z,450));[...document.images].filter(i=>i.getAttribute("src")&&i.complete&&!i.naturalWidth).forEach(i=>bad.push(i.src))}}
+        if(p.type==='bank')go('qplay',{l:L.id,p:p.id,b:p.quiz,fresh:1});else go(p.type==='cards'?'wcards':p.type==='quiz'?'wquiz':'wcount',{l:L.id,p:p.id});await new Promise(z=>setTimeout(z,450));[...document.images].filter(i=>i.getAttribute("src")&&i.complete&&!i.naturalWidth).forEach(i=>bad.push(i.src))}}
       for(const d of Object.values(LANDS.decks))for(const it of d.items)for(const k of ['img','flag','foodImg'])if(it[k])await chk(it[k]);
-      for(const t of __worldVoice())await chk(voiceUrl(t));go('home');return {bad,voice:__worldVoice().length}}""")
+      for(const t of __worldVoice().concat(window.__quizVoice?__quizVoice():[]))await chk(voiceUrl(t));go('home');return {bad,voice:__worldVoice().length}}""")
     await pg.wait_for_timeout(500);await pg.screenshot(path=str(OUT/'world-map-offline-412.png'))
     log('  offline world check:',res['voice'],'voice lines; problems',res['bad'][:5]);ok(not res['bad'],f'offline assets missing {res["bad"][:5]}')
     ok(not net,f'offline requests hit network {net[:3]}');ok(not errs,f'offline errors {errs[:3]}')
