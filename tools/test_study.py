@@ -30,7 +30,7 @@ CHECK_SHELVES="""async()=>{const out=[];for(const s of LANDS.study.sections){go(
 async def online(b,url,vw,vh):
     print(f'--- online {vw}x{vh}')
     ctx=await b.new_context(viewport={'width':vw,'height':vh},device_scale_factor=2,is_mobile=True,has_touch=True);pg=await ctx.new_page()
-    errs=[];pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and errs.append(m.text))
+    errs=[];pg.on('pageerror',lambda e:errs.append(str(e)));pg.on('console',lambda m:m.type=='error' and errs.append(m.text));pg.on('response',lambda r:r.status>=400 and errs.append(f'HTTP {r.status} {r.url}'))
     await pg.goto(url,wait_until='load');await pg.wait_for_function('LANDS!==null&&screen==="home"',timeout=15000)
     ok(await pg.evaluate("document.querySelectorAll('.w6 .wland').length")==6,f'{vw}: 6 lands on the world map')
     pos=await pg.evaluate("""()=>Object.fromEntries([...document.querySelectorAll('.w6land')].map(e=>{const r=e.getBoundingClientRect();return [e.dataset.l,[r.left+r.width/2,r.top+r.height/2,r.width]]}))""")
@@ -60,8 +60,8 @@ async def online(b,url,vw,vh):
         r=await pg.evaluate("""()=>{const a=m2('study-animals.jpg','PH');MAP2.add('study-animals.jpg');const b=m2('study-animals.jpg','PH');MAP2.delete('study-animals.jpg');return [a,b]}""")
         ready=json.load(open(ROOT/'img/world/map2/ready.json'))
         ok(r[1]=='img/world/map2/study-animals.jpg' and (r[0]=='PH' or 'study-animals.jpg' in ready),f'map2 art swap + placeholder fallback {r}')
-        # adding a subject = one data entry
-        c=await pg.evaluate("""()=>{LANDS.study.sections.push({id:'shapes',name:'Shapes',icon:'img/world/places/count.webp',source:'',intro:'Shapes!',items:[{name:'Star',img:'img/world/places/count.webp',say:['Star!']}]});go('study');return document.querySelectorAll('.ssec').length}""")
+        # adding a subject = one data entry (its lines reuse a recorded clip, so the test page asks for no missing file)
+        c=await pg.evaluate("""()=>{LANDS.study.sections.push({id:'shapes',name:'Shapes',icon:'img/world/places/count.webp',source:'',intro:'Lion!',items:[{name:'Star',img:'img/world/places/count.webp',say:['Lion!']}]});go('study');return document.querySelectorAll('.ssec').length}""")
         ok(c==7,'a new subject shows from a data entry only');await pg.evaluate("LANDS.study.sections.pop();go('home')")
     ok(not errs,f'{vw}: no JS/console errors {errs[:3]}')
     await ctx.close()
