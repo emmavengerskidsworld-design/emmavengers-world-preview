@@ -193,7 +193,8 @@
       "rounds": 8,
       "intro": {
        "en": "Letter hunt! Find the first letter of each word!"
-      }
+      },
+      "quiz": "ew.quizbank.letter-hunt"
      }
     ]
    }
@@ -275,6 +276,24 @@
       "rounds": 8,
       "intro": {
        "en": "Count it! Tap each one to count, then pick the number!"
+      },
+      "quiz": "ew.quizbank.count-it"
+     },
+     {
+      "key": "quiztime",
+      "name": {
+       "en": "Quiz Time!"
+      },
+      "sub": {
+       "en": "Tap the answer"
+      },
+      "icon": "img/world/places/hunt.webp",
+      "type": "bank",
+      "quiz": "ew.quizbank.quiztime",
+      "x": 50,
+      "y": 86,
+      "intro": {
+       "en": "Quiz time! Listen to each question, then tap your answer."
       }
      }
     ]
@@ -405,7 +424,8 @@
       "rounds": 8,
       "intro": {
        "en": "Animal quiz! Can you find the right animal?"
-      }
+      },
+      "quiz": "ew.quizbank.animal-quiz"
      }
     ]
    }
@@ -504,7 +524,8 @@
       "rounds": 5,
       "intro": {
        "en": "Flag quiz! Can you find the right flag?"
-      }
+      },
+      "quiz": "ew.quizbank.flag-quiz"
      }
     ]
    }

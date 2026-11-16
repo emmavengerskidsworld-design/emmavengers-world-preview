@@ -75,6 +75,12 @@ class Build:
                     if q.get('country') and q['country'] not in recs:
                         self.pruned.append(f'{r["id"]} place {q["key"]} (points at {q["country"]}, not in channel {self.channel})')
                         continue
+                    if q.get('quiz') and q['quiz'] not in recs:
+                        if q['type'] == 'bank':
+                            self.pruned.append(f'{r["id"]} place {q["key"]} (quiz bank {q["quiz"]} not in channel {self.channel})')
+                            continue
+                        q = dict(q); del q['quiz']   # deck quiz without its bank: the app's built-in rules apply
+                        self.pruned.append(f'{r["id"]} place {q["key"]}: quiz link removed (bank not in channel {self.channel})')
                     keep.append(q)
                 r['payload']['places'] = keep
         # ---- packs ----

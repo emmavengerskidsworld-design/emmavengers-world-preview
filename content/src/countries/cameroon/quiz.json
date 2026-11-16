@@ -58,7 +58,8 @@
      "bigRound": 5,
      "noRepeatWithinSession": true,
      "onPoolExhaustion": "show Finish or clearly labelled 'Practice repeat'; never silent; repeats recorded as repeats"
-    }
+    },
+    "rules": "ew.quizrules.country-classic"
    },
    "evidence": {
     "note": "Finite bank of 24 items. Not infinite. All French pending fluent-speaker approval. Keys stored before shuffle; distractor position randomised at display only."

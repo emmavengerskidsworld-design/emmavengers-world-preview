@@ -50,6 +50,8 @@ def lands(recs, locales, chain=('en',), seen=None):
         for q in p['places']:
             if q.get('country') and q['country'] not in recs:
                 continue  # country left out of this channel (e.g. a draft on the live channel)
+            if q.get('quiz') and q['quiz'] not in recs and q.get('type') == 'bank':
+                continue  # quiz bank left out of this channel
             o = {}
             for k, v in q.items():
                 if k == 'key': o['id'] = v
@@ -317,3 +319,41 @@ def country_spoken(pk, bank, ui, langs=('en', 'fr')):
     if ui:
         for k in ('shorter', 'needToKnow'): add(ui['strings'].get(k))
     return out
+
+
+# ---------- quiz engine (Stage 3): every line an authored quiz bank can speak (mirrors quiz.js quizVoice) ----------
+def quiz_spoken(recs, chain, seen=None):
+    """(text, language) of every line the quiz player (quiz.js) can speak for authored banks (banks with items that
+    are not a country's bank - those are spoken by country_spoken). The language is the first of the chain that has
+    the text, exactly like the app's fallback."""
+    out = []
+    def pick(lt):
+        if not isinstance(lt, dict): return
+        lg = next((l for l in chain if lt.get(l) is not None), None)
+        if lg is None: return
+        out.append((lt[lg], lg))
+        if seen is not None: seen.setdefault(lt[lg], lg)
+    country_banks = {r['payload'].get('quiz', {}).get('bank') for r in recs.values() if r['type'] == 'country'}
+    ui = (recs.get('ew.ui.app') or {}).get('payload', {}).get('strings', {})
+    def lines(L):
+        for ids in (L or {}).values():
+            for i in ids:
+                if i in recs: pick(recs[i]['payload']['text'])
+    for r in sorted((r for r in recs.values() if r['type'] == 'quiz-bank'), key=lambda r: r['id']):
+        p = r['payload']
+        if r['id'] in country_banks or not p.get('items'): continue
+        pick(p.get('title')); pick(p.get('intro')); lines(p.get('lines'))
+        for iid in p['items']:
+            it = recs.get(iid)
+            if not it: continue
+            q = it['payload']
+            pick(q['prompt'])
+            if q['responseType'] != 'picture-pick':
+                for v in (q.get('options') or {}).values(): pick(v)
+            for v in (q.get('optionSay') or {}).values(): pick(v)
+            for v in (q.get('targets') or {}).values(): pick(v)
+            for f in ('hint', 'feedback', 'explanation'): pick(q.get(f))
+            lines(q.get('lines'))
+            if q['responseType'] == 'true-false':
+                pick(ui.get('quizTrue')); pick(ui.get('quizFalse'))
+    return list(dict.fromkeys(out))

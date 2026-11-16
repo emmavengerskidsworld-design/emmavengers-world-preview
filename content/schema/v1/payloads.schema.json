@@ -223,6 +223,9 @@
     "pos": {
      "type": "string",
      "pattern": "^[0-9]{1,3}% [0-9]{1,3}%$"
+    },
+    "quiz": {
+     "$ref": "#/$defs/ref"
     }
    },
    "allOf": [
@@ -298,6 +301,20 @@
      "then": {
       "required": [
        "country"
+      ]
+     }
+    },
+    {
+     "if": {
+      "properties": {
+       "type": {
+        "const": "bank"
+       }
+      }
+     },
+     "then": {
+      "required": [
+       "quiz"
       ]
      }
     }
@@ -1310,9 +1327,7 @@
   "quizBank": {
    "type": "object",
    "additionalProperties": false,
-   "required": [
-    "items"
-   ],
+   "required": [],
    "properties": {
     "items": {
      "$ref": "#/$defs/refs",
@@ -1323,8 +1338,74 @@
     },
     "roundRules": {
      "type": "object"
+    },
+    "title": {
+     "$ref": "#/$defs/lt"
+    },
+    "intro": {
+     "$ref": "#/$defs/lt"
+    },
+    "rules": {
+     "$ref": "#/$defs/ref"
+    },
+    "ruleOverrides": {
+     "$ref": "#/$defs/quizRules"
+    },
+    "lines": {
+     "$ref": "#/$defs/quizLines"
+    },
+    "generator": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "kind"
+     ],
+     "properties": {
+      "kind": {
+       "enum": [
+        "deck-pick",
+        "count"
+       ]
+      },
+      "min": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 30
+      },
+      "max": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 30
+      },
+      "near": {
+       "type": "array",
+       "items": {
+        "type": "integer",
+        "minimum": -10,
+        "maximum": 10
+       },
+       "minItems": 1,
+       "maxItems": 12
+      },
+      "noRepeatPrevious": {
+       "type": "boolean"
+      }
+     }
     }
-   }
+   },
+   "description": "One quiz: authored questions (items) or questions made from a card deck (generator). rules = a quiz-rules record; ruleOverrides = a few rule values for this quiz only (same shape as quiz-rules).",
+   "anyOf": [
+    {
+     "required": [
+      "items"
+     ]
+    },
+    {
+     "required": [
+      "generator"
+     ]
+    }
+   ]
   },
   "quizItem": {
    "type": "object",
@@ -1332,13 +1413,17 @@
    "required": [
     "responseType",
     "prompt",
-    "options",
     "answerKey"
    ],
    "properties": {
     "responseType": {
      "enum": [
       "single-choice",
+      "picture-pick",
+      "count",
+      "true-false",
+      "order",
+      "match",
       "multi-choice",
       "ordered-choice",
       "select-pair",
@@ -1371,7 +1456,27 @@
      "$ref": "#/$defs/lt"
     },
     "answerKey": {
-     "type": "string"
+     "oneOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 2,
+       "maxItems": 6
+      },
+      {
+       "type": "object",
+       "minProperties": 2,
+       "maxProperties": 6,
+       "additionalProperties": {
+        "type": "string"
+       }
+      }
+     ]
     },
     "readAloudAllowed": {
      "type": "boolean"
@@ -1381,8 +1486,78 @@
     },
     "equivalenceGroup": {
      "type": "string"
+    },
+    "optionMedia": {
+     "type": "object",
+     "maxProperties": 6,
+     "propertyNames": {
+      "pattern": "^[a-z0-9-]{1,32}$"
+     },
+     "additionalProperties": {
+      "$ref": "#/$defs/asset"
+     }
+    },
+    "optionSay": {
+     "type": "object",
+     "maxProperties": 6,
+     "propertyNames": {
+      "pattern": "^[a-z0-9-]{1,32}$"
+     },
+     "additionalProperties": {
+      "$ref": "#/$defs/lt"
+     }
+    },
+    "targets": {
+     "type": "object",
+     "minProperties": 2,
+     "maxProperties": 6,
+     "propertyNames": {
+      "pattern": "^[a-z0-9-]{1,32}$"
+     },
+     "additionalProperties": {
+      "$ref": "#/$defs/lt"
+     }
+    },
+    "promptMedia": {
+     "$ref": "#/$defs/asset"
+    },
+    "count": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "n",
+      "img"
+     ],
+     "properties": {
+      "n": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 20
+      },
+      "img": {
+       "$ref": "#/$defs/asset"
+      },
+      "numbers": {
+       "type": "array",
+       "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 30
+       },
+       "minItems": 2,
+       "maxItems": 6,
+       "uniqueItems": true
+      }
+     }
+    },
+    "explanation": {
+     "$ref": "#/$defs/lt"
+    },
+    "lines": {
+     "$ref": "#/$defs/quizLines"
     }
-   }
+   },
+   "description": "One question. single-choice = pick one text answer; picture-pick = pick one picture (optionMedia); count = count the objects (count.n of count.img) and pick the number; true-false; order = tap the options in the order of answerKey; match = pair each option with a target (answerKey {option: target}). The validator checks each type's fields (tools/content/validate.py type_quiz_item)."
   },
   "story": {
    "type": "object",
@@ -2043,6 +2218,273 @@
       "pattern": "^[a-zA-Z]+\\.[a-zA-Z]+$"
      },
      "description": "settings a parent may change on the device, e.g. 'missions.defaultMode'"
+    }
+   }
+  },
+  "quizLines": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "Ari/Ezra pre-written line records (ew.line.*) - never generated text",
+   "properties": {
+    "start": {
+     "$ref": "#/$defs/refs"
+    },
+    "correct": {
+     "$ref": "#/$defs/refs"
+    },
+    "tryAgain": {
+     "$ref": "#/$defs/refs"
+    },
+    "hint": {
+     "$ref": "#/$defs/refs"
+    },
+    "done": {
+     "$ref": "#/$defs/refs"
+    }
+   }
+  },
+  "quizRules": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "Quiz engine rules as data (ew.quizrules.*). Every rule has its switch and numbers here; a rule the running app does not know is ignored. There is deliberately no place for timers, lives, streaks or leaderboards.",
+   "properties": {
+    "key": {
+     "$ref": "#/$defs/key"
+    },
+    "enabled": {
+     "type": "boolean"
+    },
+    "selection": {
+     "enum": [
+      "random",
+      "fresh-today",
+      "leitner"
+     ],
+     "description": "random = any question; fresh-today = not yet seen today first (then not seen last time), finish-or-practice when used up; leitner = spaced review: due questions first"
+    },
+    "roundSize": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "default": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 30
+      },
+      "byAgeBand": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "5-7": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 30
+        },
+        "8-10": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 30
+        },
+        "11-13": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 30
+        }
+       }
+      }
+     }
+    },
+    "choices": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "default": {
+       "type": "integer",
+       "minimum": 2,
+       "maximum": 6
+      },
+      "byAgeBand": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "5-7": {
+         "type": "integer",
+         "minimum": 2,
+         "maximum": 6
+        },
+        "8-10": {
+         "type": "integer",
+         "minimum": 2,
+         "maximum": 6
+        },
+        "11-13": {
+         "type": "integer",
+         "minimum": 2,
+         "maximum": 6
+        }
+       }
+      }
+     }
+    },
+    "shuffleOptions": {
+     "type": "boolean"
+    },
+    "noRepeatInRound": {
+     "type": "boolean"
+    },
+    "exhaustion": {
+     "enum": [
+      "finish-or-practice",
+      "reshuffle"
+     ]
+    },
+    "retry": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "untilCorrect": {
+       "type": "boolean"
+      },
+      "disableWrong": {
+       "type": "boolean"
+      },
+      "hintAfterTries": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 5
+      },
+      "skipAfterTries": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 5
+      },
+      "hintButton": {
+       "type": "boolean"
+      }
+     }
+    },
+    "stars": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "basis": {
+       "enum": [
+        "mistakes"
+       ]
+      },
+      "three": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 20
+      },
+      "two": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 30
+      },
+      "min": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 3
+      }
+     }
+    },
+    "adaptive": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "enabled": {
+       "type": "boolean"
+      },
+      "start": {
+       "type": "string"
+      },
+      "upAfter": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 10
+      },
+      "downAfter": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 10
+      }
+     }
+    },
+    "spaced": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "intervalsDays": {
+       "type": "array",
+       "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 365
+       },
+       "minItems": 2,
+       "maxItems": 10
+      }
+     }
+    },
+    "voice": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "readQuestionOnShow": {
+       "type": "boolean"
+      },
+      "readAnswersOnShow": {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "5-7": {
+         "type": "boolean"
+        },
+        "8-10": {
+         "type": "boolean"
+        },
+        "11-13": {
+         "type": "boolean"
+        }
+       }
+      },
+      "speakerReadsAnswers": {
+       "type": "boolean"
+      },
+      "pictureAnswers": {
+       "type": "boolean"
+      }
+     }
+    },
+    "feedback": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "praise": {
+       "enum": [
+        "app",
+        "lines"
+       ]
+      },
+      "confetti": {
+       "type": "boolean"
+      },
+      "sound": {
+       "type": "boolean"
+      }
+     }
+    },
+    "progress": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "keepItems": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 5000
+      }
+     }
     }
    }
   }

@@ -38,7 +38,10 @@
    "payload.places.numbers.intro": "Touche un nombre et compte avec moi !",
    "payload.places.count.name": "Compte !",
    "payload.places.count.sub": "Combien ?",
-   "payload.places.count.intro": "On compte ! Touche chaque objet pour le compter, puis choisis le nombre !"
+   "payload.places.count.intro": "On compte ! Touche chaque objet pour le compter, puis choisis le nombre !",
+   "payload.places.quiztime.name": "Quiz !",
+   "payload.places.quiztime.sub": "Touche la réponse",
+   "payload.places.quiztime.intro": "C’est l’heure du quiz ! Écoute chaque question, puis touche ta réponse."
   },
   "ew.land.study": {
    "payload.name": "Pays du Savoir",

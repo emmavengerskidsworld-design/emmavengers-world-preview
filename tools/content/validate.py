@@ -57,7 +57,7 @@ TYPE_PREFIX = {'world': ['world'], 'land': ['land'], 'deck': ['deck'], 'library'
                'character': ['character'], 'strings': ['ui', 'strings'], 'country': ['country'], 'topic': ['topic', 'region'],
                'source': ['source'], 'lesson': ['lesson'], 'learn-card': ['card'], 'activity': ['activity'],
                'quiz-bank': ['quizbank'], 'quiz-item': ['quiz'], 'story': ['story'], 'line': ['line'], 'media': ['media'],
-               'mission': ['mission'], 'together': ['together'], 'settings': ['settings']}
+               'mission': ['mission'], 'together': ['together'], 'settings': ['settings'], 'quiz-rules': ['quizrules']}
 # (record type, path regex) -> required target type(s). Paths use the walk() notation below.
 REF_TYPES = [
     ('*', r'^tags\.topics\[\d+\]$', {'country', 'topic'}),
@@ -79,6 +79,10 @@ REF_TYPES = [
     ('line', r'^payload\.speaker$', {'character'}),
     ('quiz-bank', r'^payload\.items\[\d+\]$', {'quiz-item'}),
     ('quiz-bank', r'^payload\.sources\[\d+\]$', {'source'}),
+    ('quiz-bank', r'^payload\.rules$', {'quiz-rules'}),
+    ('quiz-bank', r'^payload\.lines\.\w+\[\d+\]$', {'line'}),
+    ('quiz-item', r'^payload\.lines\.\w+\[\d+\]$', {'line'}),
+    ('land', r'^payload\.places\[\d+\]\.quiz$', {'quiz-bank'}),
     ('activity', r'^payload\.claimFromQuiz$', {'quiz-item'}),
     ('media', r'^payload\.assetId$', {'media'}),
     ('mission', r'^payload\.speaker$', {'character'}),
@@ -286,6 +290,16 @@ class Validator:
                 self.add('error', 'capability', w, f'place {q["key"]}: go={q.get("go")!r} is not a known module {C["modules"]}')
             if q['type'] == 'quiz' and q.get('mode') not in C.get('placeQuizModes', []):
                 self.add('error', 'capability', w, f'place {q["key"]}: quiz mode {q.get("mode")!r} unknown')
+            if q.get('quiz') and q['quiz'] in self.S.records:
+                bank = self.S.records[q['quiz']]['payload']
+                gen = (bank.get('generator') or {}).get('kind')
+                want = {'quiz': 'deck-pick', 'count': 'count'}.get(q['type'])
+                if q['type'] == 'bank' and not bank.get('items'):
+                    self.add('error', 'quiz', w, f'place {q["key"]}: a bank place needs a quiz bank with items ({q["quiz"]} has none)')
+                elif want and gen != want:
+                    self.add('error', 'quiz', w, f'place {q["key"]}: a {q["type"]} place needs a bank with generator kind {want!r}, {q["quiz"]} has {gen!r}')
+                elif q['type'] not in ('quiz', 'count', 'bank'):
+                    self.add('error', 'quiz', w, f'place {q["key"]}: only quiz, count and bank places use a quiz bank')
             if q.get('ask') and q.get('deck') in self.S.records:
                 items = self.S.records[q['deck']]['payload']['items']
                 fields = set().union(*[set(i) for i in items]) | {'lname'}
@@ -318,19 +332,92 @@ class Validator:
                 self.add('error', 'capability', w, f'shelf {s["key"]}: module {m!r} unknown')
 
     def type_quiz_item(self, rid, r, w):
-        p = r['payload']
-        if p['responseType'] not in self.cap['quizResponseTypes']:
-            planned = p['responseType'] in self.cap.get('plannedQuizResponseTypes', [])
-            self.add('error', 'capability', w, f'responseType {p["responseType"]} is {"planned but not built yet" if planned else "unknown"}')
-        if p['answerKey'] not in p['options']:
-            self.add('error', 'answer', w, f'answerKey {p["answerKey"]!r} is not one of the options {list(p["options"])}')
-        langs = set().union(*[set(t) for t in p['options'].values()])
-        for lg in langs:
-            texts = [t.get(lg) for t in p['options'].values() if t.get(lg)]
-            if len(texts) != len(set(x.strip().lower() for x in texts)):
-                self.add('error', 'answer', w, f'{lg}: two options have the same text')
+        """Each response type has its own fields (docs/quiz-engine.md). The key is bound to option ids, never to positions."""
+        p, t = r['payload'], r['payload']['responseType']
+        if t not in self.cap['quizResponseTypes']:
+            planned = t in self.cap.get('plannedQuizResponseTypes', [])
+            self.add('error', 'capability', w, f'responseType {t} is {"planned but not built yet" if planned else "unknown"}')
+            return
+        opts, key = p.get('options') or {}, p['answerKey']
+        def need(cond, msg):
+            if not cond: self.add('error', 'answer', w, msg)
+            return cond
+        if t in ('single-choice', 'picture-pick', 'order', 'match'):
+            if not need(len(opts) >= 2, f'{t} needs at least 2 options'): return
+        if t in ('single-choice', 'picture-pick'):
+            need(isinstance(key, str) and key in opts, f'answerKey {key!r} is not one of the options {list(opts)}')
+        if t == 'picture-pick':
+            media = p.get('optionMedia') or {}
+            need(set(media) == set(opts), f'picture-pick needs a picture (optionMedia) for every option: missing {sorted(set(opts) - set(media))}')
+            if not p.get('optionSay'):
+                self.add('warn', 'quiz-voice', w, 'picture answers have no optionSay: the voice cannot name them')
+        if t == 'true-false':
+            need(key in ('true', 'false'), 'true-false answerKey must be "true" or "false"')
+            if opts: need(set(opts) == {'true', 'false'}, 'true-false options (if given) must be exactly "true" and "false"')
+        if t == 'count':
+            c = p.get('count')
+            if need(bool(c), 'count needs count: {n, img}'):
+                need(str(key) == str(c['n']), f'count answerKey {key!r} must equal count.n {c["n"]}')
+                if c.get('numbers'): need(c['n'] in c['numbers'], f'count.numbers {c["numbers"]} must include the answer {c["n"]}')
+        if t == 'order':
+            need(isinstance(key, list) and sorted(key) == sorted(opts) and len(set(key)) == len(key),
+                 f'order answerKey must list every option id once, in order: got {key!r} for {list(opts)}')
+        if t == 'match':
+            tg = p.get('targets') or {}
+            if need(len(tg) >= 2, 'match needs targets (the right-hand column)'):
+                need(isinstance(key, dict) and set(key) == set(opts) and set(key.values()) == set(tg) and len(set(key.values())) == len(key),
+                     f'match answerKey must pair every option with a different target: {key!r}')
+        if t not in ('single-choice', 'picture-pick', 'order', 'match', 'true-false') and opts:
+            self.add('warn', 'quiz', w, f'{t} does not use options')
+        for fld in ('optionMedia', 'optionSay'):
+            extra = set(p.get(fld) or {}) - set(opts)
+            if extra: self.add('error', 'answer', w, f'{fld} has ids that are not options: {sorted(extra)}')
+        for grp in (opts, p.get('targets') or {}, p.get('optionSay') or {}):
+            if not grp: continue
+            langs = set().union(*[set(x) for x in grp.values()])
+            for lg in langs:
+                texts = [x.get(lg) for x in grp.values() if x.get(lg)]
+                if len(texts) != len(set(x.strip().lower() for x in texts)):
+                    self.add('error', 'answer', w, f'{lg}: two answers have the same text')
         for f in ('hint', 'feedback'):
             if f not in p: self.add('warn', 'quiz', w, f'no {f}')
+        diff = r['tags'].get('difficulty')
+        for d in (diff if isinstance(diff, list) else [diff] if diff else []):
+            if d not in self.tax.get('difficulty', []): self.add('error', 'tag', w, f'difficulty {d!r} not in taxonomy.difficulty')
+
+    def type_quiz_bank(self, rid, r, w):
+        p = r['payload']
+        if not p.get('items') and not p.get('generator'):
+            self.add('error', 'quiz', w, 'a quiz bank needs items or a generator')
+        g = p.get('generator')
+        if g:
+            if g['kind'] not in self.cap.get('quizGenerators', []):
+                self.add('error', 'capability', w, f'generator {g["kind"]!r} is not built into the app {self.cap.get("quizGenerators")}')
+            if g['kind'] == 'count' and g.get('min') is not None and g.get('max') is not None and g['min'] >= g['max']:
+                self.add('error', 'quiz', w, f'generator min {g["min"]} must be below max {g["max"]}')
+        bands = set(r['tags'].get('ageBands', []))
+        for iid in p.get('items', []):
+            it = self.S.records.get(iid)
+            if it and bands and not set(it['tags'].get('ageBands', [])) <= bands:
+                self.add('warn', 'tag', w, f'item {iid} is for {it["tags"]["ageBands"]}, outside the bank ages {sorted(bands)}')
+        if p.get('ruleOverrides'): self._quiz_rules(p['ruleOverrides'], w, 'ruleOverrides.')
+
+    def type_quiz_rules(self, rid, r, w):
+        self._quiz_rules(r['payload'], w, '')
+
+    def _quiz_rules(self, p, w, pre):
+        st = p.get('stars') or {}
+        if 'three' in st and 'two' in st and st['two'] < st['three']:
+            self.add('error', 'quiz-rules', w, f'{pre}stars.two ({st["two"]}) must be >= stars.three ({st["three"]}) - more mistakes allowed for 2 stars than for 3')
+        a = p.get('adaptive') or {}
+        if a.get('start') and a['start'] not in self.tax.get('difficulty', []):
+            self.add('error', 'quiz-rules', w, f'{pre}adaptive.start {a["start"]!r} not in taxonomy.difficulty')
+        iv = (p.get('spaced') or {}).get('intervalsDays')
+        if iv and iv != sorted(iv):
+            self.add('error', 'quiz-rules', w, f'{pre}spaced.intervalsDays must go up: {iv}')
+        rt = p.get('retry') or {}
+        if rt.get('untilCorrect') is False and rt.get('skipAfterTries') == 0:
+            self.add('warn', 'quiz-rules', w, f'{pre}retry: no retry and no skip - a child could be stuck')
 
     def type_activity(self, rid, r, w):
         p = r['payload']
@@ -473,10 +560,13 @@ class Validator:
                     self.add('error', 'ref-type', w, f'{path}: {v} is a {tgt["type"]}, expected {"/".join(sorted(want))}')
                 tp = S.pack_of(v)
                 soft = r['type'] == 'land' and path.endswith('.country')
+                # a land place may point at a draft quiz bank: on a channel that leaves the bank out, the build drops
+                # the place (type bank) or just its "quiz" link (deck quizzes keep working with the built-in rules)
+                qsoft = r['type'] == 'land' and path.endswith('.quiz')
                 if tp != mypack and tp != 'core':
                     if soft: self.soft_links.append((rid, v))
                     else: self.add('error', 'pack-dependency', w, f'{path}: {v} is in pack {tp}; a pack may only use its own records and core')
-                if rid not in self.excluded and v in self.excluded and not soft and path != 'payload.assetId':
+                if rid not in self.excluded and v in self.excluded and not soft and not qsoft and path != 'payload.assetId':
                     self.add('error', 'ref-status', w, f'{path}: {v} has status {tgt["status"]}, which the {self.channel} channel leaves out')
                 if tgt.get('status') == 'withdrawn' and rid not in self.excluded:
                     self.add('error', 'withdrawn', w, f'{path}: uses withdrawn record {v}')
@@ -587,6 +677,7 @@ class Validator:
                 L = legacy.lands(recs, self.locales, ch, seen)
                 ui = legacy.ui_spoken(recs, ch, seen)
                 for t in legacy.world_spoken(L, seen, ui): got.setdefault(t, ('core', seen.get(t, lcfg.get('sourceLocale', 'en'))))
+                for t, lg in legacy.quiz_spoken(recs, ch): got.setdefault(t, ('core', lg))
                 uic = legacy.ui_strings(recs) if 'ew.ui.country-player' in recs else None
                 for r in recs.values():
                     if r['type'] == 'country':

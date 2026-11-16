@@ -97,6 +97,13 @@
     },
     "uniqueItems": true
    }
+  },
+  "quizGenerators": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "uniqueItems": true
   }
  }
 }

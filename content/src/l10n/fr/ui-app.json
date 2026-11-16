@@ -70,7 +70,17 @@
    "payload.strings.voiceOffMsg": "Voix coupée. Tu peux lire par toi-même !",
    "payload.strings.voiceOn": "Voix activée !",
    "payload.strings.friendVoicesEnglish": "Les voix amies parlent anglais. Les autres langues ont leur propre voix.",
-   "payload.strings.updateReady": "✨ Nouvelle version prête ! Touche pour l'ouvrir"
+   "payload.strings.updateReady": "✨ Nouvelle version prête ! Touche pour l'ouvrir",
+   "payload.strings.quizTrue": "Vrai",
+   "payload.strings.quizFalse": "Faux",
+   "payload.strings.quizHint": "Indice",
+   "payload.strings.quizSkip": "Passer",
+   "payload.strings.quizCheck": "Vérifier",
+   "payload.strings.quizUndo": "Annuler",
+   "payload.strings.quizOrderHelp": "Touche-les dans le bon ordre",
+   "payload.strings.quizMatchHelp": "Touche un mot à gauche, puis son partenaire",
+   "payload.strings.quizQuestion": "Question {n, number} sur {total, number}",
+   "payload.strings.quizFinished": "Tu as fini {name} !"
   }
  }
 }

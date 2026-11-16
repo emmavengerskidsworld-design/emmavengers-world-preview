@@ -1,0 +1,1173 @@
+{
+ "$schema": "../../schema/v1/source-file.schema.json",
+ "note": "Quiz engine (Stage 3, docs/quiz-engine.md): engine rules as data (quiz-rules), the Ari/Ezra quiz lines, the land quizzes' banks (questions generated from the place's deck) and the 'Quiz Time!' sampler (draft, preview only: one question of each type).",
+ "records": [
+  {
+   "id": "ew.quizrules.default",
+   "type": "quiz-rules",
+   "status": "published",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3: the gentle default rules for new quizzes (docs/quiz-engine.md section 1): spaced review (Leitner), simple adaptive difficulty, hint and Skip after one miss, every answer read aloud for ages 5-7, no timers, no lives. Pending Emmanuel's approval with Stage 3."
+   },
+   "payload": {
+    "key": "default",
+    "enabled": true,
+    "selection": "leitner",
+    "roundSize": {
+     "default": 5,
+     "byAgeBand": {
+      "5-7": 4,
+      "8-10": 5,
+      "11-13": 6
+     }
+    },
+    "choices": {
+     "default": 3,
+     "byAgeBand": {
+      "5-7": 3,
+      "8-10": 3,
+      "11-13": 4
+     }
+    },
+    "shuffleOptions": true,
+    "noRepeatInRound": true,
+    "exhaustion": "reshuffle",
+    "retry": {
+     "untilCorrect": true,
+     "disableWrong": true,
+     "hintAfterTries": 1,
+     "skipAfterTries": 1,
+     "hintButton": true
+    },
+    "stars": {
+     "basis": "mistakes",
+     "three": 1,
+     "two": 2,
+     "min": 1
+    },
+    "adaptive": {
+     "enabled": true,
+     "start": "starter",
+     "upAfter": 3,
+     "downAfter": 2
+    },
+    "spaced": {
+     "intervalsDays": [
+      0,
+      1,
+      3,
+      7,
+      14,
+      30
+     ]
+    },
+    "voice": {
+     "readQuestionOnShow": true,
+     "readAnswersOnShow": {
+      "5-7": true,
+      "8-10": false,
+      "11-13": false
+     },
+     "speakerReadsAnswers": true,
+     "pictureAnswers": true
+    },
+    "feedback": {
+     "praise": "lines",
+     "confetti": true,
+     "sound": true
+    },
+    "progress": {
+     "keepItems": 2000
+    }
+   }
+  },
+  {
+   "id": "ew.quizrules.land-classic",
+   "type": "quiz-rules",
+   "status": "published",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+   },
+   "payload": {
+    "key": "land-classic",
+    "enabled": true,
+    "selection": "random",
+    "roundSize": {
+     "default": 8
+    },
+    "choices": {
+     "default": 3
+    },
+    "shuffleOptions": true,
+    "noRepeatInRound": true,
+    "exhaustion": "reshuffle",
+    "retry": {
+     "untilCorrect": true,
+     "disableWrong": true,
+     "hintAfterTries": 0,
+     "skipAfterTries": 0,
+     "hintButton": false
+    },
+    "stars": {
+     "basis": "mistakes",
+     "three": 1,
+     "two": 2,
+     "min": 1
+    },
+    "adaptive": {
+     "enabled": false
+    },
+    "voice": {
+     "readQuestionOnShow": true,
+     "readAnswersOnShow": {
+      "5-7": false,
+      "8-10": false,
+      "11-13": false
+     },
+     "speakerReadsAnswers": false,
+     "pictureAnswers": false
+    },
+    "feedback": {
+     "praise": "app",
+     "confetti": true,
+     "sound": true
+    }
+   }
+  },
+  {
+   "id": "ew.quizrules.country-classic",
+   "type": "quiz-rules",
+   "status": "published",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+   },
+   "payload": {
+    "key": "country-classic",
+    "enabled": true,
+    "selection": "fresh-today",
+    "shuffleOptions": true,
+    "noRepeatInRound": true,
+    "exhaustion": "finish-or-practice",
+    "retry": {
+     "untilCorrect": true,
+     "disableWrong": true,
+     "hintAfterTries": 1,
+     "skipAfterTries": 1,
+     "hintButton": true
+    },
+    "adaptive": {
+     "enabled": false
+    },
+    "voice": {
+     "readQuestionOnShow": true,
+     "readAnswersOnShow": {
+      "5-7": true,
+      "8-10": false,
+      "11-13": false
+     },
+     "speakerReadsAnswers": true,
+     "pictureAnswers": false
+    },
+    "feedback": {
+     "praise": "lines",
+     "confetti": false,
+     "sound": true
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ari-correct-1",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ari.correct.1",
+    "speaker": "ew.character.ari",
+    "text": {
+     "en": "Yes! You got it!",
+     "fr": "Oui ! Tu as trouvé !"
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ari-correct-2",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ari.correct.2",
+    "speaker": "ew.character.ari",
+    "text": {
+     "en": "Well done! You found it!",
+     "fr": "Bravo ! Tu l’as trouvé !"
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ari-correct-3",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ari.correct.3",
+    "speaker": "ew.character.ari",
+    "text": {
+     "en": "Great thinking!",
+     "fr": "Belle réflexion !"
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ari-tryagain-1",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ari.tryagain.1",
+    "speaker": "ew.character.ari",
+    "text": {
+     "en": "Nice try! Let's look again.",
+     "fr": "Bel essai ! Regardons encore."
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ari-tryagain-2",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ari.tryagain.2",
+    "speaker": "ew.character.ari",
+    "text": {
+     "en": "Almost! Try another one.",
+     "fr": "Presque ! Essaie une autre réponse."
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ezra-hint",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ezra.hint",
+    "speaker": "ew.character.ezra",
+    "text": {
+     "en": "Here is a little help.",
+     "fr": "Voici un petit coup de pouce."
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ezra-start",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ezra.start",
+    "speaker": "ew.character.ezra",
+    "text": {
+     "en": "Listen, then tap your answer.",
+     "fr": "Écoute, puis touche ta réponse."
+    }
+   }
+  },
+  {
+   "id": "ew.line.quiz-ari-done",
+   "type": "line",
+   "status": "draft",
+   "tags": {
+    "land": null,
+    "ageBands": [
+     "5-7",
+     "8-10",
+     "11-13"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft: pre-written Ari/Ezra quiz lines (gentle, about the task, never about the child). French is a machine draft pending a fluent review. Needs Emmanuel's approval."
+   },
+   "payload": {
+    "key": "quiz.ari.done",
+    "speaker": "ew.character.ari",
+    "text": {
+     "en": "You finished the quiz! Thank you for learning with me.",
+     "fr": "Tu as fini le quiz ! Merci d’avoir appris avec moi."
+    }
+   }
+  },
+  {
+   "id": "ew.quizbank.letter-hunt",
+   "type": "quiz-bank",
+   "status": "published",
+   "tags": {
+    "land": "letter",
+    "ageBands": [
+     "5-7"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+   },
+   "evidence": {
+    "note": "Letter Hunt: questions are made from the place's card deck by the engine (generator deck-pick); the words and pictures stay in the deck and the place."
+   },
+   "payload": {
+    "generator": {
+     "kind": "deck-pick"
+    },
+    "rules": "ew.quizrules.land-classic"
+   }
+  },
+  {
+   "id": "ew.quizbank.animal-quiz",
+   "type": "quiz-bank",
+   "status": "published",
+   "tags": {
+    "land": "nature",
+    "ageBands": [
+     "5-7"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+   },
+   "evidence": {
+    "note": "Animal Quiz: questions are made from the place's card deck by the engine (generator deck-pick); the words and pictures stay in the deck and the place."
+   },
+   "payload": {
+    "generator": {
+     "kind": "deck-pick"
+    },
+    "rules": "ew.quizrules.land-classic"
+   }
+  },
+  {
+   "id": "ew.quizbank.flag-quiz",
+   "type": "quiz-bank",
+   "status": "published",
+   "tags": {
+    "land": "world",
+    "ageBands": [
+     "5-7"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+   },
+   "evidence": {
+    "note": "Flag Quiz: questions are made from the place's card deck by the engine (generator deck-pick); the words and pictures stay in the deck and the place."
+   },
+   "payload": {
+    "generator": {
+     "kind": "deck-pick"
+    },
+    "rules": "ew.quizrules.land-classic"
+   }
+  },
+  {
+   "id": "ew.quizbank.count-it",
+   "type": "quiz-bank",
+   "status": "published",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3: the rules the already-live quizzes always used, now written as data (no change for children). Ships with Stage 3 only after Emmanuel approves it."
+   },
+   "evidence": {
+    "note": "Count It!: questions are made from the place's card deck by the engine (generator count); the words and pictures stay in the deck and the place."
+   },
+   "payload": {
+    "generator": {
+     "kind": "count",
+     "min": 1,
+     "max": 10,
+     "near": [
+      -2,
+      -1,
+      1,
+      2,
+      3,
+      -3
+     ],
+     "noRepeatPrevious": true
+    },
+    "rules": "ew.quizrules.land-classic"
+   }
+  },
+  {
+   "id": "ew.quizbank.quiztime",
+   "type": "quiz-bank",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ]
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "payload": {
+    "title": {
+     "en": "Quiz Time!",
+     "fr": "C’est l’heure du quiz !"
+    },
+    "intro": {
+     "en": "Quiz time! Listen to each question, then tap your answer.",
+     "fr": "C’est l’heure du quiz ! Écoute chaque question, puis touche ta réponse."
+    },
+    "items": [
+     "ew.quiz.quiztime-after-four",
+     "ew.quiz.quiztime-find-banana",
+     "ew.quiz.quiztime-count-stars",
+     "ew.quiz.quiztime-three-more",
+     "ew.quiz.quiztime-order-123",
+     "ew.quiz.quiztime-match-words",
+     "ew.quiz.quiztime-biggest",
+     "ew.quiz.quiztime-five-five"
+    ],
+    "rules": "ew.quizrules.default",
+    "lines": {
+     "start": [
+      "ew.line.quiz-ezra-start"
+     ],
+     "correct": [
+      "ew.line.quiz-ari-correct-1",
+      "ew.line.quiz-ari-correct-2",
+      "ew.line.quiz-ari-correct-3"
+     ],
+     "tryAgain": [
+      "ew.line.quiz-ari-tryagain-1",
+      "ew.line.quiz-ari-tryagain-2"
+     ],
+     "hint": [
+      "ew.line.quiz-ezra-hint"
+     ],
+     "done": [
+      "ew.line.quiz-ari-done"
+     ]
+    }
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-after-four",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "starter"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "single-choice",
+    "prompt": {
+     "en": "Which number comes after 4?",
+     "fr": "Quel nombre vient après 4 ?"
+    },
+    "options": {
+     "a": {
+      "en": "3",
+      "fr": "3"
+     },
+     "b": {
+      "en": "5",
+      "fr": "5"
+     },
+     "c": {
+      "en": "7",
+      "fr": "7"
+     }
+    },
+    "answerKey": "b",
+    "shuffleOptions": true,
+    "hint": {
+     "en": "Count up: one, two, three, four. What comes next?",
+     "fr": "Compte : un, deux, trois, quatre. Qu’est-ce qui vient ensuite ?"
+    },
+    "feedback": {
+     "en": "Yes! Five comes after four.",
+     "fr": "Oui ! Cinq vient après quatre."
+    },
+    "readAloudAllowed": true
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-find-banana",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "literacy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "starter"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "picture-pick",
+    "prompt": {
+     "en": "Find the banana!",
+     "fr": "Trouve la banane !"
+    },
+    "options": {
+     "apple": {
+      "en": "apple",
+      "fr": "pomme"
+     },
+     "banana": {
+      "en": "banana",
+      "fr": "banane"
+     },
+     "ball": {
+      "en": "ball",
+      "fr": "ballon"
+     }
+    },
+    "optionMedia": {
+     "apple": "img/world/numbers/apple.webp",
+     "banana": "img/world/numbers/banana.webp",
+     "ball": "img/world/numbers/ball.webp"
+    },
+    "optionSay": {
+     "apple": {
+      "en": "An apple.",
+      "fr": "Une pomme."
+     },
+     "banana": {
+      "en": "A banana.",
+      "fr": "Une banane."
+     },
+     "ball": {
+      "en": "A ball.",
+      "fr": "Un ballon."
+     }
+    },
+    "answerKey": "banana",
+    "shuffleOptions": true,
+    "hint": {
+     "en": "A banana is long and yellow.",
+     "fr": "Une banane est longue et jaune."
+    },
+    "feedback": {
+     "en": "Yes! That is the banana.",
+     "fr": "Oui ! C’est la banane."
+    },
+    "readAloudAllowed": true
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-count-stars",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "starter"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "count",
+    "prompt": {
+     "en": "How many stars can you count?",
+     "fr": "Combien d’étoiles peux-tu compter ?"
+    },
+    "count": {
+     "n": 4,
+     "img": "img/world/numbers/star.webp"
+    },
+    "answerKey": "4",
+    "hint": {
+     "en": "Tap each star to count it.",
+     "fr": "Touche chaque étoile pour la compter."
+    },
+    "feedback": {
+     "en": "Yes! Four stars!",
+     "fr": "Oui ! Quatre étoiles !"
+    },
+    "readAloudAllowed": true
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-three-more",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "core"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "true-false",
+    "prompt": {
+     "en": "Three is more than two. True or false?",
+     "fr": "Trois, c’est plus que deux. Vrai ou faux ?"
+    },
+    "answerKey": "true",
+    "hint": {
+     "en": "Show three fingers, then two fingers. Which is more?",
+     "fr": "Montre trois doigts, puis deux doigts. Lequel en a le plus ?"
+    },
+    "feedback": {
+     "en": "True! Three is more than two.",
+     "fr": "Vrai ! Trois, c’est plus que deux."
+    },
+    "readAloudAllowed": true
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-order-123",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "core"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "order",
+    "prompt": {
+     "en": "Put the numbers in order. Start with the smallest!",
+     "fr": "Mets les nombres dans l’ordre. Commence par le plus petit !"
+    },
+    "options": {
+     "a": {
+      "en": "1",
+      "fr": "1"
+     },
+     "b": {
+      "en": "2",
+      "fr": "2"
+     },
+     "c": {
+      "en": "3",
+      "fr": "3"
+     }
+    },
+    "answerKey": [
+     "a",
+     "b",
+     "c"
+    ],
+    "shuffleOptions": true,
+    "hint": {
+     "en": "Start with one.",
+     "fr": "Commence par un."
+    },
+    "feedback": {
+     "en": "Yes! One, two, three!",
+     "fr": "Oui ! Un, deux, trois !"
+    },
+    "readAloudAllowed": true
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-match-words",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "core"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "match",
+    "prompt": {
+     "en": "Match each number to its word.",
+     "fr": "Relie chaque nombre à son mot."
+    },
+    "options": {
+     "n1": {
+      "en": "1",
+      "fr": "1"
+     },
+     "n2": {
+      "en": "2",
+      "fr": "2"
+     },
+     "n3": {
+      "en": "3",
+      "fr": "3"
+     }
+    },
+    "targets": {
+     "one": {
+      "en": "One",
+      "fr": "Un"
+     },
+     "two": {
+      "en": "Two",
+      "fr": "Deux"
+     },
+     "three": {
+      "en": "Three",
+      "fr": "Trois"
+     }
+    },
+    "answerKey": {
+     "n1": "one",
+     "n2": "two",
+     "n3": "three"
+    },
+    "shuffleOptions": true,
+    "hint": {
+     "en": "Say the number out loud, then find its word.",
+     "fr": "Dis le nombre à voix haute, puis trouve son mot."
+    },
+    "feedback": {
+     "en": "Well done! You matched them all!",
+     "fr": "Bravo ! Tu as tout relié !"
+    },
+    "readAloudAllowed": true
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-biggest",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "stretch"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "single-choice",
+    "prompt": {
+     "en": "Which is the biggest number?",
+     "fr": "Quel est le plus grand nombre ?"
+    },
+    "options": {
+     "a": {
+      "en": "2",
+      "fr": "2"
+     },
+     "b": {
+      "en": "9",
+      "fr": "9"
+     },
+     "c": {
+      "en": "6",
+      "fr": "6"
+     }
+    },
+    "answerKey": "b",
+    "shuffleOptions": true,
+    "hint": {
+     "en": "Count up to nine. Which number comes last?",
+     "fr": "Compte jusqu’à neuf. Quel nombre arrive en dernier ?"
+    },
+    "feedback": {
+     "en": "Yes! Nine is the biggest.",
+     "fr": "Oui ! Neuf est le plus grand."
+    },
+    "readAloudAllowed": true
+   }
+  },
+  {
+   "id": "ew.quiz.quiztime-five-five",
+   "type": "quiz-item",
+   "status": "draft",
+   "tags": {
+    "land": "number",
+    "ageBands": [
+     "5-7"
+    ],
+    "subjects": [
+     "numeracy"
+    ],
+    "modes": [
+     "quiz"
+    ],
+    "difficulty": "stretch"
+   },
+   "evidence": {
+    "factual": false,
+    "note": "Counting, comparing and ordering small numbers / naming pictured objects: no factual claim that needs a source."
+   },
+   "l10n": {
+    "fr": {
+     "status": "machine-draft-pending-fluent-review"
+    }
+   },
+   "review": {
+    "ownerRole": "product-owner",
+    "note": "Stage 3 draft for the preview site: one question of each type the engine plays, for Emmanuel to try. Arithmetic and pictures only (no facts needing sources). French is a machine draft pending a fluent review."
+   },
+   "payload": {
+    "responseType": "true-false",
+    "prompt": {
+     "en": "Five and five make ten. True or false?",
+     "fr": "Cinq et cinq font dix. Vrai ou faux ?"
+    },
+    "answerKey": "true",
+    "hint": {
+     "en": "Count five fingers on each hand.",
+     "fr": "Compte cinq doigts sur chaque main."
+    },
+    "feedback": {
+     "en": "True! Five and five make ten.",
+     "fr": "Vrai ! Cinq et cinq font dix."
+    },
+    "readAloudAllowed": true
+   }
+  }
+ ]
+}

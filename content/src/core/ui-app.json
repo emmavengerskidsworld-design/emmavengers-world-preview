@@ -214,6 +214,36 @@
      },
      "updateReady": {
       "en": "✨ New update ready! Tap to open"
+     },
+     "quizTrue": {
+      "en": "True"
+     },
+     "quizFalse": {
+      "en": "False"
+     },
+     "quizHint": {
+      "en": "Hint"
+     },
+     "quizSkip": {
+      "en": "Skip"
+     },
+     "quizCheck": {
+      "en": "Check"
+     },
+     "quizUndo": {
+      "en": "Undo"
+     },
+     "quizOrderHelp": {
+      "en": "Tap them in the right order"
+     },
+     "quizMatchHelp": {
+      "en": "Tap one on the left, then its partner"
+     },
+     "quizQuestion": {
+      "en": "Question {n, number} of {total, number}"
+     },
+     "quizFinished": {
+      "en": "You finished {name}!"
      }
     }
    }
